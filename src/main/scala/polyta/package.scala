@@ -13,6 +13,7 @@ package object polyta {
     def elemAt(qv: QVector, i: Int): Rational = qv(i)
     def toIndexedSeq(qv: QVector): IndexedSeq[Rational] = qv.toIndexedSeq
   }
+
   final class QVectorPermutationAction[P: FiniteGroup: FaithfulPermutationAction] extends NullboxPartialAction[QVector, P]{
     import net.alasc.syntax.permutationAction._
     import spire.syntax.group._
@@ -26,6 +27,6 @@ package object polyta {
         Nullbox(QVector.tabulate(qv.length)( i => qv(i <|+| p) ))
 
     def partialActr(qv: QVector, p: P): Nullbox[QVector] = partialActl(p.inverse, qv)
-
   }
+  implicit def QVectorPermutationAction[P: FiniteGroup: FaithfulPermutationAction]: NullboxPartialAction[QVector, P] = new QVectorPermutationAction[P]
 }
