@@ -1,7 +1,8 @@
 package com.faacets
 package polyta
 
-import qalg._
+import spire.math.Rational
+import qalg.immutable.{QMatrix, QVector}
 import net.alasc.math.{Grp, Perm}
 
 /** Polytope with rational extremal points.
@@ -33,11 +34,8 @@ class SymPolytope(mySymHRepr: Option[SymHRepr], mySymVRepr: Option[SymVRepr]) ex
 }
  */
 
-abstract class PolytopeRepr {
-  def dim: Integer
-  /*  def maximize(coefficients: alg.QVector): Rational = minimize(-coefficients)
- def minimize(coefficients: alg.QVector): Rational*/
-}
+
+
 
 /** Half-plane representation of a polytope.
   * 
