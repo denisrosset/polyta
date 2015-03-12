@@ -13,7 +13,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
-  "org.scalatest" % "scalatest_2.10" % "2.2.1" % "test",
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.spire-math" %% "spire" % "0.9.1",
   "net.alasc" %% "alasc" % "0.9.1-SNAPSHOT",
   "com.faacets" %% "qalg" % "0.9.1-SNAPSHOT",
