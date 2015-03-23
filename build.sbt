@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.spire-math" %% "spire" % "0.9.1",
   "net.alasc" %% "alasc" % "0.9.1-SNAPSHOT",
+  "net.alasc" %% "alasc-qalg-binding" % "0.9.1-SNAPSHOT",
   "com.faacets" %% "qalg" % "0.9.1-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
 )

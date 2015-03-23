@@ -1,0 +1,10 @@
+package com.faacets
+package polyta
+
+trait ConvertHToV[H <: HPolyhedron, V <: VPolyhedron] {
+  def convert(h: H): V
+}
+
+trait ConvertVToH[V <: VPolyhedron, H <: HPolyhedron] {
+  def convert(v: V): H
+}
