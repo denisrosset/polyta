@@ -1,0 +1,64 @@
+package com.faacets
+package polyta
+package solvers
+
+import java.io.{File, PrintWriter}
+
+import scala.{specialized => sp}
+
+import scala.sys.process._
+import scala.collection.BitSet
+
+import spire.math.Rational
+import spire.util._
+
+import qalg.algebra._
+import qalg.syntax.all._
+
+import formats._
+import formats.qsopt._
+
+object QSopt_ex {
+  def apply[M, V] = new QSopt_ex[M, V]
+}
+
+class QSopt_ex[M, V] extends MixedLinearSolver[M, V, Rational] {
+  def binaryName = "esolver"
+  def solveMILP(milp: MixedLinearProgram[M, V, Rational]): SolverResult[V, Rational] = {
+    import milp.{MV, V, A}
+    val name = "program"
+    val inputFile = File.createTempFile(name, ".lp")
+    val outputFile = File.createTempFile(name, ".sol")
+    val objectiveName = "obj"
+    val variableNames = (1 to milp.nX).map(k => "x" + k.toString)
+    val ineqConstraintNames = (1 to milp.feasibleSet.nIneqs).map(k => "ineq" + k.toString)
+    val eqConstraintNames = (1 to milp.feasibleSet.nEqs).map(k => "eq" + k.toString)
+    val lpData = LPData[M,V,Rational](None, "obj", variableNames, ineqConstraintNames, eqConstraintNames, milp)
+    val writer = new PrintWriter(inputFile)
+    writer.write(lpData.toText)
+    writer.close
+    val dummyLogger = ProcessLogger(x => (), x => ())
+    val exitCode = Seq(binaryName, "-O", outputFile.getAbsolutePath, inputFile.getAbsolutePath).!(dummyLogger)
+    require(exitCode == 0)
+
+    val source = scala.io.Source.fromFile(outputFile)
+    val content = source.getLines.mkString("\n") + "\n"
+    source.close
+    inputFile.delete
+    outputFile.delete
+    val parser = new SolFormatParser[Rational] with RationalParser { def value = rational }
+    val res = parser.parseAll(parser.data, content).get
+    val variableMap = variableNames.zipWithIndex.toMap
+    res.status match {
+      case OptimumFound =>
+        val value = res.optimalValue.get
+        val solution = V.fromFunV(new FunV[Rational] {
+          def len = milp.nX
+          def f(k: Int): Rational = 
+            res.variables.getOrElse(variableNames(k), A.zero)
+        })
+        SolverResult.optimumFound(value, solution)
+      case _ => SolverResult.noOptimum(res.status)
+    }
+  }
+}

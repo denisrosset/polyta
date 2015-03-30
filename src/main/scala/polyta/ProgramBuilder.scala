@@ -2,8 +2,10 @@ package com.faacets
 package polyta
 
 import scala.language.implicitConversions
+import scala.language.experimental.macros
 
 import scala.{specialized => sp}
+
 import scala.collection.mutable.ArrayBuffer
 
 import spire.algebra._
@@ -16,20 +18,21 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-trait LinearProgramBuilder[M, V, @sp(Double) A] {
+trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
   implicit def MV: MatVecInField[M, V, A]
   implicit def V: VecInField[V, A] = MV.V
   implicit def A: Field[A] = MV.scalar
 
   val varNames = ArrayBuffer.empty[String]
 
-  object Var {
+  implicit object Var {
     def apply(name: String): LinExpr = {
       varNames += name
       val index = varNames.size - 1
       LinExpr(Map(index -> A.one), A.zero)
     }
   }
+
   sealed trait ConstraintType
   case object EQ extends ConstraintType
   case object LE extends ConstraintType
@@ -106,19 +109,4 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] {
     })
     LinearProgram(dir, vobj, HPolyhedron(mA, vb, mAeq, vbeq), Box.unbounded[M, V, A](nX))
   }
-}
-
-import qalg.math._
-
-object Test extends LinearProgramBuilder[DenseM[Rational], DenseV[Rational], Rational] {
-  def MV = MatVecInField[DenseM[Rational], DenseV[Rational], Rational]
-  val x1 = Var("x1")
-  val x2 = Var("x2")
-  minimize(2 *: x1 + x2)
-  subjectTo(
-    -x1 + x2 <= 1,
-    x1 + x2 >= 2,
-    x2 >= 0,
-    x1 - 2 *: x2 <= 4
-  )
 }

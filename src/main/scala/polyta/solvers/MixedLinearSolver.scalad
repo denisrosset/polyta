@@ -1,0 +1,14 @@
+package com.faacets
+package polyta
+package solvers
+
+import scala.{specialized => sp}
+
+trait LinearSolver[M, V, @sp(Double) A] {
+  def solveLP(lp: LinearProgram[M, V, A]): SolverResult[V, A]
+}
+
+trait MixedLinearSolver[M, V, @sp(Double) A] extends LinearSolver[M, V, A] {
+  def solveMILP(milp: MixedLinearProgram[M, V, A]): SolverResult[V, A]
+  def solveLP(lp: LinearProgram[M, V, A]): SolverResult[V, A] = solveMILP(lp)
+}

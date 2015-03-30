@@ -12,6 +12,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "org.bitbucket.inkytonik.dsinfo" %% "dsinfo" % "0.4.0",
   "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.spire-math" %% "spire" % "0.9.1",
@@ -22,3 +23,10 @@ libraryDependencies ++= Seq(
 )
 
 scalacOptions ++= Seq("-unchecked", "-feature", "-deprecation") 
+
+initialCommands in console := """
+import com.faacets._; import qalg._; import polyta._
+import spire.math.Rational; import qalg.math._
+
+"""
+

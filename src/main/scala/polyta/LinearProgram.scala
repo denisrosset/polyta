@@ -14,15 +14,6 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-trait MixedLinearProgram[M, V, @sp(Double) A] extends ConvexProgram[M, V, A] {
-  override def toString = s"LinearProgram($direction, $objective, $feasibleSet, $bounds)"
-  def feasibleSet: HPolyhedron[M, V, A]
-  def bounds: Box[M, V, A]
-  def integerVariables: BitSet
-  def nX = feasibleSet.nX
-  require(nX == bounds.nX)
-}
-
 trait LinearProgram[M, V, @sp(Double) A] extends MixedLinearProgram[M, V, A] {
   override def toString = s"LinearProgram($direction, $objective, $feasibleSet, $bounds)"
   def feasibleSet: HPolyhedron[M, V, A]
@@ -30,7 +21,6 @@ trait LinearProgram[M, V, @sp(Double) A] extends MixedLinearProgram[M, V, A] {
   def integerVariables: BitSet = BitSet.empty
   require(nX == bounds.nX)
 }
-
 
 object LinearProgram {
   def apply[M, V, @sp(Double) A](direction0: Direction, objective0: V, feasibleSet0: HPolyhedron[M, V, A], bounds0: Box[M, V, A])(implicit MV0: MatVecInField[M, V, A]): LinearProgram[M, V, A] =
