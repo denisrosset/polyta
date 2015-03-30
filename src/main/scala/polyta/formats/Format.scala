@@ -65,6 +65,17 @@ object Format {
     }
     if (!wroteSomething) out.write(zero.toString)
   }
+
+  def writeVectorSep[V, @sp(Double) A: Field: Order](vec: V, sep: String, out: Writer)(implicit V: Vec[V, A]): Unit = {
+    var prefix = ""
+    cforRange(0 until vec.length) { k =>
+      out.write(prefix)
+      out.write(vec(k).toString)
+      prefix = sep
+    }
+    out.write("\n")
+  }
+
   def writeVector[V, @sp(Double) A: Field: Order](vec: V, variableNames: Seq[String], out: Writer)(implicit V: Vec[V, A]): Unit = {
     var wroteSomething: Boolean = false
     var plusString = ""

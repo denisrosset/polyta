@@ -31,30 +31,19 @@ trait IEQDataWrite[M, V] extends Any {
     out.write("\n\n")
   }
 
-  def writeVector(v: V, out: Writer): Unit = {
-    var prefix = ""
-    cforRange(0 until v.length) { k =>
-      out.write(prefix)
-      out.write(v(k).toString)
-      prefix = " "
-    }
-    out.write("\n")
-  }
-
-
   def writeValid(valid: V, out: Writer): Unit = {
     out.write("VALID\n")
-    writeVector(valid, out)
+    Format.writeVectorSep[V, Rational](valid, " ", out)
   }
 
   def writeLowerBounds(lowerBounds: V, out: Writer): Unit = {
     out.write("LOWER_BOUNDS\n")
-    writeVector(lowerBounds, out)
+    Format.writeVectorSep[V, Rational](lowerBounds, " ", out)
   }
 
   def writeUpperBounds(upperBounds: V, out: Writer): Unit = {
     out.write("UPPER_BOUNDS\n")
-    writeVector(upperBounds, out)
+    Format.writeVectorSep[V, Rational](upperBounds, " ", out)
   }
 
   def writeEliminationOrder(d: Int, eliminationOrder: Seq[Int], out: Writer): Unit = {
