@@ -17,7 +17,7 @@ trait FormatRead[Data] {
   def parse(in: String): Parser.ParseResult[Data] = Parser.parseAll(Parser.data, in)
 }
 
-trait FormatWrite[Data] {
+trait FormatWrite[Data] extends Any {
   def write(data: Data): String
   def write(data: Data, out: Writer): Unit
 }

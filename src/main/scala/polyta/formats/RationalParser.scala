@@ -18,21 +18,24 @@ import qalg.algos._
 import qalg.syntax.all._
 
 trait RationalParser extends RegexParsers {
+  val integerRegex = """(-|+)?\d+""".r
   def sign = ("+" ^^^ 1) | ("-" ^^^ -1)
-  def bigInt: Parser[BigInt] = """-?\d+""".r ^^ { BigInt(_) }
-  def positiveBigInt: Parser[BigInt] = """\d+""".r ^^ { BigInt(_) }
-
-  def positiveRational: Parser[Rational] = positiveBigInt ~ opt("/" ~> positiveBigInt) ^^ {
+  def bigInt: Parser[BigInt] = integerRegex ^^ { BigInt(_) }
+  def int: Parser[Int] = integerRegex ^^ { _.toInt }
+  def nonNegativeBigInt: Parser[BigInt] = """\d+""".r ^^ { BigInt(_) }
+  def nonNegativeInt: Parser[Int] = """\d+""".r ^^ { _.toInt }
+  def positiveInt: Parser[Int] = """[1-9]\d*""".r ^^ { _.toInt }
+  def nonNegativeRational: Parser[Rational] = nonNegativeBigInt ~ opt("/" ~> nonNegativeBigInt) ^^ {
     case n ~ Some(d) => Rational(n, d)
     case n ~ None => Rational(n, 1)
   }
-  def rationalCoefficientSignOptional: Parser[Rational] = opt(sign) ~ opt(positiveRational) ^^ {
+  def rationalCoefficientSignOptional: Parser[Rational] = opt(sign) ~ opt(nonNegativeRational) ^^ {
     case optS ~ optR => optS.getOrElse(1) * optR.getOrElse(Field[Rational].one)
   }
-  def signedRationalCoefficient: Parser[Rational] = sign ~ opt(positiveRational) ^^ {
+  def signedRationalCoefficient: Parser[Rational] = sign ~ opt(nonNegativeRational) ^^ {
     case sign ~ optR => sign * optR.getOrElse(Field[Rational].one)
   }
-  def rational: Parser[Rational] = bigInt ~ opt("/" ~> positiveBigInt) ^^ {
+  def rational: Parser[Rational] = bigInt ~ opt("/" ~> nonNegativeBigInt) ^^ {
     case n ~ Some(d) => Rational(n, d)
     case n ~ None => Rational(n, 1)
   }

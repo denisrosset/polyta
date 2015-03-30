@@ -7,7 +7,6 @@ import spire.math.Rational
 
 trait PortaFileFormat extends PolytopeFileFormat {
   override val whiteSpace = """([ \t])+""".r
-  def dimension = ("DIM" ~ "=") ~> posinteger <~ crlf
   def point(d: Int) = (opt("(" ~ integer ~ ")") ~> repN(d, rational)) <~ crlf
 
   trait IEQSection { }

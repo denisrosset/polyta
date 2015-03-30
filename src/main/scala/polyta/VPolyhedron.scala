@@ -26,6 +26,18 @@ trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
 }
 
 object VPolyhedron {
+  def fromRays[M, V, @sp(Double) A](rays: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import MV0.scalar
+    val vertices = MV0.zeros(0, rays.nCols)
+    apply(vertices, rays)
+  }
+
+  def fromVertices[M, V, @sp(Double) A](vertices: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import MV0.scalar
+    val rays = MV0.zeros(0, vertices.nCols)
+    apply(vertices, rays)
+  }
+
   def apply[M, V, @sp(Double) A](vertices0: M, rays0: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
     new VPolyhedron[M, V, A] {
       def MV = MV0

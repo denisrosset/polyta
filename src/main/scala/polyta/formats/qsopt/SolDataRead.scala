@@ -34,18 +34,18 @@ trait SolDataRead[A] extends FormatRead[SolData[A]] {
     def unbounded = "UNBOUNDED" ^^^ Unbounded
     def unsolved = ("UNDEFINED" | "NOT_SOLVED") ^^^ CouldNotSolve
     def status = optimal | infeasible | unbounded | unsolved
-    def firstStatusLine = (("status" ~ "=") ~> status) <~ crlf
-    def secondStatusLine = ("status" ~> status) <~ crlf
-    def valueLine: Parser[A] = (("Value" ~ "=") ~> value) <~ crlf
+    def firstStatusLine = (("status" ~ "=") ~> status) <~ lineEnding
+    def secondStatusLine = ("status" ~> status) <~ lineEnding
+    def valueLine: Parser[A] = (("Value" ~ "=") ~> value) <~ lineEnding
     def name = "[a-zA-Z][a-zA-Z0-9]*".r
     def varLine: Parser[(String, A)] = (name <~ "=") ~ value ^^ {
       case n ~ v => (n, v)
     }
-    def varLines: Parser[Map[String, A]] = rep(varLine <~ crlf) ^^ (_.toMap)
-    def varsSection: Parser[Map[String, A]] = ("VARS:" ~ crlf) ~> varLines
-    def reducedCostSection: Parser[Map[String, A]] = ("REDUCED COST:" ~ crlf) ~> varLines
-    def piSection: Parser[Map[String, A]] = ("PI:" ~ crlf) ~> varLines
-    def slackSection: Parser[Map[String, A]] = ("SLACK:" ~ crlf) ~> varLines
+    def varLines: Parser[Map[String, A]] = rep(varLine <~ lineEnding) ^^ (_.toMap)
+    def varsSection: Parser[Map[String, A]] = ("VARS:" ~ lineEnding) ~> varLines
+    def reducedCostSection: Parser[Map[String, A]] = ("REDUCED COST:" ~ lineEnding) ~> varLines
+    def piSection: Parser[Map[String, A]] = ("PI:" ~ lineEnding) ~> varLines
+    def slackSection: Parser[Map[String, A]] = ("SLACK:" ~ lineEnding) ~> varLines
 
     def data: Parser[SolData[A]] = firstStatusLine into {
       case OptimumFound => secondStatusLine into {

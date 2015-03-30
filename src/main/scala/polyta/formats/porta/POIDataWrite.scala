@@ -21,7 +21,7 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait POIDataWrite[M, V] extends Any {
+trait POIDataWrite[M, V] extends Any with FormatWrite[POIData[M, V]] {
   implicit def M: MatVecInField[M, V, Rational]
   implicit def V: VecInField[V, Rational] = M.V
 
