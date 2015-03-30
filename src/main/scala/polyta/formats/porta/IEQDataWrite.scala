@@ -21,9 +21,8 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait IEQDataWrite[M, V] extends Any with FormatWrite[IEQData[M, V]] {
-  implicit def M: MatVecInField[M, V, Rational]
-  implicit def V: VecInField[V, Rational] = M.V
+trait IEQDataWrite[V] extends Any with FormatWrite[IEQData[V]] {
+  implicit def V: VecInField[V, Rational]
 
   def writeDim(d: Int, out: Writer): Unit = {
     out.write("DIM = ")
@@ -78,7 +77,7 @@ trait IEQDataWrite[M, V] extends Any with FormatWrite[IEQData[M, V]] {
   def writeEnd(out: Writer): Unit =
     out.write("END\n")
 
-  def write(data: IEQData[M, V], out: Writer): Unit = {
+  def write(data: IEQData[V], out: Writer): Unit = {
     val dim = data.dim
     writeDim(dim, out)
     data.validPoint.foreach { writeValid(_, out) }

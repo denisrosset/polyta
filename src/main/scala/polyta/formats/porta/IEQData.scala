@@ -7,7 +7,7 @@ import spire.math.Rational
 
 case class Constraint[V](lhs: V, op: ComparisonOperator, rhs: Rational)
 
-case class IEQData[M, V](
+case class IEQData[V](
   dim: Int,
   constraints: Seq[Constraint[V]],
   validPoint: Option[V] = None,

@@ -21,26 +21,14 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait PortaDataParser[M, V] extends RationalParser with AgnosticLineEndingParser {
-  implicit def M: MatVecInField[M, V, Rational]
+trait PortaDataParser[V] extends RationalParser with AgnosticLineEndingParser {
   implicit def V: VecInField[V, Rational]
-
-  type VPoly = VPolyhedron[M, V, Rational]
-  type HPoly = HPolyhedron[M, V, Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
   def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { V.build(_: _*) }
-
-  def matrix(nCols: Int): Parser[M] = repsep(rowVector(nCols), lineEndings) ^^ { rows =>
-    M.fromFunM(new FunM[Rational] {
-      def nR = rows.size
-      def nC = nCols
-      def f(r: Int, c: Int): Rational = rows(r)(c)
-    })
-  }
 
   def end = "END" ~ opt(lineEndings)
 }

@@ -21,12 +21,10 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait IEQDataRead[M, V] extends FormatRead[IEQData[M, V]] { self =>
-  implicit def M: MatVecInField[M, V, Rational]
-  implicit def V: VecInField[V, Rational] = M.V
+trait IEQDataRead[M, V] extends FormatRead[IEQData[V]] { self =>
+  implicit def V: VecInField[V, Rational]
 
-  object Parser extends ParserBase with PortaDataParser[M, V] {
-    implicit def M = self.M
+  object Parser extends ParserBase with PortaDataParser[V] {
     implicit def V = self.V
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
@@ -44,9 +42,65 @@ trait IEQDataRead[M, V] extends FormatRead[IEQData[M, V]] { self =>
       }
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
+
     def constraint(d: Int): Parser[Constraint[V]] =
       symbolicVector(d) ~ operator ~ rational ^^ {
         case lhs ~ op ~ rhs => Constraint(lhs, op, rhs)
       }
+
+    def constraintSection(d: Int): Parser[IEQData[V]] =
+      (("INEQUALITIES_SECTION" ~ lineEndings) ~> repsep(constraint(d), lineEndings)) ^^ {
+        constraints => IEQData(d, constraints, None, None, None, None)
+      }
+
+    def validSection(d: Int): Parser[IEQData[V]] =
+      (("VALID" ~ lineEndings) ~> rowVector(d)) ^^ {
+        v => IEQData(d, Seq.empty, Some(v), None, None, None)
+      }
+
+    def lowerBoundSection(d: Int): Parser[IEQData[V]] =
+      (("LOWER_BOUNDS" ~ lineEndings) ~> rowVector(d)) ^^ {
+        lb => IEQData(d, Seq.empty, None, None, Some(lb), None)
+      }
+
+    def upperBoundSection(d: Int): Parser[IEQData[V]] =
+      (("UPPER_BOUNDS" ~ lineEndings) ~> rowVector(d)) ^^ {
+        ub => IEQData(d, Seq.empty, None, None, None, Some(ub))
+      }
+
+    def eliminationOrderSection(d: Int): Parser[IEQData[V]] =
+      (("ELIMINATION_ORDER" ~ lineEndings) ~> rep(nonNegativeInt)) into { orderSeq =>
+        if (orderSeq.size == d) {
+          val eliminationOrder = orderSeq.zipWithIndex.filterNot(_._1 == 0).sortBy(_._1).map(_._2)
+          success(IEQData(d, Seq.empty, None, Some(eliminationOrder), None, None))
+        } else failure(s"ELIMINATION_ORDER should have $d elements, but has ${orderSeq.size}")
+      }
+
+    def section(d: Int): Parser[IEQData[V]] = constraintSection(d) | validSection(d) | lowerBoundSection(d) | upperBoundSection(d) | eliminationOrderSection(d)
+
+    def oneOptionOutOf[T](aOption: Option[T], bOption: Option[T]): Parser[Option[T]] =
+      aOption match {
+        case Some(a) => bOption match {
+          case Some(b) => failure("A section is defined twice.")
+          case None => success(Some(a))
+        }
+        case None => success(bOption)
+      }
+
+    def sections(d: Int): Parser[IEQData[V]] = rep1sep(section(d), lineEndings) into { secs =>
+      (success(secs.head) /: secs.tail) {
+        case (result, section) => result.flatMap { prevSection =>
+          for {
+            nextValidPoint <- oneOptionOutOf(prevSection.validPoint, section.validPoint)
+            nextEliminationOrder <- oneOptionOutOf(prevSection.eliminationOrder, section.eliminationOrder)
+            nextLowerBounds <- oneOptionOutOf(prevSection.lowerBounds, section.lowerBounds)
+            nextUpperBounds <- oneOptionOutOf(prevSection.upperBounds, section.upperBounds)
+            nextConstraints = prevSection.constraints ++ section.constraints
+          } yield IEQData(d, nextConstraints, nextValidPoint, nextEliminationOrder, nextLowerBounds, nextUpperBounds)
+        }
+      }
+    }
+
+    def data: Parser[IEQData[V]] = (dimSection <~ lineEndings) into { d => sections(d) <~ end }
   }
 }
