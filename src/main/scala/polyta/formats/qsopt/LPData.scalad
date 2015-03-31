@@ -22,6 +22,7 @@ import qalg.syntax.all._
 
 case class LPData[A: Order](
   problemName: Option[String],
+  objectiveName: Option[String],
   objective: Objective[A],
   constraints: Seq[Constraint[A]],
   bounds: Seq[Bound[A]],

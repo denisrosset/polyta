@@ -3,9 +3,8 @@ package polyta
 package formats
 package qsopt
 
-case class Objective[A](
-  name: Option[String],
+case class NamedObjective[A](
   direction: Direction,
   f: Map[String, A]) {
-  def variables: Set[String] = f.keys.toSet ++ name
+  def variables: Set[String] = f.keys.toSet
 }

@@ -57,7 +57,7 @@ trait IEQDataWrite[V] extends Any with FormatWrite[IEQData[V]] {
     out.write("\n")
   }
 
-  def writeConstraints(dim: Int, constraints: Seq[Constraint[V]], out: Writer): Unit = {
+  def writeConstraints(dim: Int, constraints: Seq[VecConstraint[V, Rational]], out: Writer): Unit = {
     out.write("INEQUALITIES_SECTION\n")
     constraints.foreach { constraint =>
       Format.writeVector[V, Rational](constraint.lhs, Format.x1toN(dim), out)

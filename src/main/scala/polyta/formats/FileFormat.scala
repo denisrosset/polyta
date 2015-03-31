@@ -11,6 +11,10 @@ trait Converter[From, To] {
   def convert(from: From): To
 }
 
+object Converter {
+  def apply[From, To](implicit C: Converter[From, To]): Converter[From, To] = C
+}
+
 trait FormatRead[Data] {
   trait ParserBase extends RegexParsers {
     def data: Parser[Data]
@@ -21,6 +25,10 @@ trait FormatRead[Data] {
   def parse(in: String): Parser.ParseResult[Data] = Parser.parse(Parser.data, in)
 }
 
+object FormatRead {
+  def apply[Data](implicit F: FormatRead[Data]): FormatRead[Data] = F
+}
+
 trait FormatWrite[Data] extends Any {
   def write(data: Data): String = {
     val sw = new java.io.StringWriter
@@ -28,4 +36,8 @@ trait FormatWrite[Data] extends Any {
     sw.toString
   }
   def write(data: Data, out: Writer): Unit
+}
+
+object FormatWrite {
+  def apply[Data](implicit F: FormatWrite[Data]): FormatWrite[Data] = F
 }

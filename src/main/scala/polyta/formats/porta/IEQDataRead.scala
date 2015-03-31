@@ -24,7 +24,7 @@ import qalg.syntax.all._
 trait IEQDataRead[V] extends FormatRead[IEQData[V]] { self =>
   implicit def V: VecInField[V, Rational]
 
-  object Parser extends ParserBase with PortaDataParser[V] {
+  object Parser extends ParserBase with PortaDataParser[V] with OptionParser {
     implicit def V = self.V
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
@@ -43,9 +43,9 @@ trait IEQDataRead[V] extends FormatRead[IEQData[V]] { self =>
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
 
-    def constraint(d: Int): Parser[Constraint[V]] =
+    def constraint(d: Int): Parser[VecConstraint[V, Rational]] =
       opt(lineNumber) ~> (symbolicVector(d) ~ operator ~ rational) ^^ {
-        case lhs ~ op ~ rhs => Constraint(lhs, op, rhs)
+        case lhs ~ op ~ rhs => VecConstraint(lhs, op, rhs)
       }
 
     def constraintSection(d: Int): Parser[IEQData[V]] =
@@ -77,15 +77,6 @@ trait IEQDataRead[V] extends FormatRead[IEQData[V]] { self =>
       }
 
     def section(d: Int): Parser[IEQData[V]] = constraintSection(d) | validSection(d) | lowerBoundSection(d) | upperBoundSection(d) | eliminationOrderSection(d)
-
-    def oneOptionOutOf[T](aOption: Option[T], bOption: Option[T]): Parser[Option[T]] =
-      aOption match {
-        case Some(a) => bOption match {
-          case Some(b) => failure("A section is defined twice.")
-          case None => success(Some(a))
-        }
-        case None => success(bOption)
-      }
 
     def sections(d: Int): Parser[IEQData[V]] = rep1(section(d) <~ lineEndings) into { secs =>
       (success(secs.head) /: secs.tail) {
