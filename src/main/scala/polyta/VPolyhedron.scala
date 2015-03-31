@@ -17,6 +17,8 @@ import qalg.syntax.all._
   * row vectors.
   */
 trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
+  override def toString =
+    "Rays:\n" + rays.toString + "\nVertices:\n" + vertices.toString + "\n"
   def vertices: M
   def rays: M
   def nX: Int = rays.nCols

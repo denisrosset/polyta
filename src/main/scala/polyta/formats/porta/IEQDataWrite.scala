@@ -58,13 +58,9 @@ trait IEQDataWrite[V] extends Any with FormatWrite[IEQData[V]] {
   }
 
   def writeConstraints(dim: Int, constraints: Seq[Constraint[V]], out: Writer): Unit = {
-    val variableNames = new IndexedSeq[String] {
-      def length = dim
-      def apply(k: Int) = "x" + (k + 1).toString
-    }
     out.write("INEQUALITIES_SECTION\n")
     constraints.foreach { constraint =>
-      Format.writeVector[V, Rational](constraint.lhs, variableNames, out)
+      Format.writeVector[V, Rational](constraint.lhs, Format.x1toN(dim), out)
       out.write(" ")
       out.write(constraint.op.toString)
       out.write(" ")

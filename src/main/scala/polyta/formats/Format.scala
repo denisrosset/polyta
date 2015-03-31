@@ -76,6 +76,11 @@ object Format {
     out.write("\n")
   }
 
+  def x1toN(n: Int): IndexedSeq[String] = new IndexedSeq[String] {
+    def length = n
+    def apply(k: Int) = "x" + (k + 1).toString
+  }
+
   def writeVector[V, @sp(Double) A: Field: Order](vec: V, variableNames: Seq[String], out: Writer)(implicit V: Vec[V, A]): Unit = {
     var wroteSomething: Boolean = false
     var plusString = ""

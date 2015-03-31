@@ -30,7 +30,7 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
   object Parser extends ParserBase with PortaDataParser[V] {
     implicit def V = self.V
 
-    def matrix(nCols: Int): Parser[M] = repsep(rowVector(nCols), lineEndings) ^^ { rows =>
+    def matrix(nCols: Int): Parser[M] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>
       M.fromFunM(new FunM[Rational] {
         def nR = rows.size
         def nC = nCols
@@ -50,9 +50,10 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
 
     def polyhedronSection(d: Int): Parser[VPoly] = coneSection(d) | convSection(d)
 
-    def polyhedron(d: Int): Parser[VPoly] = repsep(polyhedronSection(d), lineEndings) ^^ { seq =>
+    def polyhedron(d: Int): Parser[VPoly] = rep(polyhedronSection(d) <~ lineEndings) ^^ { seq =>
       (seq.head /: seq.tail) {
-        (p1, p2) => VPolyhedron[M, V, Rational](
+        (p1, p2) =>
+        VPolyhedron[M, V, Rational](
           vertcat(p1.vertices, p2.vertices),
           vertcat(p1.rays, p2.rays)
         )

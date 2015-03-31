@@ -30,5 +30,7 @@ trait PortaDataParser[V] extends RationalParser with AgnosticLineEndingParser {
 
   def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { V.build(_: _*) }
 
+  def lineNumber = "(" ~ nonNegativeInt ~ ")"
+
   def end = "END" ~ opt(lineEndings)
 }
