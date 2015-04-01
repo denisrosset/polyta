@@ -31,15 +31,17 @@ trait PandaDataParser[V] extends RationalParser with AgnosticLineEndingParser wi
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
-  def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { V.build(_: _*) }
+  def rowVector: Parser[V] = rep(rational) ^^ { V.build(_: _*) }
 
   def variable: Parser[String] = ident
 
+  def namesHeading = "Names" | "INDEX" | "INDICES" | "NAMES"
+
+  def namesSection: Parser[Seq[String]] = ((namesHeading ~ lineEndings) ~> rep(variable))
+
   def mapRow: Parser[Seq[String]] = rep1(variable)
 
-  def mapsSection: Parser[HData] = (("Maps" ~ lineEndings) ~> repsep(mapRow, lineEndings)) ^^ {
-    seq => HData(maps = seq)
-  }
-
+  def mapsSection: Parser[Seq[Seq[String]]] = (("Maps" ~ lineEndings) ~> repsep(mapRow, lineEndings))
+  
   def end = "END" ~ opt(lineEndings)
 }

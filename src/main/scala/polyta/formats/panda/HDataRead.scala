@@ -12,11 +12,9 @@ import qalg.algebra._
 class HDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[HData] {
 
   object Parser extends ParserBase with PandaDataParser[V] with OptionParser  {
-    def V = HDataRead.this.V
-    def namesHeading = "Names" | "INDEX" | "INDICES" | "NAMES"
-    def namesSection: Parser[HData] = ((namesHeading ~ lineEndings) ~> rep(ident)) ^^ { seq =>
-      HData(names = Some(seq))
-    }
+    implicit def V: VecInField[V, Rational] = HDataRead.this.V
+    def hNamesSection: Parser[HData] = namesSection.map(seq => HData(names = Some(seq)))
+    def hMapsSection: Parser[HData] = mapsSection.map(seq => HData(maps = seq))
     def onlyVariable: Parser[(String, Rational)] = variable ^^ { str => (str, Rational.one) }
     def onlyCoefficient: Parser[(String, Rational)] = nonNegativeRational ^^ { rat => ("", rat) }
     def coefficientAndVariable: Parser[(String, Rational)] = nonNegativeRational ~ variable ^^ {
@@ -56,7 +54,7 @@ class HDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[H
     }
 
     def hDimSection: Parser[HData] = dimSection.map(d => HData(dim = Some(d)))
-    def section: Parser[HData] = hDimSection | namesSection | constraintsSection | mapsSection
+    def section: Parser[HData] = hDimSection | hNamesSection | constraintsSection | hMapsSection
     def sections: Parser[HData] = rep1(section) into { secs =>
       (success(secs.head) /: secs.tail) {
         case (result, section) => result.flatMap { prevSection =>
