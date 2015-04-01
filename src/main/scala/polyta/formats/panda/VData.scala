@@ -7,9 +7,9 @@ import scala.util.parsing.combinator._
 
 import spire.math.Rational
 
-case class HData(
+case class VData(
   dim: Option[Int] = None,
   names: Option[Seq[String]] = None,
-  constraints: Seq[Constraint[Rational]] = Seq.empty,
+  polyhedron: Option[VPolyhedron[M, V, Rational]],
   maps: Seq[Seq[String]] = Seq.empty
 )
