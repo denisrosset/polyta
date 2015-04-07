@@ -32,7 +32,7 @@ class PortaRead extends FunSuite {
   }
 
   test("All .ieq files can be parsed") {
-    val formatRead = IEQData.FormatRead[DenseV[Rational]]
+    val formatRead = IEQData.FormatRead[DenseM[Rational], DenseV[Rational]]
     ieqFiles.foreach { filename =>
       val reader = getReader(filename)
       formatRead.parse(reader).get

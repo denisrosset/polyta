@@ -21,8 +21,8 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait IEQDataWrite[V] extends Any with FormatWrite[IEQData[V]] {
-  implicit def V: VecInField[V, Rational]
+final class IEQDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[IEQData[M, V]] {
+  implicit def V: VecInField[V, Rational] = M.V
 
   def writeDim(d: Int, out: Writer): Unit = {
     out.write("DIM = ")
@@ -57,30 +57,38 @@ trait IEQDataWrite[V] extends Any with FormatWrite[IEQData[V]] {
     out.write("\n")
   }
 
-  def writeConstraints(dim: Int, constraints: Seq[VConstraint[V, Rational]], out: Writer): Unit = {
+  def writePolyhedron(dim: Int, poly: HPolyhedron[M, V, Rational], out: Writer): Unit = {
     out.write("INEQUALITIES_SECTION\n")
-    constraints.foreach { constraint =>
-      Format.writeVector[V, Rational](constraint.lhs, Format.x1toN(dim), out)
-      out.write(" ")
-      out.write(constraint.op.toString)
-      out.write(" ")
-      out.write(constraint.rhs.toString)
+    val names = Format.x1toN(dim)
+
+    (0 until poly.nIneqs).foreach { r =>
+        Format.writeVector[V, Rational](poly.mA(r, ::), names, out)
+      out.write(" <= ")
+      out.write(poly.vb(r).toString)
       out.write("\n")
     }
-    out.write("\n")
+
+    (0 until poly.nEqs).foreach { r =>
+      Format.writeVector[V, Rational](poly.mAeq(r, ::), names, out)
+      out.write(" == ")
+      out.write(poly.vbeq(r).toString)
+      out.write("\n")
+
+      out.write("\n")
+    }
   }
 
   def writeEnd(out: Writer): Unit =
     out.write("END\n")
 
-  def write(data: IEQData[V], out: Writer): Unit = {
-    val dim = data.dim
+  def write(data: IEQData[M, V], out: Writer): Unit = {
+    val dim = data.polyhedron.nX
     writeDim(dim, out)
     data.validPoint.foreach { writeValid(_, out) }
     data.lowerBounds.foreach { writeLowerBounds(_, out) }
     data.upperBounds.foreach { writeUpperBounds(_, out) }
     data.eliminationOrder.foreach { writeEliminationOrder(dim, _, out) }
-    writeConstraints(dim, data.constraints, out)
+    writePolyhedron(dim, data.polyhedron, out)
     writeEnd(out)
   }
 }

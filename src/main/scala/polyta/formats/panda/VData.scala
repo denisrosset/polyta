@@ -18,4 +18,5 @@ case class VData[M, V](
 
 object VData {
   implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[VData[M, V]] = new VDataRead[M, V]
+  implicit def FormatWrite[M, V](implicit M: MatVecInField[M, V, Rational]): FormatWrite[VData[M, V]] = new VDataWrite[M, V]
 }

@@ -7,9 +7,8 @@ import spire.math.Rational
 
 import qalg.algebra._
 
-case class IEQData[V](
-  dim: Int,
-  constraints: Seq[VConstraint[V, Rational]],
+case class IEQData[M, V](
+  polyhedron: HPolyhedron[M, V, Rational],
   validPoint: Option[V] = None,
   eliminationOrder: Option[Seq[Int]] = None,
   lowerBounds: Option[V] = None,
@@ -17,16 +16,7 @@ case class IEQData[V](
 )
 
 object IEQData {
-  implicit def FormatRead[V](implicit V0: VecInField[V, Rational]): FormatRead[IEQData[V]] = new IEQDataRead[V] {
-    def V = V0
-  }
-  implicit def FormatWrite[V](implicit V0: VecInField[V, Rational]): FormatWrite[IEQData[V]] = new IEQDataWrite[V] {
-    def V = V0
-  }
-  implicit def ToHPolyhedron[M, V](implicit M0: MatVecInField[M, V, Rational]): Converter[IEQData[V], HPolyhedron[M, V, Rational]] = new IEQDataToHPolyhedron[M, V] {
-    def M = M0
-  }
-  implicit def FromHPolyhedron[M, V](implicit M0: MatVecInField[M, V, Rational]): Converter[HPolyhedron[M, V, Rational], IEQData[V]] = new IEQDataFromVPolyhedron[M, V] {
-    def M = M0
-  }
+  def empty[M, V](dim: Int)(implicit M: MatVecInField[M, V, Rational]): IEQData[M, V] = IEQData[M, V](HPolyhedron.empty[M, V, Rational](dim))
+  implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[IEQData[M, V]] = new IEQDataRead[M, V]
+  implicit def FormatWrite[M, V](implicit M: MatVecInField[M, V, Rational]): FormatWrite[IEQData[M, V]] = new IEQDataWrite[M, V]
 }

@@ -167,13 +167,13 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, hpolys) = partitionEithers(eithers)
       val maps = mapsSeq.flatten
-      val hpoly = HPolyhedron.intersection(dim, hpolys: _*)
+      val hpoly = HPolyhedron.intersection((HPolyhedron.empty[M, V, Rational](dim) +: hpolys): _*)
       (maps, hpoly)
     }
 
     def data = phrase((hHeader <~ sectionEnd) into {
       case (hpoly, namesOption) => sections(hpoly.nX, namesOption) ^^ {
-        case (maps, newHpoly) => HData(HPolyhedron.intersection(hpoly.nX, hpoly, newHpoly), namesOption, maps)
+        case (maps, newHpoly) => HData(HPolyhedron.intersection(hpoly, newHpoly), namesOption, maps)
       }
     })
   }

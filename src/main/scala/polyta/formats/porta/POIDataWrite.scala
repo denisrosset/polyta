@@ -21,8 +21,7 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait POIDataWrite[M, V] extends Any with FormatWrite[POIData[M, V]] {
-  implicit def M: MatVecInField[M, V, Rational]
+final class POIDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[POIData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
 
   def writeDim(d: Int, out: Writer): Unit = {

@@ -74,17 +74,15 @@ object HPolyhedron {
     apply(M.zeros(0, d), V.zeros(0), M.zeros(0, d), V.zeros(0))
   }
 
-  def intersection[M, V, @sp(Double) A](d: Int, hpolys: HPolyhedron[M, V, A]*)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = {
-    import M.V
-    if (hpolys.isEmpty) HPolyhedron.empty(d) else 
-      (hpolys.head /: hpolys.tail) {
-        case (prev, current) =>
-          HPolyhedron(
-            vertcat(prev.mA, current.mA),
-            cat(prev.vb, current.vb),
-            vertcat(prev.mAeq, current.mAeq),
-            cat(prev.vbeq, current.vbeq)
-          )
-      }
-  }
+  def intersection[M, V, @sp(Double) A](hPolyhedrons: HPolyhedron[M, V, A]*)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] =
+    (hPolyhedrons.head /: hPolyhedrons.tail) {
+      case (prev, current) =>
+        import M.V
+        HPolyhedron(
+          vertcat(prev.mA, current.mA),
+          cat(prev.vb, current.vb),
+          vertcat(prev.mAeq, current.mAeq),
+          cat(prev.vbeq, current.vbeq)
+        )
+    }
 }

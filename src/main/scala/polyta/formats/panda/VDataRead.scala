@@ -80,13 +80,13 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, VPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, vpolys) = partitionEithers(eithers)
       val maps = mapsSeq.flatten
-      val vpoly = VPolyhedron.union(dim, vpolys: _*)
+      val vpoly = VPolyhedron.union((VPolyhedron.empty[M, V, Rational](dim) +: vpolys): _*)
       (maps, vpoly)
     }
 
     def data = phrase((vHeader <~ sectionEnd) into {
       case (vpoly, namesOption) => sections(vpoly.nX, namesOption) ^^ {
-        case (maps, newVpoly) => VData(VPolyhedron.union(vpoly.nX, vpoly, newVpoly), namesOption, maps)
+        case (maps, newVpoly) => VData(VPolyhedron.union(vpoly, newVpoly), namesOption, maps)
       }
     })
   }

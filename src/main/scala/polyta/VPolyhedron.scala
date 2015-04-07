@@ -28,12 +28,11 @@ trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
 }
 
 object VPolyhedron {
-  def union[M, V, @sp(Double) A](dim: Int, vpolys: VPolyhedron[M, V, A]*)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
-    if (vpolys.isEmpty) VPolyhedron.empty(dim) else
-      (vpolys.head /: vpolys.tail) {
-        case (prev, current) =>
-          VPolyhedron(vertcat(prev.vertices, current.vertices), vertcat(prev.rays, current.rays))
-      }
+  def union[M, V, @sp(Double) A](vPolys: VPolyhedron[M, V, A]*)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
+    (vPolys.head /: vPolys.tail) {
+      case (prev, current) =>
+        VPolyhedron(vertcat(prev.vertices, current.vertices), vertcat(prev.rays, current.rays))
+    }
 
   def fromRays[M, V, @sp(Double) A](rays: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
     import M0.scalar
