@@ -3,7 +3,6 @@ package polyta
 
 import scala.{specialized => sp}
 
-
 import scala.collection.BitSet
 import scala.reflect.ClassTag
 

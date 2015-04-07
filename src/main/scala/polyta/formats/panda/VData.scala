@@ -7,9 +7,15 @@ import scala.util.parsing.combinator._
 
 import spire.math.Rational
 
+import qalg.algebra.MatVecInField
+
+import net.alasc.math.Perm
+
 case class VData[M, V](
-  dim: Option[Int] = None,
+  polyhedron: VPolyhedron[M, V, Rational],
   names: Option[Seq[String]] = None,
-  polyhedron: Option[VPolyhedron[M, V, Rational]] = None,
-  maps: Seq[Seq[String]] = Seq.empty
-)
+  maps: Seq[Perm] = Seq.empty)
+
+object VData {
+  implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[VData[M, V]] = new VDataRead[M, V]
+}

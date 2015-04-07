@@ -16,7 +16,7 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-case class Box[M, V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val MV: MatVecInField[M, V, A]) extends LinearConvexSet[M, V, A] {
+case class Box[M, V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val M: MatVecInField[M, V, A]) extends LinearConvexSet[M, V, A] {
   require(lowerBounds.v.length == upperBounds.v.length)
   def nX: Int = lowerBounds.v.length
 }

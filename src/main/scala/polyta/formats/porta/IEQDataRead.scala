@@ -24,7 +24,7 @@ import qalg.syntax.all._
 trait IEQDataRead[V] extends FormatRead[IEQData[V]] { self =>
   implicit def V: VecInField[V, Rational]
 
-  object Parser extends ParserBase with PortaDataParser[V] with OptionParser {
+  object Parser extends ParserBase with PortaDataParser[V] with ParserUtils {
     implicit def V = self.V
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
@@ -43,9 +43,9 @@ trait IEQDataRead[V] extends FormatRead[IEQData[V]] { self =>
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
 
-    def constraint(d: Int): Parser[VecConstraint[V, Rational]] =
+    def constraint(d: Int): Parser[VConstraint[V, Rational]] =
       opt(lineNumber) ~> (symbolicVector(d) ~ operator ~ rational) ^^ {
-        case lhs ~ op ~ rhs => VecConstraint(lhs, op, rhs)
+        case lhs ~ op ~ rhs => VConstraint(lhs, op, rhs)
       }
 
     def constraintSection(d: Int): Parser[IEQData[V]] =

@@ -28,22 +28,36 @@ trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
 }
 
 object VPolyhedron {
-  def fromRays[M, V, @sp(Double) A](rays: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
-    import MV0.scalar
-    val vertices = MV0.zeros(0, rays.nCols)
+  def union[M, V, @sp(Double) A](dim: Int, vpolys: VPolyhedron[M, V, A]*)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
+    if (vpolys.isEmpty) VPolyhedron.empty(dim) else
+      (vpolys.head /: vpolys.tail) {
+        case (prev, current) =>
+          VPolyhedron(vertcat(prev.vertices, current.vertices), vertcat(prev.rays, current.rays))
+      }
+
+  def fromRays[M, V, @sp(Double) A](rays: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import M0.scalar
+    val vertices = M0.zeros(0, rays.nCols)
     apply(vertices, rays)
   }
 
-  def fromVertices[M, V, @sp(Double) A](vertices: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
-    import MV0.scalar
-    val rays = MV0.zeros(0, vertices.nCols)
+  def fromVertices[M, V, @sp(Double) A](vertices: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import M0.scalar
+    val rays = M0.zeros(0, vertices.nCols)
     apply(vertices, rays)
   }
 
-  def apply[M, V, @sp(Double) A](vertices0: M, rays0: M)(implicit MV0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
+  @inline protected def build[M, V, @sp(Double) A](vertices0: M, rays0: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
     new VPolyhedron[M, V, A] {
-      def MV = MV0
+      def M = M0
       def vertices = vertices0
       def rays = rays0
     }
+
+  def apply[M, V, @sp(Double) A](vertices: M, rays: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = build(vertices, rays)
+
+  def empty[M, V, @sp(Double) A](d: Int)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import M.{V, scalar}
+    apply(M.zeros(0, d), M.zeros(0, d))
+  }
 }

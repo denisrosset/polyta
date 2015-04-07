@@ -7,15 +7,15 @@ import scala.util.parsing.combinator._
 
 import spire.math.Rational
 
-import qalg.algebra.VecInField
+import qalg.algebra.MatVecInField
 
-case class HData(
-  dim: Option[Int] = None,
+import net.alasc.math.Perm
+
+case class HData[M, V](
+  polyhedron: HPolyhedron[M, V, Rational],
   names: Option[Seq[String]] = None,
-  constraints: Seq[Constraint[Rational]] = Seq.empty,
-  maps: Seq[Seq[String]] = Seq.empty
-)
+  maps: Seq[Perm] = Seq.empty)
 
 object HData {
-  implicit def FormatRead[V](implicit V: VecInField[V, Rational]): FormatRead[HData] = new HDataRead[V]
+  implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[HData[M, V]] = new HDataRead[M, V]
 }

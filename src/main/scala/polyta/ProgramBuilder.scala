@@ -19,9 +19,9 @@ import qalg.algos._
 import qalg.syntax.all._
 
 trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
-  implicit def MV: MatVecInField[M, V, A]
-  implicit def V: VecInField[V, A] = MV.V
-  implicit def A: Field[A] = MV.scalar
+  implicit def M: MatVecInField[M, V, A]
+  implicit def V: VecInField[V, A] = M.V
+  implicit def A: Field[A] = M.scalar
 
   val varNames = ArrayBuffer.empty[String]
 
@@ -84,7 +84,7 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
       def f(k: Int): A =
         if (ineqs(k).constraintType == LE) ineqs(k).rhs else -ineqs(k).rhs
     })
-    val mA = MV.fromFunM(new FunM[A] {
+    val mA = M.fromFunM(new FunM[A] {
       def nR = ineqs.size
       def nC = nX
       def f(r: Int, c: Int): A =
@@ -97,7 +97,7 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
       def len = eqs.size
       def f(k: Int): A = eqs(k).rhs
     })
-    val mAeq = MV.fromFunM(new FunM[A] {
+    val mAeq = M.fromFunM(new FunM[A] {
       def nR = eqs.size
       def nC = nX
       def f(r: Int, c: Int): A = eqs(r).lhs.getOrElse(c, A.zero)

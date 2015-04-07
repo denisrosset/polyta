@@ -18,30 +18,62 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
+import net.alasc.math.Perm
+
 import qalg.algebra._
 import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-
-trait PandaDataParser[V] extends RationalParser with AgnosticLineEndingParser with JavaTokenParsers {
+/** Base trait for Panda data files.
+  * 
+  * All sections are parsed without the final line ending.
+  */
+trait PandaDataParser[V] extends RationalParser with AgnosticLineEndingParser with JavaTokenParsers with ParserUtils {
   implicit def V: VecInField[V, Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
-  def rowVector: Parser[V] = rep(rational) ^^ { V.build(_: _*) }
-
   def variable: Parser[String] = ident
 
-  def namesHeading = "Names" | "INDEX" | "INDICES" | "NAMES"
+  def namesHeading = "Names:" | "INDEX" | "INDICES" | "NAMES"
 
-  def namesSection: Parser[Seq[String]] = ((namesHeading ~ lineEndings) ~> rep(variable))
+  def namesSection: Parser[Seq[String]] = ((namesHeading ~ lineEndings) ~> rep1(variable))
 
-  def mapRow: Parser[Seq[String]] = rep1(variable)
+  def rowVector: Parser[V] = rep1(rational) ^^ { V.build(_: _*) }
 
-  def mapsSection: Parser[Seq[Seq[String]]] = (("Maps" ~ lineEndings) ~> repsep(mapRow, lineEndings))
-  
-  def end = "END" ~ opt(lineEndings)
+  def rowVector(dim: Int): Parser[V] = repN(dim, rational) ^^ { V.build(_: _*) }
+
+  def namedHeader: Parser[Seq[String]] = opt(dimSection <~ lineEndings) ~ namesSection into {
+    case None ~ seq => success(seq)
+    case Some(d) ~ seq if seq.size == d => success(seq)
+    case _ => failure("Given dimension does not correspond to number of named variables.")
+  }
+
+  def unnamedHeader: Parser[Int] = dimSection
+
+  def mapsHeader = "Maps:" | "MAPS"
+
+  def mapPerm(names: Seq[String]): Parser[Perm] = rep1(ident) into { seq =>
+    val images = seq.map(names.indexOf(_))
+    if (images.contains(-1)) failure("Invalid map: only permutations are supported") else success(Perm.fromImages(images))
+  }
+
+  def mapsPerms(names: Seq[String]): Parser[Maps] = mapsHeader ~> rep(lineEndings ~> mapPerm(names))
+
+  type Maps = Seq[Perm]
+
+  def mapsSection(namesOption: Option[Seq[String]]): Parser[Left[Maps, Nothing]] = namesOption match {
+    case Some(names) => mapsPerms(names) ^^ { maps => Left(maps) }
+    case None => failure("Maps are available for named variables only")
+  }
+
+  def partitionEithers[A, B](es: Seq[Either[A, B]]): (Seq[A], Seq[B]) =
+    es.foldRight (Seq.empty[A], Seq.empty[B]) { case (e, (as, bs)) =>
+      e.fold (a => (a +: as, bs), b => (as, b +: bs))
+    }
+
+  def sectionEnd = lineEndings ~ opt("END" ~ lineEndings)
 }

@@ -9,7 +9,7 @@ import qalg.algebra._
 
 case class IEQData[V](
   dim: Int,
-  constraints: Seq[VecConstraint[V, Rational]],
+  constraints: Seq[VConstraint[V, Rational]],
   validPoint: Option[V] = None,
   eliminationOrder: Option[Seq[Int]] = None,
   lowerBounds: Option[V] = None,

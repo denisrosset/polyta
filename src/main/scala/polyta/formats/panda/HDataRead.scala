@@ -6,22 +6,104 @@ package panda
 import scala.util.parsing.combinator._
 
 import spire.math.Rational
+import spire.std.map._
+import spire.syntax.field._
 
 import qalg.algebra._
+import qalg.algos._
+import qalg.syntax.all._
 
-class HDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[HData] {
+import net.alasc.math.Perm
 
-  object Parser extends ParserBase with PandaDataParser[V] with OptionParser  {
-    implicit def V: VecInField[V, Rational] = HDataRead.this.V
-    def hNamesSection: Parser[HData] = namesSection.map(seq => HData(names = Some(seq)))
-    def hMapsSection: Parser[HData] = mapsSection.map(seq => HData(maps = seq))
+class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[HData[M, V]] {
+
+  type VCons = VConstraint[V, Rational]
+  type HPoly = HPolyhedron[M, V, Rational]
+
+  object Parser extends ParserBase with PandaDataParser[V] {
+    implicit def M: MatVecInField[M, V, Rational] = HDataRead.this.M
+    implicit def V: VecInField[V, Rational] = M.V
+
+    /* A Panda file can be either named or unnamed.
+     * 
+     * Only files with variable names can have symmetry information.
+     * 
+     * If neither names nor dimension are provided, the dimension of unnamed
+     * variables is guessed from the first Equations/Inequalities section.
+     */
+
+    def vecEquality: Parser[VCons] = rep(rational) ^^ { seq =>
+      VConstraint(V.build(seq.init:_*), EQ, -seq.last)
+    }
+
+    def vecEquality(dim: Int): Parser[VCons] =
+      (repN(dim, rational) ~ rational) ^^ {
+        case lhs ~ minusRhs => VConstraint(V.build(lhs: _*), EQ, -minusRhs)
+      }
+
+    def vecInequality: Parser[VCons] = rep(rational) ^^ { seq =>
+      VConstraint(V.build(seq.init:_*), LE, -seq.last)
+    }
+
+    def vecInequality(dim: Int): Parser[VCons] =
+      (repN(dim, rational) ~ rational) ^^ {
+        case lhs ~ minusRhs => VConstraint(V.build(lhs: _*), LE, -minusRhs)
+      }
+
+    def equalitiesHeading = "Equations:"
+
+    def inequalitiesHeading = "Inequalities:"
+
+    // Porta format, can contain equalities
+    def portaConstraintsHeading = "INEQUALITY_SECTION" 
+
+    type Header = (HPoly, Option[Seq[String]])
+
+    def firstEqualitiesSection: Parser[Header] =
+      (equalitiesHeading ~ lineEndings) ~> vecEquality into { first =>
+        rep(lineEndings ~> vecEquality(first.lhs.length)) ^^ { rest =>
+          require(first.op == EQ)
+          require(rest.forall(_.op == EQ))
+          val mAeq = M.vertcat(first.lhs.rowMat[M] +: rest.map(_.lhs.rowMat[M]): _*)
+          val vbeq = V.build(first.rhs +: rest.map(_.rhs): _*)
+          (HPolyhedron.fromEqualities(mAeq, vbeq), None)
+        }
+      }
+
+    def firstInequalitiesSection: Parser[Header] =
+      ((inequalitiesHeading | portaConstraintsHeading) ~ lineEndings) ~> vecInequality into { first =>
+        rep(lineEndings ~> vecInequality(first.lhs.length)) ^^ { rest =>
+          require(first.op == LE)
+          require(rest.forall(_.op == LE))
+          val mA = M.vertcat(first.lhs.rowMat[M] +: rest.map(_.lhs.rowMat[M]): _*)
+          val vb = V.build(first.rhs +: rest.map(_.rhs): _*)
+          (HPolyhedron.fromInequalities(mA, vb), None)
+        }
+      }
+
+    def hUnnamedHeader: Parser[Header] = unnamedHeader ^^ { dim =>
+      (HPolyhedron.empty[M, V, Rational](dim), None)
+    }
+
+    def hNamedHeader: Parser[Header] = namedHeader ^^ { seq =>
+      (HPolyhedron.empty(seq.size), Some(seq))
+    }
+
+    def hHeader: Parser[Header] = hNamedHeader | hUnnamedHeader | firstEqualitiesSection | firstInequalitiesSection
+
+    // Support for named expressions
+
     def onlyVariable: Parser[(String, Rational)] = variable ^^ { str => (str, Rational.one) }
+
     def onlyCoefficient: Parser[(String, Rational)] = nonNegativeRational ^^ { rat => ("", rat) }
+
     def coefficientAndVariable: Parser[(String, Rational)] = nonNegativeRational ~ variable ^^ {
       case rat ~ str => (str, rat)
     }
+
     def positiveTerm: Parser[(String, Rational)] =
       coefficientAndVariable | onlyVariable | onlyCoefficient
+
     def firstTerm: Parser[(String, Rational)] = opt(sign) ~ positiveTerm ^^ {
       case ~(Some(-1), (str, rat)) => (str, -rat)
       case other ~ term => term
@@ -33,41 +115,66 @@ class HDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[H
     }
 
     def expr: Parser[Map[String, Rational]] = firstTerm ~ rep(nextTerm) ^^ {
-      case first ~ next => Map(first._1 -> first._2) ++ next
+      case first ~ next => (Map(first._1 -> first._2) /: next) {
+        case (map, (v, r)) => Map(v -> r) + map
+      }
     }
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("=" ^^^ EQ) | (">=" ^^^ GE)
 
-    def namedConstraint: Parser[NamedConstraint[Rational]] = expr ~ operator ~ expr ^^ {
-      case lhs ~ op ~ rhs => NamedConstraint(None, lhs, op, rhs)
-    }
-
-    def vecConstraint: Parser[VecConstraint[V, Rational]] = rep1(rational) ^^ { seq =>
-      VecConstraint(V.build(seq.init:_*), LE, -seq.last)
-    }
-
-    def constraint: Parser[Constraint[Rational]] = namedConstraint | vecConstraint
-
-    def constraintsHeading = "Equations" | "Inequalities" | "INEQUALITY_SECTION"
-    def constraintsSection: Parser[HData] = ((constraintsHeading ~ lineEndings) ~> rep(constraint <~ lineEndings)) ^^ {
-      seq => HData(constraints = seq)
-    }
-
-    def hDimSection: Parser[HData] = dimSection.map(d => HData(dim = Some(d)))
-    def section: Parser[HData] = hDimSection | hNamesSection | constraintsSection | hMapsSection
-    def sections: Parser[HData] = rep1(section) into { secs =>
-      (success(secs.head) /: secs.tail) {
-        case (result, section) => result.flatMap { prevSection =>
-          for {
-            nextDim <- oneOptionOutOf(prevSection.dim, section.dim)
-            nextNames <- oneOptionOutOf(prevSection.names, section.names)
-            nextConstraints = prevSection.constraints ++ section.constraints
-            nextMaps = prevSection.maps ++ section.maps
-          } yield HData(nextDim, nextNames, nextConstraints, nextMaps)
+    def namedConstraint(names: Seq[String]): Parser[VCons] = expr ~ operator ~ expr into {
+      case lhs ~ op ~ rhs =>
+        val newLhs = lhs.filterKeys(_ != "") - rhs.filterKeys(_ != "")
+        val newRhs = rhs.getOrElse("", Rational.zero) + lhs.getOrElse("", Rational.zero)
+        newLhs.keys.find(!names.contains(_)) match {
+          case Some(key) => failure(s"Variable $key is not present in names")
+          case None => success(VConstraint(
+            V.fromFunV(new FunV[Rational] {
+              def len = names.size
+              def f(k: Int): Rational = newLhs.getOrElse(names(k), Rational.zero)
+            }), op, newRhs
+          ))
         }
-      }
     }
 
-    def data = phrase(sections)
+    def equalityConstraint(dim: Int, namesOption: Option[Seq[String]]): Parser[VCons] = namesOption match {
+      case Some(names) => namedConstraint(names) | vecEquality(dim)
+      case None => vecEquality(dim)
+    }
+
+    def inequalityConstraint(dim: Int, namesOption: Option[Seq[String]]): Parser[VCons] = namesOption match {
+      case Some(names) => namedConstraint(names) | vecInequality(dim)
+      case None => vecInequality(dim)
+    }
+
+    def equalityConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (equalitiesHeading ~ lineEndings) ~> repsep(equalityConstraint(dim, namesOption), lineEndings)
+
+    def inequalityConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (inequalitiesHeading ~ lineEndings) ~> repsep(inequalityConstraint(dim, namesOption), lineEndings)
+
+    def portaConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (portaConstraintsHeading ~ lineEndings) ~> repsep(inequalityConstraint(dim, namesOption), lineEndings)
+
+    def constraintsPolyhedron(dim: Int, namesOption: Option[Seq[String]]): Parser[HPoly] = (equalityConstraints(dim, namesOption) | inequalityConstraints(dim, namesOption) | portaConstraints(dim, namesOption)) ^^ { seq =>
+      VConstraint.toHPolyhedron(dim, seq)
+    }
+
+    type Section = Either[Maps, HPoly]
+
+    def constraintsSection(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] =
+      constraintsPolyhedron(dim, namesOption) ^^ { poly => Right(poly) }
+
+    def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = constraintsSection(dim, namesOption) | mapsSection(namesOption)
+
+    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
+      val (mapsSeq, hpolys) = partitionEithers(eithers)
+      val maps = mapsSeq.flatten
+      val hpoly = HPolyhedron.intersection(dim, hpolys: _*)
+      (maps, hpoly)
+    }
+
+    def data = phrase((hHeader <~ sectionEnd) into {
+      case (hpoly, namesOption) => sections(hpoly.nX, namesOption) ^^ {
+        case (maps, newHpoly) => HData(HPolyhedron.intersection(hpoly.nX, hpoly, newHpoly), namesOption, maps)
+      }
+    })
   }
 }

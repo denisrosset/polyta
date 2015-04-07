@@ -46,12 +46,45 @@ trait HPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
 }
 
 object HPolyhedron {
-  def apply[M, V, @sp(Double) A](mA0: M, vb0: V, mAeq0: M, vbeq0: V)(implicit MV0: MatVecInField[M, V, A]): HPolyhedron[M, V, A] =
+  @inline protected def build[M, V, A](mA0: M, vb0: V, mAeq0: M, vbeq0: V)(implicit M0: MatVecInField[M, V, A]): HPolyhedron[M, V, A] =
     new HPolyhedron[M, V, A] {
-      def MV = MV0
+      def M = M0
       def mA = mA0
       def vb = vb0
       def mAeq = mAeq0
       def vbeq = vbeq0
     }
+
+  def fromEqualities[M, V, @sp(Double) A](mAeq: M, vbeq: V)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = {
+    val nX = mAeq.nCols
+    import M.{V, scalar}
+    apply(mA = M.zeros(0, nX), vb = V.zeros(0), mAeq = mAeq, vbeq = vbeq)
+  }
+
+  def fromInequalities[M, V, @sp(Double) A](mA: M, vb: V)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = {
+    val nX = mA.nCols
+    import M.{V, scalar}
+    apply(mA = mA, vb = vb, mAeq = M.zeros(0, nX), vbeq = V.zeros(0))
+  }
+
+  def apply[M, V, @sp(Double) A](mA: M, vb: V, mAeq: M, vbeq: V)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = build(mA, vb, mAeq, vbeq)
+
+  def empty[M, V, @sp(Double) A](d: Int)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = {
+    import M.{V, scalar}
+    apply(M.zeros(0, d), V.zeros(0), M.zeros(0, d), V.zeros(0))
+  }
+
+  def intersection[M, V, @sp(Double) A](d: Int, hpolys: HPolyhedron[M, V, A]*)(implicit M: MatVecInField[M, V, A]): HPolyhedron[M, V, A] = {
+    import M.V
+    if (hpolys.isEmpty) HPolyhedron.empty(d) else 
+      (hpolys.head /: hpolys.tail) {
+        case (prev, current) =>
+          HPolyhedron(
+            vertcat(prev.mA, current.mA),
+            cat(prev.vb, current.vb),
+            vertcat(prev.mAeq, current.mAeq),
+            cat(prev.vbeq, current.vbeq)
+          )
+      }
+  }
 }

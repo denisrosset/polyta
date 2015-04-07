@@ -18,14 +18,14 @@ trait HCone[M, V, @sp(Double) A] extends HPolyhedron[M, V, A] {
   def mAplus: M
   def mA: M = -mAplus
   def vb: V = V.zeros(nIneqs)
-  def mAeq: M = MV.zeros(0, nX)
+  def mAeq: M = M.zeros(0, nX)
   def vbeq: V = V.zeros(0)
 }
 
 object HCone {
-  def apply[M, V, @sp(Double) A](mAplus0: M)(implicit MV0: MatVecInField[M, V, A]): HCone[M, V, A] =
+  def apply[M, V, @sp(Double) A](mAplus0: M)(implicit M0: MatVecInField[M, V, A]): HCone[M, V, A] =
     new HCone[M, V, A] {
-      def MV = MV0
+      def M = M0
       def mAplus = mAplus0
     }
 }

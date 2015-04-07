@@ -23,9 +23,9 @@ trait LinearProgram[M, V, @sp(Double) A] extends MixedLinearProgram[M, V, A] {
 }
 
 object LinearProgram {
-  def apply[M, V, @sp(Double) A](direction0: Direction, objective0: V, feasibleSet0: HPolyhedron[M, V, A], bounds0: Box[M, V, A])(implicit MV0: MatVecInField[M, V, A]): LinearProgram[M, V, A] =
+  def apply[M, V, @sp(Double) A](direction0: Direction, objective0: V, feasibleSet0: HPolyhedron[M, V, A], bounds0: Box[M, V, A])(implicit M0: MatVecInField[M, V, A]): LinearProgram[M, V, A] =
     new LinearProgram[M, V, A] {
-      def MV = MV0
+      def M = M0
       def direction = direction0
       def objective = objective0
       def feasibleSet = feasibleSet0
