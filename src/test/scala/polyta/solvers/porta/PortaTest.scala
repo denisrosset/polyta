@@ -57,7 +57,7 @@ class PortaConversion extends FunSuite {
     val reader = getReader(filename)
     val poi = formatRead.parse(reader).get
     val vpoly1 = poi.polyhedron
-    val valid = vpoly1.vertices(0, ::)
+    val valid = if (vpoly1.nVertices > 0) vpoly1.vertices(0, ::) else vpoly1.rays(0, ::)
     val hpoly2 = Porta.toHPolyhedron(vpoly1)
     val vpoly3 = Porta.toVPolyhedron(hpoly2, valid)
     compareMatricesArbRowOrder(vpoly1.vertices, vpoly3.vertices)
@@ -67,17 +67,4 @@ class PortaConversion extends FunSuite {
   test("All .poi files can be converted to .ieq and back without change") {
     poiFiles.foreach { testPOI(_) }
   }
-/*
-  test("Test cube") {
-    val r0 = Rational.zero
-    val r1 = Rational.one
-    val vertices = Seq(Seq(r0, r1), Seq(r0, r0), Seq(r1, r0), Seq(r1, r1))
-    val verticesM = M.vertcat(vertices.map(V.build(_: _*).rowMat[DenseM[Rational]]):_*)
-    val vpoly = VPolyhedron.fromVertices(verticesM)
-    val hpoly = Porta.toHPolyhedron(vpoly)
-    val vpoly1 = Porta.toVPolyhedron(hpoly)
-    require(vpoly1.nVertices == 4)
-    val vertices1 = (0 until 4).map(r => vpoly1.vertices(r, ::).toIndexedSeq).toSet
-    assert(vertices.toSet == vertices1.toSet)
-  }*/
 }
