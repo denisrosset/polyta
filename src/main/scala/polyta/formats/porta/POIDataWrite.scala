@@ -34,6 +34,7 @@ final class POIDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
     out.write("CONV_SECTION\n")
     cforRange(0 until vertices.nRows) { r =>
       Format.writeVectorSep[FunV[Rational], Rational](vertices.view(r, ::), " ", out)
+      out.write("\n")
     }
     out.write("\n")
   }
@@ -42,6 +43,7 @@ final class POIDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
     out.write("CONE_SECTION\n")
     cforRange(0 until rays.nRows) { r =>
       Format.writeVectorSep[FunV[Rational], Rational](rays.view(r, ::), " ", out)
+      out.write("\n")
     }
     out.write("\n")
   }
@@ -51,8 +53,8 @@ final class POIDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
 
   def write(data: POIData[M, V], out: Writer): Unit = {
     writeDim(data.polyhedron.nX, out)
-    if (data.polyhedron.nVertices > 0) writeConv(data.polyhedron.vertices, out)
-    if (data.polyhedron.nRays > 0) writeCone(data.polyhedron.rays, out)
+    if (data.polyhedron.nVertices > 0) writeConv(data.polyhedron.mV, out)
+    if (data.polyhedron.nRays > 0) writeCone(data.polyhedron.mR, out)
     writeEnd(out)
   }
 }

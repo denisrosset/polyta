@@ -43,23 +43,28 @@ final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) ext
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
 
-    def constraint(d: Int): Parser[VConstraint[V, Rational]] =
+    def constraint(d: Int): Parser[LinearConstraint[V, Rational]] =
       opt(lineNumber) ~> (symbolicVector(d) ~ operator ~ rational) ^^ {
-        case lhs ~ op ~ rhs => VConstraint(lhs, op, rhs)
+        case lhs ~ op ~ rhs => LinearConstraint(lhs, op, rhs)
       }
 
     def constraintSection(d: Int): Parser[IEQData[M, V]] =
       (("INEQUALITIES_SECTION" ~ lineEndings) ~> repsep(constraint(d), lineEndings)) ^^ {
         constraints =>
-        val (eqs, ineqs) = constraints.partition(_.op == EQ)
+        val eqs = constraints.collect {
+          case lc: LinearEquality[V, Rational] => lc
+        }
+        val ineqs = constraints.collect {
+          case lc: LinearInequality[V, Rational] => lc
+        }
         val ineqRows = M.zeros(0, d) +: ineqs.map {
-          case VConstraint(vec, LE, _) => vec.rowMat[M]
-          case VConstraint(vec, GE, _) => (-vec).rowMat[M]
+          case LinearInequalityLE(vec, _) => vec.rowMat[M]
+          case LinearInequalityGE(vec, _) => (-vec).rowMat[M]
         }
         val mA = M.vertcat(ineqRows: _*)
         val vb = V.build(ineqs.map {
-          case VConstraint(_, LE, r) => r
-          case VConstraint(_, GE, r) => -r
+          case LinearInequalityLE(_, r) => r
+          case LinearInequalityGE(_, r) => -r
         }: _*)
         val eqRows = M.zeros(0, d) +: eqs.map( c => c.lhs.rowMat[M] )
         val mAeq = M.vertcat(eqRows: _*)

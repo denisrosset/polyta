@@ -73,7 +73,6 @@ object Format {
       out.write(vec(k).toString)
       prefix = sep
     }
-    out.write("\n")
   }
 
   def x1toN(n: Int): IndexedSeq[String] = new IndexedSeq[String] {

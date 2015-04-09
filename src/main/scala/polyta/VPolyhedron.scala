@@ -18,42 +18,50 @@ import qalg.syntax.all._
   */
 trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
   override def toString =
-    "Rays:\n" + rays.toString + "\nVertices:\n" + vertices.toString + "\n"
-  def vertices: M
-  def rays: M
-  def nX: Int = rays.nCols
-  require(nX == vertices.nCols)
-  def nRays: Int = rays.nRows
-  def nVertices: Int = vertices.nRows
+    "\nVertices:\n" + mV.toString + "Rays:\n" + mR.toString + "\n"
+  def mV: M
+  def mR: M
+  def nX: Int = mV.nCols
+  require(nX == mR.nCols)
+  def nVertices: Int = mV.nRows
+  def nRays: Int = mR.nRows
 }
+
+/*trait VPolyhedronFromH[M, V, @sp(Double, Long) A] extends VPolyhedron[M, V, A] {
+  def hPolyhedron: HPolyhedron[M, V, A]
+
+  def vertexBases: IndexedSeq[Set[Int]]
+
+  def inequalities = 
+}*/
 
 object VPolyhedron {
   def union[M, V, @sp(Double) A](vPolys: VPolyhedron[M, V, A]*)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
     (vPolys.head /: vPolys.tail) {
       case (prev, current) =>
-        VPolyhedron(vertcat(prev.vertices, current.vertices), vertcat(prev.rays, current.rays))
+        VPolyhedron(vertcat(prev.mV, current.mV), vertcat(prev.mR, current.mR))
     }
 
-  def fromRays[M, V, @sp(Double) A](rays: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
-    import M0.scalar
-    val vertices = M0.zeros(0, rays.nCols)
-    apply(vertices, rays)
+  def fromRays[M, V, @sp(Double) A](mR: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import M.scalar
+    val mV = M.zeros(0, mR.nCols)
+    apply(mV, mR)
   }
 
-  def fromVertices[M, V, @sp(Double) A](vertices: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
-    import M0.scalar
-    val rays = M0.zeros(0, vertices.nCols)
-    apply(vertices, rays)
+  def fromVertices[M, V, @sp(Double) A](mV: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
+    import M.scalar
+    val mR = M.zeros(0, mV.nCols)
+    apply(mV, mR)
   }
 
-  @inline protected def build[M, V, @sp(Double) A](vertices0: M, rays0: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
+  @inline protected def build[M, V, @sp(Double) A](mV0: M, mR0: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
     new VPolyhedron[M, V, A] {
       def M = M0
-      def vertices = vertices0
-      def rays = rays0
+      def mV = mV0
+      def mR = mR0
     }
 
-  def apply[M, V, @sp(Double) A](vertices: M, rays: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = build(vertices, rays)
+  def apply[M, V, @sp(Double) A](mV: M, mR: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = build(mV, mR)
 
   def empty[M, V, @sp(Double) A](d: Int)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
     import M.{V, scalar}

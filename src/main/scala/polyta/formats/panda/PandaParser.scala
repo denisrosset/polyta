@@ -70,10 +70,5 @@ trait PandaDataParser[V] extends RationalParser with AgnosticLineEndingParser wi
     case None => failure("Maps are available for named variables only")
   }
 
-  def partitionEithers[A, B](es: Seq[Either[A, B]]): (Seq[A], Seq[B]) =
-    es.foldRight (Seq.empty[A], Seq.empty[B]) { case (e, (as, bs)) =>
-      e.fold (a => (a +: as, bs), b => (as, b +: bs))
-    }
-
   def sectionEnd = lineEndings ~ opt("END" ~ lineEndings)
 }

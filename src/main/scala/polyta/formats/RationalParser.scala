@@ -24,6 +24,7 @@ trait RationalParser extends RegexParsers {
   def int: Parser[Int] = integerRegex ^^ { _.toInt }
   def nonNegativeBigInt: Parser[BigInt] = """\d+""".r ^^ { BigInt(_) }
   def nonNegativeInt: Parser[Int] = """\d+""".r ^^ { _.toInt }
+  def positiveBigInt: Parser[BigInt] = """[1-9]\d*""".r ^^ { BigInt(_) }
   def positiveInt: Parser[Int] = """[1-9]\d*""".r ^^ { _.toInt }
   def nonNegativeRational: Parser[Rational] = nonNegativeBigInt ~ opt("/" ~> nonNegativeBigInt) ^^ {
     case n ~ Some(d) => Rational(n, d)

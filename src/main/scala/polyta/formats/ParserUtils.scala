@@ -5,9 +5,9 @@ package formats
 import scala.util.parsing.combinator._
 
 trait ParserUtils extends Parsers {
-  def reportException[T](value: => T): Parser[T] = util.Try(value) match {
-    case util.Success(t) => success(t)
-    case util.Failure(ex) => failure(ex.toString)
+  def reportException[T](value: => T): Parser[T] = scala.util.Try(value) match {
+    case scala.util.Success(t) => success(t)
+    case scala.util.Failure(ex) => failure(ex.toString)
   }
 
   def optionMerge[T](aOption: Option[T], bOption: Option[T], merge: (T, T) => Parser[T]): Parser[Option[T]] =

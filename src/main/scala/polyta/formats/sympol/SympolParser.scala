@@ -7,6 +7,8 @@ import scala.util.parsing.combinator._
 
 import spire.algebra._
 import spire.math.Rational
+import spire.syntax.action._
+import spire.syntax.group._
 
 import qalg.algebra._
 import qalg.algos._
@@ -20,6 +22,12 @@ trait SympolParser[M, V] extends RationalParser with AgnosticLineEndingParser wi
   implicit def V: VecInField[V, Rational] = M.V
 
   override val whiteSpace = """([ \t])+""".r
+
+  def upToSymBeginLE: Parser[Boolean] =
+    opt("* UP TO SYMMETRY" ~ lineEnding) <~ ("begin" ~ lineEnding) ^^ {
+      case Some(text) => true
+      case None => false
+    }
 
   def dimensions: Parser[(Int, Int)] =
     positiveInt ~ positiveIntShift1 <~ (("integer" | "rational") ~ lineEnding) ^^ {
@@ -42,7 +50,7 @@ trait SympolParser[M, V] extends RationalParser with AgnosticLineEndingParser wi
 
   def cycles: Parser[Perm] = repsep(cycle, ",") ^^ { cycles => Group[Perm].combine(cycles) }
 
-  def generators: Parser[Seq[Perm]] = (positiveInt <~ lineEnding) into { nGenerators =>
+  def generators: Parser[Seq[Perm]] = (nonNegativeInt <~ lineEnding) into { nGenerators =>
     repN(nGenerators, cycles <~ lineEnding)
   }
 
@@ -53,7 +61,13 @@ trait SympolParser[M, V] extends RationalParser with AgnosticLineEndingParser wi
       repN(nBaseElements, positiveIntShift1) <~ lineEnding
   }
 
-  def symmetryInfo: Parser[SymmetryInfo] = ("permutation group" ~ lineEnding) ~> generators ~ base ^^ {
-    case g ~ b => SymmetryInfo(g, b)
-  }
+  def orderAndComment(upToSymmetry: Boolean): Parser[Option[BigInt]] =
+    opt(("* order " ~> positiveBigInt) <~ lineEnding) <~ (
+      if (upToSymmetry) ("* w.r.t. to the original inequalities/vertices" ~ lineEnding) else success(())
+    )
+
+  def symmetryInfo(upToSymmetry: Boolean): Parser[SymmetryInfo] =
+    ("permutation group" ~ lineEnding) ~> orderAndComment(upToSymmetry) ~ generators ~ base ^^ {
+      case o ~ g ~ b => SymmetryInfo(upToSymmetry, o, g, b)
+    }
 }

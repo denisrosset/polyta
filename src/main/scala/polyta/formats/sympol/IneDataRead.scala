@@ -17,19 +17,27 @@ class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
   object Parser extends ParserBase with SympolParser[M, V] {
     implicit def M: MatVecInField[M, V, Rational] = IneDataRead.this.M
 
-    def hPolyhedronMatrix: Parser[M] =
-      (("H-representation" ~ lineEnding ~ "begin" ~ lineEnding) ~> dimensions) into {
-        case (m: Int, d: Int) => matrix(m, d + 1) <~ ("end" ~ lineEnding)
+    def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
+      repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
+    }
+
+    def hPolyhedron: Parser[(Boolean, HPolyhedron[M, V, Rational], Set[Int])] =
+      (("H-representation" ~ lineEnding) ~> upToSymBeginLE ~ opt(linearity) ~ dimensions) into {
+        case ~(~(upTo: Boolean, linOpt), (m: Int, d: Int)) => matrix(m, d + 1) <~ ("end" ~ lineEnding) ^^ { mat =>
+          val equalityRows = linOpt.getOrElse(Seq.empty).sorted
+          val inequalityRows = ((0 until m).toSet -- equalityRows.toSet).toSeq.sorted
+          val mAeq = -mat(equalityRows, 1 to d)
+          val vbeq = mat(equalityRows, 0)
+          val mA = -mat(inequalityRows, 1 to d)
+          val vb = mat(inequalityRows, 0)
+          (upTo, HPolyhedron(mA, vb, mAeq, vbeq), equalityRows.toSet)
+        }
       }
 
-    def hPolyhedron: Parser[HFullPolyhedron[M, V, Rational]] = hPolyhedronMatrix.map { m =>
-      val mA = m(::, 1 until m.nCols)
-      val vb = m(::, 0)
-      HFullPolyhedron(mA, vb)
-    }
-
-    def data: Parser[IneData[M, V]] = phrase((comments ~> (hPolyhedron ~ opt(symmetryInfo))) <~ opt(lineEndings)) ^^ {
-      case poly ~ symOption => IneData(poly, symOption)
-    }
+    def data: Parser[IneData[M, V]] = phrase(comments ~> hPolyhedron into {
+      case (upTo, poly, equalityRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
+        IneData(poly, equalityRows, symOption)
+      }
+    })
   }
 }

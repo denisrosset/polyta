@@ -78,7 +78,7 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = raysSection(dim) | verticesSection(dim) | mapsSection(namesOption)
 
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, VPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
-      val (mapsSeq, vpolys) = partitionEithers(eithers)
+      val (mapsSeq, vpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
       val vpoly = VPolyhedron.union((VPolyhedron.empty[M, V, Rational](dim) +: vpolys): _*)
       (maps, vpoly)

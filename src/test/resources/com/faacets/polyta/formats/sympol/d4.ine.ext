@@ -1,0 +1,34 @@
+SymPol 0.1.8 and PermLib 0.2.8 with lrs 4.2c and cddlib 0.94f and bliss and Eigen
+called as sympol -a --bliss -i src/test/resources/com/faacets/polyta/formats/sympol/d4.ine
+USAGE:     0.004s  @ 2420K
+USAGE:     0.008s  @ 4644K
+USAGE:     0.008s  @ 4944K
+V-representation
+* UP TO SYMMETRY
+begin
+2 11 rational
+ 0 0 0 0 0 -1 2 0 1 -2 2 
+ 1 0 0 0 0 0 0 0 0 0 0 
+end
+permutation group
+* order 82944
+* w.r.t. to the original inequalities/vertices
+16
+ 8 11
+ 5 8
+ 3 5
+ 9 10
+ 6 9
+ 2 3,5 6,8 9,10 11
+ 7 12
+ 4 7
+ 1 2,4 6,7 9,10 12
+ 5 11
+ 2 6
+ 6 10
+ 1 4
+ 4 12
+ 1 12
+ 2 10
+9
+ 8 3 9 7 4 6 5 2 1

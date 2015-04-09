@@ -26,36 +26,48 @@ import net.alasc.syntax.all._
 
 class IneDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[IneData[M, V]] with SympolDataWrite[M, V] {
 
-  def writeHeader(out: Writer): Unit = {
+  def writeHeader(upToSymmetry: Boolean, out: Writer): Unit = {
     out.write("H-representation\n")
-    out.write("begin\n")
+    if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writeDimension(d: Int, nIneqs: Int, out: Writer): Unit = {
-    out.write(nIneqs.toString)
-    out.write(" ")
-    out.write((d + 1).toString)
-    out.write(" rational\n")
-  }
-
-  def writeIneqs(mA: M, vb: V, out: Writer): Unit = {
-    cforRange(0 until mA.nRows) { r =>
-      out.write(vb(r).toString)
+  def writePolyhedron(poly: HPolyhedron[M, V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
+    val n = poly.nEqs + poly.nIneqs
+    require(equalityRows.size == poly.nEqs)
+    if (equalityRows.nonEmpty) {
+      out.write("linearity ")
+      out.write(equalityRows.size)
       out.write(" ")
-      Format.writeVectorSep[V, Rational](-mA(r, ::), " ", out)
+      out.write(equalityRows.toSeq.sorted.map(r => (r + 1).toString).mkString(" "))
       out.write("\n")
     }
-  }
-
-  def writePolyhedron(poly: HFullPolyhedron[M, V, Rational], out: Writer): Unit = {
-    writeDimension(poly.nX, poly.nIneqs, out)
-    writeIneqs(poly.mA, poly.vb, out)
+    out.write("begin\n")
+    out.write(n.toString)
+    out.write(" ")
+    out.write((poly.nX + 1).toString)
+    out.write(" rational\n")
+    var ineqR = 0
+    var eqR = 0
+    cforRange(0 until n) { r =>
+      if (equalityRows.contains(r)) {
+        out.write(poly.vbeq(eqR).toString)
+        out.write(" ")
+        Format.writeVectorSep[V, Rational](-poly.mAeq(eqR, ::), " ", out)
+        eqR += 1
+      } else {
+        out.write(poly.vb(ineqR).toString)
+        out.write(" ")
+        Format.writeVectorSep[V, Rational](-poly.mA(ineqR, ::), " ", out)
+        ineqR += 1
+      }
+      out.write("\n")
+    }
     out.write("end\n")
   }
 
   def write(data: IneData[M, V], out: Writer): Unit = {
-    writeHeader(out)
-    writePolyhedron(data.polyhedron, out)
-    data.symmetryInfo.foreach( writeSymmetryInfo(_, out) )
+    writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
+    writePolyhedron(data.polyhedron, data.equalityRows, out)
+    data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
 }

@@ -17,6 +17,8 @@ import qalg.syntax.all._
 import formats._
 import formats.porta._
 
+import Porta.DefaultOptions
+
 class PortaConversion extends FunSuite {
 
   val path = "/com/faacets/polyta/solvers/porta/"
@@ -57,11 +59,11 @@ class PortaConversion extends FunSuite {
     val reader = getReader(filename)
     val poi = formatRead.parse(reader).get
     val vpoly1 = poi.polyhedron
-    val valid = if (vpoly1.nVertices > 0) vpoly1.vertices(0, ::) else vpoly1.rays(0, ::)
+    val valid = if (vpoly1.nVertices > 0) vpoly1.mV(0, ::) else vpoly1.mR(0, ::)
     val hpoly2 = Porta.toHPolyhedron(vpoly1)
     val vpoly3 = Porta.toVPolyhedron(hpoly2, valid)
-    compareMatricesArbRowOrder(vpoly1.vertices, vpoly3.vertices)
-    compareMatricesArbRowOrderAndFactor(vpoly1.rays, vpoly3.rays)
+    compareMatricesArbRowOrder(vpoly1.mV, vpoly3.mV)
+    compareMatricesArbRowOrderAndFactor(vpoly1.mR, vpoly3.mR)
   }
 
   test("All .poi files can be converted to .ieq and back without change") {

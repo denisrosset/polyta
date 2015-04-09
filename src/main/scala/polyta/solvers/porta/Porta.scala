@@ -14,14 +14,29 @@ import formats.porta._
 
 import sys.process._
 
+trait PortaOptions {
+  def useMinimalHeuristic: Boolean = true
+  def useChernikovRule: Boolean = true
+  def useSpecialArithmetic: Boolean = false
+  def optionString: String = {
+    val chain = 
+      ((if (useMinimalHeuristic) "o" else "") +
+        (if (useChernikovRule) "" else "c") +
+        (if (useSpecialArithmetic) "l" else "")
+      )
+    if (chain.nonEmpty) "-" + chain else ""
+  }
+}
+
 object Porta {
-  def toHPolyhedron[M, V](vPolyhedron: VPolyhedron[M, V, Rational])(implicit M: MatVecInField[M, V, Rational]): HPolyhedron[M, V, Rational] = {
+  implicit def DefaultOptions = new PortaOptions { }
+  def toHPolyhedron[M, V](vPolyhedron: VPolyhedron[M, V, Rational])(implicit M: MatVecInField[M, V, Rational], O: PortaOptions): HPolyhedron[M, V, Rational] = {
     import M.V
     val input = new File("test.poi")
     val writer = new PrintWriter(input)
     implicitly[FormatWrite[POIData[M, V]]].write(POIData(vPolyhedron), writer)
     writer.close
-    val status = ("traf -o " + input.getAbsolutePath).!!
+    val status = ("traf " + O.optionString + " " + input.getAbsolutePath).!!
     val output = new File("test.poi.ieq")
     val reader = new FileReader(output)
     val ieq = implicitly[FormatRead[IEQData[M, V]]].parse(reader).get

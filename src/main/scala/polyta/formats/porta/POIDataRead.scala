@@ -54,8 +54,8 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
       (seq.head /: seq.tail) {
         (p1, p2) =>
         VPolyhedron[M, V, Rational](
-          vertcat(p1.vertices, p2.vertices),
-          vertcat(p1.rays, p2.rays)
+          vertcat(p1.mV, p2.mV),
+          vertcat(p1.mR, p2.mR)
         )
       }
     }

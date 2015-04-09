@@ -19,30 +19,34 @@ class ExtDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
     implicit def M: MatVecInField[M, V, Rational] = ExtDataRead.this.M
 
     def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => V.build(seq: _*) }
-    def vertex(d: Int): Parser[V] = "1" ~> vector(d)
-    def ray(d: Int): Parser[V] = "0" ~> vector(d)
 
-    def vertices(d: Int): Parser[M] = rep(vertex(d) <~ lineEnding) ^^ { seq =>
-      M.vertcat(M.zeros(0, d) +: seq.map(_.rowMat[M]): _*)
-    }
+    type VertexOrRay = Either[V, V]
+    type Vertex = Left[V, V]
+    type Ray = Right[V, V]
 
-    def rays(d: Int): Parser[M] = rep(ray(d) <~ lineEnding) ^^ { seq =>
-      M.vertcat(M.zeros(0, d) +: seq.map(_.rowMat[M]): _*)
-    }
+    def vertex(d: Int): Parser[Vertex] = "1" ~> vector(d) ^^ { v => Left[V, V](v) }
+    def ray(d: Int): Parser[Ray] = "0" ~> vector(d) ^^ { v => Right[V, V](v) }
 
+    def vertexOrRay(d: Int): Parser[VertexOrRay] = vertex(d) | ray(d)
 
-    def vPolyhedron: Parser[VPolyhedron[M, V, Rational]] =
-      (("V-representation" ~ lineEnding ~ "begin" ~ lineEnding) ~> dimensions) into {
-        case (m: Int, d: Int) => (vertices(d) ~ rays(d) <~ ("end" ~ lineEnding)) into {
-          case vertices ~ rays if vertices.nRows + rays.nRows == m =>
-            success(VPolyhedron(vertices, rays))
-          case _ =>
-            failure("Wrong number of vertices and rays in file")
+    def vPolyhedron: Parser[(Boolean, VPolyhedron[M, V, Rational], Set[Int])] =
+      (("V-representation" ~ lineEnding) ~> upToSymBeginLE ~ dimensions) into {
+        case ~(upTo: Boolean, (m: Int, d: Int)) => (repN(m, vertexOrRay(d) <~ lineEnding) <~ ("end" ~ lineEnding)) ^^ { seq =>
+          val rayRows = seq.zipWithIndex.collect {
+            case (_: Ray, i) => i
+          }.toSet
+          val (verticesV, raysV) = util.PartitionEither(seq)
+          val vertices = M.vertcat(M.zeros(0, d) +: verticesV.map(_.rowMat[M]): _*)
+          val rays = M.vertcat(M.zeros(0, d) +: raysV.map(_.rowMat[M]): _*)
+          (upTo, VPolyhedron(vertices, rays), rayRows)
         }
       }
 
-    def data: Parser[ExtData[M, V]] = phrase((comments ~> (vPolyhedron ~ opt(symmetryInfo))) <~ opt(lineEndings)) ^^ {
-      case poly ~ symOption => ExtData(poly, symOption)
-    }
+    def data: Parser[ExtData[M, V]] = phrase(
+      comments ~> vPolyhedron into {
+        case (upTo, poly, rayRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
+          ExtData(poly, rayRows, symOption)
+        }
+      })
   }
 }

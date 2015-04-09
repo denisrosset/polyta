@@ -17,7 +17,7 @@ import net.alasc.math.Perm
 
 class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[HData[M, V]] {
 
-  type VCons = VConstraint[V, Rational]
+  type VCons = LinearConstraint[V, Rational]
   type HPoly = HPolyhedron[M, V, Rational]
 
   object Parser extends ParserBase with PandaDataParser[V] {
@@ -33,21 +33,21 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
      */
 
     def vecEquality: Parser[VCons] = rep(rational) ^^ { seq =>
-      VConstraint(V.build(seq.init:_*), EQ, -seq.last)
+      LinearEquality(V.build(seq.init:_*), -seq.last)
     }
 
     def vecEquality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => VConstraint(V.build(lhs: _*), EQ, -minusRhs)
+        case lhs ~ minusRhs => LinearEquality(V.build(lhs: _*), -minusRhs)
       }
 
     def vecInequality: Parser[VCons] = rep(rational) ^^ { seq =>
-      VConstraint(V.build(seq.init:_*), LE, -seq.last)
+      LinearInequalityLE(V.build(seq.init:_*), -seq.last)
     }
 
     def vecInequality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => VConstraint(V.build(lhs: _*), LE, -minusRhs)
+        case lhs ~ minusRhs => LinearInequalityLE(V.build(lhs: _*), -minusRhs)
       }
 
     def equalitiesHeading = "Equations:"
@@ -128,7 +128,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         val newRhs = rhs.getOrElse("", Rational.zero) + lhs.getOrElse("", Rational.zero)
         newLhs.keys.find(!names.contains(_)) match {
           case Some(key) => failure(s"Variable $key is not present in names")
-          case None => success(VConstraint(
+          case None => success(LinearConstraint(
             V.fromFunV(new FunV[Rational] {
               def len = names.size
               def f(k: Int): Rational = newLhs.getOrElse(names(k), Rational.zero)
@@ -154,7 +154,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def portaConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (portaConstraintsHeading ~ lineEndings) ~> repsep(inequalityConstraint(dim, namesOption), lineEndings)
 
     def constraintsPolyhedron(dim: Int, namesOption: Option[Seq[String]]): Parser[HPoly] = (equalityConstraints(dim, namesOption) | inequalityConstraints(dim, namesOption) | portaConstraints(dim, namesOption)) ^^ { seq =>
-      VConstraint.toHPolyhedron(dim, seq)
+      HPolyhedron.fromLinearConstraints(dim, seq)
     }
 
     type Section = Either[Maps, HPoly]
@@ -165,7 +165,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = constraintsSection(dim, namesOption) | mapsSection(namesOption)
 
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
-      val (mapsSeq, hpolys) = partitionEithers(eithers)
+      val (mapsSeq, hpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
       val hpoly = HPolyhedron.intersection((HPolyhedron.empty[M, V, Rational](dim) +: hpolys): _*)
       (maps, hpoly)

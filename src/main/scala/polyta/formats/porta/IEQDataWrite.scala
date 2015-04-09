@@ -33,16 +33,19 @@ final class IEQDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
   def writeValid(valid: V, out: Writer): Unit = {
     out.write("VALID\n")
     Format.writeVectorSep[V, Rational](valid, " ", out)
+    out.write("\n")
   }
 
   def writeLowerBounds(lowerBounds: V, out: Writer): Unit = {
     out.write("LOWER_BOUNDS\n")
     Format.writeVectorSep[V, Rational](lowerBounds, " ", out)
+    out.write("\n")
   }
 
   def writeUpperBounds(upperBounds: V, out: Writer): Unit = {
     out.write("UPPER_BOUNDS\n")
     Format.writeVectorSep[V, Rational](upperBounds, " ", out)
+    out.write("\n")
   }
 
   def writeEliminationOrder(d: Int, eliminationOrder: Seq[Int], out: Writer): Unit = {
@@ -73,9 +76,9 @@ final class IEQDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
       out.write(" == ")
       out.write(poly.vbeq(r).toString)
       out.write("\n")
-
-      out.write("\n")
     }
+
+    out.write("\n")
   }
 
   def writeEnd(out: Writer): Unit =
