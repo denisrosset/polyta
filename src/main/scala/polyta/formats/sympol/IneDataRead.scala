@@ -14,7 +14,7 @@ import qalg.syntax.all._
 class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[IneData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
 
-  object Parser extends ParserBase with SympolParser[M, V] {
+  object Parser extends ParserBase with SympolParserMV[M, V] {
     implicit def M: MatVecInField[M, V, Rational] = IneDataRead.this.M
 
     def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
@@ -34,7 +34,7 @@ class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
         }
       }
 
-    def data: Parser[IneData[M, V]] = phrase(comments ~> hPolyhedron into {
+    def data: Parser[IneData[M, V]] = phrase(comments(HVHeader) ~> hPolyhedron into {
       case (upTo, poly, equalityRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
         IneData(poly, equalityRows, symOption)
       }

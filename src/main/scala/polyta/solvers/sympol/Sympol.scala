@@ -52,6 +52,8 @@ trait SympolOptions {
 object Sympol {
   implicit def DefaultOptions = new SympolOptions { }
 
+//  def computeAutomorphisms(vPolyhedron: VPolyhedron[M, V, Rational)(implicit
+
   def toHPolyhedron[M, V](vPolyhedron: VPolyhedron[M, V, Rational])(implicit
     M: MatVecInField[M, V, Rational],
     O: SympolOptions): HPolyhedron[M, V, Rational] = {
@@ -65,6 +67,7 @@ object Sympol {
     val reader = new StringReader(output)
     implicitly[FormatRead[IneData[M, V]]].parse(reader).get.polyhedron
   }
+
   def toVPolyhedron[M, V](hPolyhedron: HPolyhedron[M, V, Rational])(implicit
     M: MatVecInField[M, V, Rational],
     O: SympolOptions): VPolyhedron[M, V, Rational] = {

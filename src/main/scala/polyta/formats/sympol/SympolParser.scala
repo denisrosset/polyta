@@ -17,34 +17,17 @@ import qalg.syntax.all._
 import net.alasc.math.{Cycle, Cycles, Perm}
 import net.alasc.syntax.all._
 
-trait SympolParser[M, V] extends RationalParser with AgnosticLineEndingParser with ParserUtils {
-  implicit def M: MatVecInField[M, V, Rational]
-  implicit def V: VecInField[V, Rational] = M.V
+trait SympolParser extends RationalParser with AgnosticLineEndingParser with ParserUtils {
 
   override val whiteSpace = """([ \t])+""".r
 
-  def upToSymBeginLE: Parser[Boolean] =
-    opt("* UP TO SYMMETRY" ~ lineEnding) <~ ("begin" ~ lineEnding) ^^ {
-      case Some(text) => true
-      case None => false
-    }
-
-  def dimensions: Parser[(Int, Int)] =
-    positiveInt ~ positiveIntShift1 <~ (("integer" | "rational") ~ lineEnding) ^^ {
-      case m ~ d => (m, d)
-    }
-
-  def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => V.build(cols: _*) }
-
-  def matrix(nR: Int, nC: Int): Parser[M] = repN(nR, rowVector(nC) <~ lineEnding) into { rows =>
-    reportException(M.vertcat(rows.map(_.rowMat[M]): _*))
-  }
-
   val lineRegex = """[^\n]*""".r
-  def commentLine = not("V-representation" | "H-representation") ~ lineRegex
-  def comments = rep(commentLine ~ lineEnding)
 
-  def positiveIntShift1: Parser[Int] = """[1-9]\d*""".r ^^ { str => str.toInt - 1 }
+  def commentLine[U](notLine: Parser[U]) = not(notLine) ~ lineRegex
+
+  def comments[U](notLine: Parser[U]) = rep(commentLine(notLine) ~ lineEnding)
+
+    def positiveIntShift1: Parser[Int] = """[1-9]\d*""".r ^^ { str => str.toInt - 1 }
 
   def cycle: Parser[Perm] = rep(positiveIntShift1) ^^ { cycle => Cycle(cycle: _*).to[Perm] }
 
@@ -70,4 +53,29 @@ trait SympolParser[M, V] extends RationalParser with AgnosticLineEndingParser wi
     ("permutation group" ~ lineEnding) ~> orderAndComment(upToSymmetry) ~ generators ~ base ^^ {
       case o ~ g ~ b => SymmetryInfo(upToSymmetry, o, g, b)
     }
+}
+
+trait SympolParserMV[M, V] extends SympolParser {
+  implicit def M: MatVecInField[M, V, Rational]
+  implicit def V: VecInField[V, Rational] = M.V
+
+  def upToSymBeginLE: Parser[Boolean] =
+    opt("* UP TO SYMMETRY" ~ lineEnding) <~ ("begin" ~ lineEnding) ^^ {
+      case Some(text) => true
+      case None => false
+    }
+
+  def dimensions: Parser[(Int, Int)] =
+    positiveInt ~ positiveIntShift1 <~ (("integer" | "rational") ~ lineEnding) ^^ {
+      case m ~ d => (m, d)
+    }
+
+  def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => V.build(cols: _*) }
+
+  def matrix(nR: Int, nC: Int): Parser[M] = repN(nR, rowVector(nC) <~ lineEnding) into { rows =>
+    reportException(M.vertcat(rows.map(_.rowMat[M]): _*))
+  }
+
+  def HVHeader = "V-representation" | "H-representation"
+
 }

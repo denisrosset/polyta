@@ -25,7 +25,6 @@ trait HPolyhedron[M, V, @sp(Double, Long) A] extends LinearConvexSet[M, V, A] {
   def vb: V
   def mAeq: M
   def vbeq: V
-  require(nX == mAeq.nCols)
   def nX: Int
   def nIneqs: Int
   def nEqs: Int

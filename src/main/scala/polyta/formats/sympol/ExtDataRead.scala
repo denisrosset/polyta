@@ -15,7 +15,7 @@ import qalg.syntax.all._
 class ExtDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[ExtData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
 
-  object Parser extends ParserBase with SympolParser[M, V] {
+  object Parser extends ParserBase with SympolParserMV[M, V] {
     implicit def M: MatVecInField[M, V, Rational] = ExtDataRead.this.M
 
     def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => V.build(seq: _*) }
@@ -43,7 +43,7 @@ class ExtDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
       }
 
     def data: Parser[ExtData[M, V]] = phrase(
-      comments ~> vPolyhedron into {
+      comments(HVHeader) ~> vPolyhedron into {
         case (upTo, poly, rayRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
           ExtData(poly, rayRows, symOption)
         }

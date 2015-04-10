@@ -1,0 +1,14 @@
+SymPol 0.1.8 and PermLib 0.2.8 with lrs 4.2c and cddlib 0.94f and bliss and Eigen
+called as sympol --automorphisms-only square.ine
+USAGE:     0s  @ 2468K
+generators for Aut(P) of order 8:
+ (2,4)
+ (1,2)(3,4)
+ (1,3)
+SymPol format:
+3
+ 2 4
+ 1 2,3 4
+ 1 3
+2
+ 2 1

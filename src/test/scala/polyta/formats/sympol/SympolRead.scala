@@ -17,6 +17,7 @@ class SympolRead extends FunSuite {
   val resources = ResourceListing.list(getClass, "." + path)
   val extFilenames = resources.filter(_.endsWith(".ext"))
   val ineFilenames = resources.filter(_.endsWith(".ine"))
+  val autoFilenames = resources.filter(_.endsWith(".auto"))
 
   def getReader(filename: String): Reader = {
     val url = getClass.getResource(filename)
@@ -35,6 +36,15 @@ class SympolRead extends FunSuite {
     val formatRead = ExtData.FormatRead[DenseM[Rational], DenseV[Rational]]
     extFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
+      res.get
+    }    
+  }
+
+  test("All .auto files can be parsed") {
+    val formatRead = SymmetryInfo.FormatRead
+    autoFilenames.foreach { filename =>
+      val res = formatRead.parse(getReader(filename))
+      println(res)
       res.get
     }
   }

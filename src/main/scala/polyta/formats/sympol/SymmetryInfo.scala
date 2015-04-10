@@ -40,3 +40,7 @@ case class SymmetryInfo(
       }
     }
 }
+
+object SymmetryInfo {
+  implicit val FormatRead = new SymmetryInfoRead
+}

@@ -19,8 +19,30 @@ import qalg.syntax.all._
 trait VPolyhedron[M, V, @sp(Double) A] extends LinearConvexSet[M, V, A] {
   override def toString =
     "\nVertices:\n" + mV.toString + "Rays:\n" + mR.toString + "\n"
+  def vertices: IndexedSeq[V]
+  def rays: IndexedSeq[V]
+
   def mV: M
   def mR: M
+  def nX: Int
+  def nVertices: Int
+  def nRays: Int
+}
+
+trait VPolyhedronFromMatrices[M, V, @sp(Double, Long) A] extends VPolyhedron[M ,V, A] {
+  def vertices: IndexedSeq[V] = new IndexedSeq[V] {
+    def length = nVertices
+    def apply(r: Int): V = mV(r, ::)
+  }
+
+  def rays: IndexedSeq[V] = new IndexedSeq[V] {
+    def length = nRays
+    def apply(r: Int): V = mR(r, ::)
+  }
+
+  def mV: M
+  def mR: M
+
   def nX: Int = mV.nCols
   require(nX == mR.nCols)
   def nVertices: Int = mV.nRows
@@ -39,7 +61,7 @@ object VPolyhedron {
   def union[M, V, @sp(Double) A](vPolys: VPolyhedron[M, V, A]*)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
     (vPolys.head /: vPolys.tail) {
       case (prev, current) =>
-        VPolyhedron(vertcat(prev.mV, current.mV), vertcat(prev.mR, current.mR))
+        apply(vertcat(prev.mV, current.mV), vertcat(prev.mR, current.mR))
     }
 
   def fromRays[M, V, @sp(Double) A](mR: M)(implicit M: MatVecInField[M, V, A]): VPolyhedron[M, V, A] = {
@@ -55,7 +77,7 @@ object VPolyhedron {
   }
 
   @inline protected def build[M, V, @sp(Double) A](mV0: M, mR0: M)(implicit M0: MatVecInField[M, V, A]): VPolyhedron[M, V, A] =
-    new VPolyhedron[M, V, A] {
+    new VPolyhedronFromMatrices[M, V, A] {
       def M = M0
       def mV = mV0
       def mR = mR0
