@@ -14,6 +14,7 @@ import qalg.syntax.all._
 class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[IneData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
 
+  type HPoly = HPolyhedronM[M, V, Rational]
   object Parser extends ParserBase with SympolParserMV[M, V] {
     implicit def M: MatVecInField[M, V, Rational] = IneDataRead.this.M
 
@@ -21,7 +22,7 @@ class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
     }
 
-    def hPolyhedron: Parser[(Boolean, HPolyhedron[M, V, Rational], Set[Int])] =
+    def hPolyhedron: Parser[(Boolean, HPoly, Set[Int])] =
       (("H-representation" ~ lineEnding) ~> upToSymBeginLE ~ opt(linearity) ~ dimensions) into {
         case ~(~(upTo: Boolean, linOpt), (m: Int, d: Int)) => matrix(m, d + 1) <~ ("end" ~ lineEnding) ^^ { mat =>
           val equalityRows = linOpt.getOrElse(Seq.empty).sorted
@@ -30,7 +31,7 @@ class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
           val vbeq = mat(equalityRows, 0)
           val mA = -mat(inequalityRows, 1 to d)
           val vb = mat(inequalityRows, 0)
-          (upTo, HPolyhedron(mA, vb, mAeq, vbeq), equalityRows.toSet)
+          (upTo, HPolyhedronM(mA, vb, mAeq, vbeq), equalityRows.toSet)
         }
       }
 

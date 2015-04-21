@@ -30,7 +30,7 @@ trait PortaOptions {
 
 object Porta {
   implicit def DefaultOptions = new PortaOptions { }
-  def toHPolyhedron[M, V](vPolyhedron: VPolyhedron[M, V, Rational])(implicit M: MatVecInField[M, V, Rational], O: PortaOptions): HPolyhedron[M, V, Rational] = {
+  def toHPolyhedron[M, V](vPolyhedron: VPolyhedronM[M, V, Rational])(implicit M: MatVecInField[M, V, Rational], O: PortaOptions): HPolyhedronM[M, V, Rational] = {
     import M.V
     val input = new File("test.poi")
     val writer = new PrintWriter(input)
@@ -43,7 +43,7 @@ object Porta {
     ieq.polyhedron
   }
 
-  def toVPolyhedron[M, V](hPolyhedron: HPolyhedron[M, V, Rational], validPoint: V)(implicit M: MatVecInField[M, V, Rational]): VPolyhedron[M, V, Rational] = {
+  def toVPolyhedron[M, V](hPolyhedron: HPolyhedronM[M, V, Rational], validPoint: V)(implicit M: MatVecInField[M, V, Rational]): VPolyhedronM[M, V, Rational] = {
     import M.V
     val input = new File("test.ieq")
     val writer = new PrintWriter(input)

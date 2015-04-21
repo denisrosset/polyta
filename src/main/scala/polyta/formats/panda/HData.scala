@@ -12,7 +12,7 @@ import qalg.algebra.MatVecInField
 import net.alasc.math.Perm
 
 case class HData[M, V](
-  polyhedron: HPolyhedron[M, V, Rational],
+  polyhedron: HPolyhedronM[M, V, Rational],
   names: Option[Seq[String]] = None,
   maps: Seq[Perm] = Seq.empty)
 

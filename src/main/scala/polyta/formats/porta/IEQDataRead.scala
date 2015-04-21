@@ -35,10 +35,7 @@ final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) ext
           val varMap: Map[Int, Rational] = (Map(xInd0 -> coeff0) /: seq) {
             case (m, (coeff ~ xInd)) => m + (xInd -> (m.getOrElse(xInd, Rational.zero) + coeff))
           }
-          V.fromFunV(new FunV[Rational] {
-            def len = d
-            def f(k: Int): Rational = varMap.getOrElse(k, Rational.zero)
-          })
+          V.tabulate(d)( k => varMap.getOrElse(k, Rational.zero) )
       }
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
@@ -57,19 +54,19 @@ final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) ext
         val ineqs = constraints.collect {
           case lc: LinearInequality[V, Rational] => lc
         }
-        val ineqRows = M.zeros(0, d) +: ineqs.map {
-          case LinearInequalityLE(vec, _) => vec.rowMat[M]
-          case LinearInequalityGE(vec, _) => (-vec).rowMat[M]
+        val ineqRows = ineqs.map {
+          case LinearInequalityLE(vec, _) => vec
+          case LinearInequalityGE(vec, _) => -vec
         }
-        val mA = M.vertcat(ineqRows: _*)
+        val mA = M.fromRows(d, ineqRows: _*)
         val vb = V.build(ineqs.map {
           case LinearInequalityLE(_, r) => r
           case LinearInequalityGE(_, r) => -r
         }: _*)
-        val eqRows = M.zeros(0, d) +: eqs.map( c => c.lhs.rowMat[M] )
-        val mAeq = M.vertcat(eqRows: _*)
+        val eqRows = eqs.map(_.lhs)
+        val mAeq = M.fromRows(d, eqRows: _*)
         val vbeq = V.build(eqs.map(_.rhs): _*)
-        IEQData(polyhedron = HPolyhedron(mA, vb, mAeq, vbeq))
+        IEQData(polyhedron = HPolyhedronM(mA, vb, mAeq, vbeq))
       }
 
     def validSection(d: Int): Parser[IEQData[M, V]] =
@@ -105,7 +102,7 @@ final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) ext
             nextEliminationOrder <- oneOptionOutOf(prevSection.eliminationOrder, section.eliminationOrder)
             nextLowerBounds <- oneOptionOutOf(prevSection.lowerBounds, section.lowerBounds)
             nextUpperBounds <- oneOptionOutOf(prevSection.upperBounds, section.upperBounds)
-            nextPolyhedron = HPolyhedron.intersection(prevSection.polyhedron, section.polyhedron)
+            nextPolyhedron = HPolyhedronM.intersection(prevSection.polyhedron, section.polyhedron)
           } yield IEQData[M, V](nextPolyhedron, nextValidPoint, nextEliminationOrder, nextLowerBounds, nextUpperBounds)
         }
       }

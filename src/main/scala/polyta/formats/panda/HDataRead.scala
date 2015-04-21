@@ -18,7 +18,7 @@ import net.alasc.math.Perm
 class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[HData[M, V]] {
 
   type VCons = LinearConstraint[V, Rational]
-  type HPoly = HPolyhedron[M, V, Rational]
+  type HPoly = HPolyhedronM[M, V, Rational]
 
   object Parser extends ParserBase with PandaDataParser[V] {
     implicit def M: MatVecInField[M, V, Rational] = HDataRead.this.M
@@ -64,9 +64,9 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         rep(lineEndings ~> vecEquality(first.lhs.length)) ^^ { rest =>
           require(first.op == EQ)
           require(rest.forall(_.op == EQ))
-          val mAeq = M.vertcat(first.lhs.rowMat[M] +: rest.map(_.lhs.rowMat[M]): _*)
+          val mAeq = M.fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
           val vbeq = V.build(first.rhs +: rest.map(_.rhs): _*)
-          (HPolyhedron.fromEqualities(mAeq, vbeq), None)
+          (HPolyhedronM.fromEqualities(mAeq, vbeq), None)
         }
       }
 
@@ -75,18 +75,18 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         rep(lineEndings ~> vecInequality(first.lhs.length)) ^^ { rest =>
           require(first.op == LE)
           require(rest.forall(_.op == LE))
-          val mA = M.vertcat(first.lhs.rowMat[M] +: rest.map(_.lhs.rowMat[M]): _*)
+          val mA = M.fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
           val vb = V.build(first.rhs +: rest.map(_.rhs): _*)
-          (HPolyhedron.fromInequalities(mA, vb), None)
+          (HPolyhedronM.fromInequalities(mA, vb), None)
         }
       }
 
     def hUnnamedHeader: Parser[Header] = unnamedHeader ^^ { dim =>
-      (HPolyhedron.empty[M, V, Rational](dim), None)
+      (HPolyhedronM.empty[M, V, Rational](dim), None)
     }
 
     def hNamedHeader: Parser[Header] = namedHeader ^^ { seq =>
-      (HPolyhedron.empty(seq.size), Some(seq))
+      (HPolyhedronM.empty(seq.size), Some(seq))
     }
 
     def hHeader: Parser[Header] = hNamedHeader | hUnnamedHeader | firstEqualitiesSection | firstInequalitiesSection
@@ -128,12 +128,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         val newRhs = rhs.getOrElse("", Rational.zero) + lhs.getOrElse("", Rational.zero)
         newLhs.keys.find(!names.contains(_)) match {
           case Some(key) => failure(s"Variable $key is not present in names")
-          case None => success(LinearConstraint(
-            V.fromFunV(new FunV[Rational] {
-              def len = names.size
-              def f(k: Int): Rational = newLhs.getOrElse(names(k), Rational.zero)
-            }), op, newRhs
-          ))
+          case None => success(LinearConstraint(V.tabulate(names.size)(k => newLhs.getOrElse(names(k), Rational.zero)), op, newRhs))
         }
     }
 
@@ -154,7 +149,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def portaConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (portaConstraintsHeading ~ lineEndings) ~> repsep(inequalityConstraint(dim, namesOption), lineEndings)
 
     def constraintsPolyhedron(dim: Int, namesOption: Option[Seq[String]]): Parser[HPoly] = (equalityConstraints(dim, namesOption) | inequalityConstraints(dim, namesOption) | portaConstraints(dim, namesOption)) ^^ { seq =>
-      HPolyhedron.fromLinearConstraints(dim, seq)
+      HPolyhedronM.fromLinearConstraints(dim, seq)
     }
 
     type Section = Either[Maps, HPoly]
@@ -167,13 +162,13 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, hpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
-      val hpoly = HPolyhedron.intersection((HPolyhedron.empty[M, V, Rational](dim) +: hpolys): _*)
+      val hpoly = HPolyhedronM.intersection((HPolyhedronM.empty[M, V, Rational](dim) +: hpolys): _*)
       (maps, hpoly)
     }
 
     def data = phrase((hHeader <~ sectionEnd) into {
       case (hpoly, namesOption) => sections(hpoly.nX, namesOption) ^^ {
-        case (maps, newHpoly) => HData(HPolyhedron.intersection(hpoly, newHpoly), namesOption, maps)
+        case (maps, newHpoly) => HData(HPolyhedronM.intersection(hpoly, newHpoly), namesOption, maps)
       }
     })
   }

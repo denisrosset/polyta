@@ -14,6 +14,7 @@ import qalg.syntax.all._
 
 class ExtDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[ExtData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
+  type VPoly = VPolyhedronM[M, V, Rational]
 
   object Parser extends ParserBase with SympolParserMV[M, V] {
     implicit def M: MatVecInField[M, V, Rational] = ExtDataRead.this.M
@@ -29,23 +30,23 @@ class ExtDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
 
     def vertexOrRay(d: Int): Parser[VertexOrRay] = vertex(d) | ray(d)
 
-    def vPolyhedron: Parser[(Boolean, VPolyhedron[M, V, Rational], Set[Int])] =
+    def vPolyhedron: Parser[(Boolean, VPoly, Set[Int])] =
       (("V-representation" ~ lineEnding) ~> upToSymBeginLE ~ dimensions) into {
         case ~(upTo: Boolean, (m: Int, d: Int)) => (repN(m, vertexOrRay(d) <~ lineEnding) <~ ("end" ~ lineEnding)) ^^ { seq =>
-          val rayRows = seq.zipWithIndex.collect {
+          val rayCols = seq.zipWithIndex.collect {
             case (_: Ray, i) => i
           }.toSet
           val (verticesV, raysV) = util.PartitionEither(seq)
-          val vertices = M.vertcat(M.zeros(0, d) +: verticesV.map(_.rowMat[M]): _*)
-          val rays = M.vertcat(M.zeros(0, d) +: raysV.map(_.rowMat[M]): _*)
-          (upTo, VPolyhedron(vertices, rays), rayRows)
+          val vertices = M.fromRows(d, verticesV: _*)
+          val rays = M.fromRows(d, raysV: _*)
+          (upTo, VPolyhedronM.apply(vertices.t, rays.t), rayCols)
         }
       }
 
     def data: Parser[ExtData[M, V]] = phrase(
       comments(HVHeader) ~> vPolyhedron into {
-        case (upTo, poly, rayRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
-          ExtData(poly, rayRows, symOption)
+        case (upTo, poly, rayCols) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
+          ExtData(poly, rayCols, symOption)
         }
       })
   }

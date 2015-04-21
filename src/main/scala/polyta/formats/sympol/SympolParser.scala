@@ -72,8 +72,8 @@ trait SympolParserMV[M, V] extends SympolParser {
 
   def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => V.build(cols: _*) }
 
-  def matrix(nR: Int, nC: Int): Parser[M] = repN(nR, rowVector(nC) <~ lineEnding) into { rows =>
-    reportException(M.vertcat(rows.map(_.rowMat[M]): _*))
+  def matrix(nR: Int, nC: Int): Parser[M] = repN(nR, rowVector(nC) <~ lineEnding) ^^ { rows =>
+    M.fromRows(nC, rows: _*)
   }
 
   def HVHeader = "V-representation" | "H-representation"

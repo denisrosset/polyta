@@ -14,16 +14,16 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-trait LinearProgram[M, V, @sp(Double) A] extends MixedLinearProgram[M, V, A] {
+trait LinearProgram[V, @sp(Double) A] extends MixedLinearProgram[V, A] {
   override def toString = s"LinearProgram($direction, $objective, $feasibleSet, $bounds)"
-  def feasibleSet: HPolyhedron[M, V, A]
-  def bounds: Box[M, V, A]
+  def feasibleSet: HPolyhedron[V, A]
+  def bounds: Box[V, A]
   def integerVariables: BitSet = BitSet.empty
   require(nX == bounds.nX)
 }
 
 object LinearProgram {
-  def apply[M, V, @sp(Double) A](direction0: Direction, objective0: V, feasibleSet0: HPolyhedron[M, V, A], bounds0: Box[M, V, A])(implicit M0: MatVecInField[M, V, A]): LinearProgram[M, V, A] =
+  def apply[V, @sp(Double) A](direction0: Direction, objective0: V, feasibleSet0: HPolyhedron[M, V, A], bounds0: Box[M, V, A])(implicit M0: MatVecInField[M, V, A]): LinearProgram[M, V, A] =
     new LinearProgram[M, V, A] {
       def M = M0
       def direction = direction0

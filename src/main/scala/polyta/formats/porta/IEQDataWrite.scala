@@ -60,18 +60,18 @@ final class IEQDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) ex
     out.write("\n")
   }
 
-  def writePolyhedron(dim: Int, poly: HPolyhedron[M, V, Rational], out: Writer): Unit = {
+  def writePolyhedron(dim: Int, poly: HPolyhedronM[M, V, Rational], out: Writer): Unit = {
     out.write("INEQUALITIES_SECTION\n")
     val names = Format.x1toN(dim)
 
-    (0 until poly.nIneqs).foreach { r =>
+    poly.inequalities.indices.foreach { r =>
         Format.writeVector[V, Rational](poly.mA(r, ::), names, out)
       out.write(" <= ")
       out.write(poly.vb(r).toString)
       out.write("\n")
     }
 
-    (0 until poly.nEqs).foreach { r =>
+    poly.equalities.indices.foreach { r =>
       Format.writeVector[V, Rational](poly.mAeq(r, ::), names, out)
       out.write(" == ")
       out.write(poly.vbeq(r).toString)

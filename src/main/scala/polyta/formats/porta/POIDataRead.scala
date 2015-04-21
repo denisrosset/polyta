@@ -25,27 +25,23 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
   implicit def M: MatVecInField[M, V, Rational]
   implicit def V: VecInField[V, Rational] = M.V
 
-  type VPoly = VPolyhedron[M, V, Rational]
+  type VPoly = VPolyhedronM[M, V, Rational]
 
   object Parser extends ParserBase with PortaDataParser[V] {
     implicit def V = self.V
 
     def matrix(nCols: Int): Parser[M] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>
-      M.fromFunM(new FunM[Rational] {
-        def nR = rows.size
-        def nC = nCols
-        def f(r: Int, c: Int): Rational = rows(r)(c)
-      })
+      M.tabulate(rows.size, nCols)( (r, c) => rows(r)(c))
     }
 
     def coneSection(d: Int): Parser[VPoly] =
       (("CONE_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolyhedron.fromRays[M, V, Rational](m)
+        VPolyhedronM.fromRays[M, V, Rational](m.t)
       }
 
     def convSection(d: Int): Parser[VPoly] =
       (("CONV_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolyhedron.fromVertices[M, V, Rational](m)
+        VPolyhedronM.fromVertices[M, V, Rational](m.t)
       }
 
     def polyhedronSection(d: Int): Parser[VPoly] = coneSection(d) | convSection(d)
@@ -53,9 +49,9 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
     def polyhedron(d: Int): Parser[VPoly] = rep(polyhedronSection(d) <~ lineEndings) ^^ { seq =>
       (seq.head /: seq.tail) {
         (p1, p2) =>
-        VPolyhedron[M, V, Rational](
-          vertcat(p1.mV, p2.mV),
-          vertcat(p1.mR, p2.mR)
+        VPolyhedronM.apply[M, V, Rational](
+          horzcat(p1.mV, p2.mV),
+          horzcat(p1.mR, p2.mR)
         )
       }
     }

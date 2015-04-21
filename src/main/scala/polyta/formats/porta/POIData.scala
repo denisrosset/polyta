@@ -6,7 +6,7 @@ package porta
 import qalg.algebra._
 import spire.math.Rational
 
-case class POIData[M, V](polyhedron: VPolyhedron[M, V, Rational])
+case class POIData[M, V](polyhedron: VPolyhedronM[M, V, Rational])
 
 object POIData {
   implicit def FormatRead[M, V](implicit M0: MatVecInField[M, V, Rational]): FormatRead[POIData[M, V]] = new POIDataRead[M, V] {

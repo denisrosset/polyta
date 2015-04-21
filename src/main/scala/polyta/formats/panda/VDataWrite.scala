@@ -36,18 +36,18 @@ class VDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends Fo
 
   def writeVertices(vertices: M, out: Writer): Unit = {
     out.write("Vertices:\n")
-    writeMatrix(vertices, out)
+    writeMatrix(vertices.t, out)
   }
 
   def writeRays(rays: M, out: Writer): Unit = {
     out.write("Rays:\n")
-    writeMatrix(rays, out)
+    writeMatrix(rays.t, out)
   }
 
-  def writePolyhedron(poly: VPolyhedron[M, V, Rational], out: Writer): Unit = {
-    if (poly.nVertices > 0)
+  def writePolyhedron(poly: VPolyhedronM[M, V, Rational], out: Writer): Unit = {
+    if (poly.vertices.nonEmpty)
       writeVertices(poly.mV, out)
-    if (poly.nRays > 0)
+    if (poly.rays.nonEmpty)
       writeRays(poly.mR, out)
   }
 

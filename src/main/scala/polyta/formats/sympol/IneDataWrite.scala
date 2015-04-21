@@ -31,9 +31,9 @@ class IneDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends 
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolyhedron(poly: HPolyhedron[M, V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
-    val n = poly.nEqs + poly.nIneqs
-    require(equalityRows.size == poly.nEqs)
+  def writePolyhedron(poly: HPolyhedronM[M, V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
+    val n = poly.equalities.size + poly.inequalities.size
+    require(equalityRows.size == poly.equalities.size)
     if (equalityRows.nonEmpty) {
       out.write("linearity ")
       out.write(equalityRows.size)

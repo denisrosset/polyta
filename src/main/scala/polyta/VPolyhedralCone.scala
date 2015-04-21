@@ -16,13 +16,12 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
-/** Polyhedron described by extremal rays and vertices, which are stored as
-  * row vectors.
+/** Polyhedral cone as a set of points that are convex combinations of rays.
   */
-trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] {
+trait VPolyhedralCone[V, @sp(Double) A] extends VPolyhedron[V, A] {
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n") + "Rays:\n" + rays.mkString("\n") + "\n"
-  def vertices: IndexedSeq[V]
+  def vertices: IndexedSeq[V] = IndexedSeq.empty[V]
   def rays: IndexedSeq[V]
 
   def nX: Int

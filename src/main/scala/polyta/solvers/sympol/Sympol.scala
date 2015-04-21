@@ -52,11 +52,15 @@ trait SympolOptions {
 object Sympol {
   implicit def DefaultOptions = new SympolOptions { }
 
-//  def computeAutomorphisms(vPolyhedron: VPolyhedron[M, V, Rational)(implicit
-
-  def toHPolyhedron[M, V](vPolyhedron: VPolyhedron[M, V, Rational])(implicit
+/*  def toHPolyhedronSym[M, V](vPolyhedron: VPolyhedron[M, V, Rational](implicit
     M: MatVecInField[M, V, Rational],
     O: SympolOptions): HPolyhedron[M, V, Rational] = {
+    ???
+  }*/
+
+  def toHPolyhedron[M, V](vPolyhedron: VPolyhedronM[M, V, Rational])(implicit
+    M: MatVecInField[M, V, Rational],
+    O: SympolOptions): HPolyhedronM[M, V, Rational] = {
     import M.V
     val input = new File("test.ext")
     val writer = new PrintWriter(input)
@@ -68,18 +72,39 @@ object Sympol {
     implicitly[FormatRead[IneData[M, V]]].parse(reader).get.polyhedron
   }
 
-  def toVPolyhedron[M, V](hPolyhedron: HPolyhedron[M, V, Rational])(implicit
+  def toVPolyhedron[M, V](hPolyhedron: HPolyhedronM[M, V, Rational])(implicit
     M: MatVecInField[M, V, Rational],
-    O: SympolOptions): VPolyhedron[M, V, Rational] = {
+    O: SympolOptions): VPolyhedronM[M, V, Rational] = {
     import M.V
     val input = new File("test.ine")
     val writer = new PrintWriter(input)
     implicitly[FormatWrite[IneData[M, V]]].write(IneData.fromPolyhedron(hPolyhedron), writer)
     writer.close
     val output = ("sympol --no-automorphisms -d " + O.optionString + " -i " + input.getAbsolutePath).!!
-      println(output)
     val reader = new StringReader(output)
     implicitly[FormatRead[ExtData[M, V]]].parse(reader).get.polyhedron
+  }
+
+  def findSymmetries[M, V](polyhedron: VPolyhedronM[M, V, Rational])(implicit
+    M: MatVecInField[M, V, Rational]): SymmetryInfo = {
+    val input = new File("test.ext")
+    val writer = new PrintWriter(input)
+    implicitly[FormatWrite[ExtData[M, V]]].write(ExtData.fromPolyhedron(polyhedron), writer)
+    writer.close
+    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
+    val reader = new StringReader(output)
+    implicitly[FormatRead[SymmetryInfo]].parse(reader).get
+  }
+
+  def findSymmetries[M, V](polyhedron: HPolyhedronM[M, V, Rational])(implicit
+    M: MatVecInField[M, V, Rational]): SymmetryInfo = {
+    val input = new File("test.ine")
+    val writer = new PrintWriter(input)
+    implicitly[FormatWrite[IneData[M, V]]].write(IneData.fromPolyhedron(polyhedron), writer)
+    writer.close
+    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
+    val reader = new StringReader(output)
+    implicitly[FormatRead[SymmetryInfo]].parse(reader).get
   }
 }
 

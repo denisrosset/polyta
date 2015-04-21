@@ -8,13 +8,13 @@ import spire.math.Rational
 import qalg.algebra._
 
 case class IneData[M, V](
-  polyhedron: HPolyhedron[M, V, Rational],
+  polyhedron: HPolyhedronM[M, V, Rational],
   equalityRows: Set[Int],
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object IneData {
-  def fromPolyhedron[M, V](polyhedron: HPolyhedron[M, V, Rational]): IneData[M, V] = {
-    val equalityRows = (polyhedron.nIneqs until (polyhedron.nIneqs + polyhedron.nEqs)).toSet
+  def fromPolyhedron[M, V](polyhedron: HPolyhedronM[M, V, Rational]): IneData[M, V] = {
+    val equalityRows = (polyhedron.inequalities.size until (polyhedron.inequalities.size + polyhedron.equalities.size)).toSet
     IneData(polyhedron, equalityRows)
   }
   implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[IneData[M, V]] = new IneDataRead[M, V]

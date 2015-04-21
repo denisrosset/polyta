@@ -44,6 +44,7 @@ class HDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends Fo
       out.write("\n")
     }
   }
+
   def writeEquations(mAeq: M, vbeq: V, namesOption: Option[Seq[String]], out: Writer): Unit = {
     out.write("Equations:\n")
     writeMatrix(mAeq, vbeq, namesOption, "=", out)
@@ -54,10 +55,10 @@ class HDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends Fo
     writeMatrix(mA, vb, namesOption, "<=", out)
   }
 
-  def writePolyhedron(poly: HPolyhedron[M, V, Rational], namesOption: Option[Seq[String]], out: Writer): Unit = {
-    if (poly.nEqs > 0)
+  def writePolyhedron(poly: HPolyhedronM[M, V, Rational], namesOption: Option[Seq[String]], out: Writer): Unit = {
+    if (poly.equalities.nonEmpty)
       writeEquations(poly.mAeq, poly.vbeq, namesOption, out)
-    if (poly.nIneqs > 0)
+    if (poly.inequalities.nonEmpty)
       writeInequalities(poly.mA, poly.vb, namesOption, out)
   }
 
