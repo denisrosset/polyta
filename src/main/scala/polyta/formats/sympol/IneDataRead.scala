@@ -11,12 +11,13 @@ import spire.syntax.field._
 import qalg.algebra._
 import qalg.syntax.all._
 
-class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[IneData[M, V]] {
-  implicit def V: VecInField[V, Rational] = M.V
+class IneDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[IneData[V]] {
 
-  type HPoly = HPolyhedronM[M, V, Rational]
-  object Parser extends ParserBase with SympolParserMV[M, V] {
-    implicit def M: MatVecInField[M, V, Rational] = IneDataRead.this.M
+  type HPoly = HPolyhedron[V, Rational]
+
+  object Parser extends ParserBase with SympolParserV[V] {
+
+    implicit def V: VecInField[V, Rational] = IneDataRead.this.V
 
     def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
@@ -24,18 +25,22 @@ class IneDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends F
 
     def hPolyhedron: Parser[(Boolean, HPoly, Set[Int])] =
       (("H-representation" ~ lineEnding) ~> upToSymBeginLE ~ opt(linearity) ~ dimensions) into {
-        case ~(~(upTo: Boolean, linOpt), (m: Int, d: Int)) => matrix(m, d + 1) <~ ("end" ~ lineEnding) ^^ { mat =>
+        case ~(~(upTo: Boolean, linOpt), (m: Int, d: Int)) => repN(m, rowVector(d + 1) <~ lineEnding) <~ ("end" ~ lineEnding) ^^ { rowVectors =>
           val equalityRows = linOpt.getOrElse(Seq.empty).sorted
           val inequalityRows = ((0 until m).toSet -- equalityRows.toSet).toSeq.sorted
-          val mAeq = -mat(equalityRows, 1 to d)
-          val vbeq = mat(equalityRows, 0)
-          val mA = -mat(inequalityRows, 1 to d)
-          val vb = mat(inequalityRows, 0)
-          (upTo, HPolyhedronM(mA, vb, mAeq, vbeq), equalityRows.toSet)
+          val equalities = equalityRows.map { k =>
+            val row = rowVectors(k)
+            LinearEquality(-row(1 to d), row(0))
+          }
+          val inequalities = inequalityRows.map { k =>
+            val row = rowVectors(k)
+            LinearInequalityLE(-row(1 to d), row(0))
+          }
+          (upTo, HPolyhedron(inequalities, equalities), equalityRows.toSet)
         }
       }
 
-    def data: Parser[IneData[M, V]] = phrase(comments(HVHeader) ~> hPolyhedron into {
+    def data: Parser[IneData[V]] = phrase(comments(HVHeader) ~> hPolyhedron into {
       case (upTo, poly, equalityRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
         IneData(poly, equalityRows, symOption)
       }

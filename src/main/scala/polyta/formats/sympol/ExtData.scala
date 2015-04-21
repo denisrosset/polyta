@@ -7,16 +7,16 @@ import spire.math.Rational
 
 import qalg.algebra._
 
-case class ExtData[M, V](
-  polyhedron: VPolyhedronM[M, V, Rational],
+case class ExtData[V](
+  polyhedron: VPolyhedron[V, Rational],
   rayCols: Set[Int],
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object ExtData {
-  def fromPolyhedron[M, V](polyhedron: VPolyhedronM[M, V, Rational]): ExtData[M, V] = {
+  def fromPolyhedron[V](polyhedron: VPolyhedron[V, Rational]): ExtData[V] = {
     val rayCols = (polyhedron.vertices.size until (polyhedron.vertices.size + polyhedron.rays.size)).toSet
     ExtData(polyhedron, rayCols)
   }
-  implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[ExtData[M, V]] = new ExtDataRead[M, V]
-  implicit def FormatWrite[M, V](implicit M: MatVecInField[M, V, Rational]): FormatWrite[ExtData[M, V]] = new ExtDataWrite[M, V]
+  implicit def FormatRead[V](implicit V: VecInField[V, Rational]): FormatRead[ExtData[V]] = new ExtDataRead[V]
+  implicit def FormatWrite[V](implicit V: VecInField[V, Rational]): FormatWrite[ExtData[V]] = new ExtDataWrite[V]
 }

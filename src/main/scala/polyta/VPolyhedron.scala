@@ -22,8 +22,19 @@ import net.alasc.math.{Perm, Grp}
 trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] {
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n") + "Rays:\n" + rays.mkString("\n") + "\n"
-  def vertices: IndexedSeq[V]
-  def rays: IndexedSeq[V]
+  def vertices: Seq[V]
+  def rays: Seq[V]
 
   def nX: Int
+}
+
+object VPolyhedron {
+  @inline protected def build[V, A](vertices0: Seq[V], rays0: Seq[V])(implicit V0: VecInField[V, A]): VPolyhedron[V, A] =
+    new VPolyhedron[V, A] {
+      def V = V0
+      def vertices = vertices0
+      def rays = rays0
+      def nX = vertices.head.length
+    }
+  def apply[V, A](vertices: Seq[V], rays: Seq[V])(implicit V: VecInField[V, A]): VPolyhedron[V, A] = build(vertices, rays)
 }

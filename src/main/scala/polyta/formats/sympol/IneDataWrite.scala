@@ -24,14 +24,14 @@ import qalg.syntax.all._
 import net.alasc.math._
 import net.alasc.syntax.all._
 
-class IneDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[IneData[M, V]] with SympolDataWrite[M, V] {
+class IneDataWrite[V](implicit val V: VecInField[V, Rational]) extends FormatWrite[IneData[V]] with SympolDataWrite {
 
   def writeHeader(upToSymmetry: Boolean, out: Writer): Unit = {
     out.write("H-representation\n")
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolyhedron(poly: HPolyhedronM[M, V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
+  def writePolyhedron(poly: HPolyhedron[V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
     val n = poly.equalities.size + poly.inequalities.size
     require(equalityRows.size == poly.equalities.size)
     if (equalityRows.nonEmpty) {
@@ -50,14 +50,15 @@ class IneDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends 
     var eqR = 0
     cforRange(0 until n) { r =>
       if (equalityRows.contains(r)) {
-        out.write(poly.vbeq(eqR).toString)
+        out.write(poly.equalities(eqR).rhs.toString)
         out.write(" ")
-        Format.writeVectorSep[V, Rational](-poly.mAeq(eqR, ::), " ", out)
+        Format.writeVectorSep[V, Rational](-poly.equalities(eqR).lhs, " ", out)
         eqR += 1
       } else {
-        out.write(poly.vb(ineqR).toString)
+        val ineqGE = poly.inequalities(ineqR).toGE
+        out.write((-ineqGE.rhs).toString)
         out.write(" ")
-        Format.writeVectorSep[V, Rational](-poly.mA(ineqR, ::), " ", out)
+        Format.writeVectorSep[V, Rational](ineqGE.lhs, " ", out)
         ineqR += 1
       }
       out.write("\n")
@@ -65,7 +66,7 @@ class IneDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends 
     out.write("end\n")
   }
 
-  def write(data: IneData[M, V], out: Writer): Unit = {
+  def write(data: IneData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
     writePolyhedron(data.polyhedron, data.equalityRows, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }

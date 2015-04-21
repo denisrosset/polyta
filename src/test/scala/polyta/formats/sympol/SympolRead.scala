@@ -25,7 +25,7 @@ class SympolRead extends FunSuite {
   }
 
   test("All .ine files can be parsed") {
-    val formatRead = IneData.FormatRead[DenseM[Rational], DenseV[Rational]]
+    val formatRead = IneData.FormatRead[DenseV[Rational]]
     ineFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
       res.get
@@ -33,7 +33,7 @@ class SympolRead extends FunSuite {
   }
 
   test("All .ext files can be parsed") {
-    val formatRead = ExtData.FormatRead[DenseM[Rational], DenseV[Rational]]
+    val formatRead = ExtData.FormatRead[DenseV[Rational]]
     extFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
       res.get

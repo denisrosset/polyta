@@ -28,9 +28,7 @@ import net.alasc.math._
 import net.alasc.std.seq._
 import net.alasc.syntax.all._
 
-trait SympolDataWrite[M, V] extends Any {
-  implicit def M: MatVecInField[M, V, Rational]
-  implicit def V: VecInField[V, Rational] = M.V
+trait SympolDataWrite extends Any {
 
   def writePermutation1(perm: Perm, out: Writer): Unit = {
     val cycles = (perm + 1).to[Cycles]

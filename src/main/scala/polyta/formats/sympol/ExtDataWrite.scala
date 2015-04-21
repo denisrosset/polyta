@@ -24,14 +24,14 @@ import qalg.syntax.all._
 import net.alasc.math._
 import net.alasc.syntax.all._
 
-class ExtDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[ExtData[M, V]] with SympolDataWrite[M, V] {
+class ExtDataWrite[V](implicit val V: VecInField[V, Rational]) extends FormatWrite[ExtData[V]] with SympolDataWrite {
 
   def writeHeader(upToSymmetry: Boolean, out: Writer): Unit = {
     out.write("V-representation\n")
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolyhedron(poly: VPolyhedronM[M, V, Rational], rayCols: Set[Int], out: Writer): Unit = {
+  def writePolyhedron(poly: VPolyhedron[V, Rational], rayCols: Set[Int], out: Writer): Unit = {
     out.write("begin\n")
     val n = poly.vertices.size + poly.rays.size
     require(rayCols.size == poly.rays.size)
@@ -44,11 +44,11 @@ class ExtDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends 
     cforRange(0 until n) { c =>
       if (rayCols.contains(c)) {
         out.write("0 ")
-        Format.writeVectorSep[V, Rational](poly.mR(::, rayC), " ", out)
+        Format.writeVectorSep[V, Rational](poly.rays(rayC), " ", out)
         rayC += 1
       } else {
         out.write("1 ")
-        Format.writeVectorSep[V, Rational](poly.mV(::, vertC), " ", out)
+        Format.writeVectorSep[V, Rational](poly.vertices(vertC), " ", out)
         vertC += 1
       }
       out.write("\n")
@@ -56,7 +56,7 @@ class ExtDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends 
     out.write("end\n")
   }
 
-  def write(data: ExtData[M, V], out: Writer): Unit = {
+  def write(data: ExtData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
     writePolyhedron(data.polyhedron, data.rayCols, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }

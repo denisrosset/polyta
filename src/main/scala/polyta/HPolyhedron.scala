@@ -21,10 +21,20 @@ import net.alasc.math.{Perm, Grp}
   */
 trait HPolyhedron[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] {
   override def toString = constraints.mkString("\n")
-  def constraints: IndexedSeq[LinearConstraint[V, A]] = inequalities ++ equalities
-  def equalities: IndexedSeq[LinearEquality[V, A]]
-  def inequalities: IndexedSeq[LinearInequality[V, A]]
+  def constraints: Seq[LinearConstraint[V, A]] = inequalities ++ equalities
+  def equalities: Seq[LinearEquality[V, A]]
+  def inequalities: Seq[LinearInequality[V, A]]
   def nX: Int
 //  def contains(v: V)(implicit AO: ApproxOrder[A]): Boolean
 }
 
+object HPolyhedron {
+  @inline protected def build[V, A](inequalities0: Seq[LinearInequality[V, A]], equalities0: Seq[LinearEquality[V, A]])(implicit V0: VecInField[V, A]): HPolyhedron[V, A] =
+    new HPolyhedron[V, A] {
+      def V = V0
+      def inequalities = inequalities0
+      def equalities = equalities0
+      def nX = inequalities.head.lhs.length
+    }
+  def apply[V, A](inequalities: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit V: VecInField[V, A]): HPolyhedron[V, A] = build(inequalities, equalities)
+}
