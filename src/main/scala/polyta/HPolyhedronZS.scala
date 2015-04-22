@@ -23,9 +23,9 @@ trait HPolyhedronZS[M, V, @sp(Double) A] extends HPolyhedron[V, A] {
   implicit def orderA: Order[A]
 
   def vPolyhedron: VPolyhedron[V, A]
-  def inequalityZeroSets: IndexedSeq[Set[Int]]
+  def inequalityZeroSets: Seq[Set[Int]]
 
-  def inequalities: IndexedSeq[LinearInequality[V, A]] = new IndexedSeq[LinearInequality[V, A]] {
+  def inequalities: Seq[LinearInequality[V, A]] = new IndexedSeq[LinearInequality[V, A]] {
     def length = inequalityZeroSets.length
     def apply(k: Int): LinearInequality[V, A] = {
       val zeroSet = inequalityZeroSets(k)
@@ -50,7 +50,7 @@ trait HPolyhedronZS[M, V, @sp(Double) A] extends HPolyhedron[V, A] {
 }
 
 object HPolyhedronZS {
-  protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: VPolyhedron[V, A], inequalityZeroSets0: IndexedSeq[Set[Int]], equalities0: IndexedSeq[LinearEquality[V, A]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): HPolyhedronZS[M, V, A] = new HPolyhedronZS[M, V, A] {
+  protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: VPolyhedron[V, A], inequalityZeroSets0: Seq[Set[Int]], equalities0: Seq[LinearEquality[V, A]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): HPolyhedronZS[M, V, A] = new HPolyhedronZS[M, V, A] {
     def M = M0
     def MM = MM0
     def V = M0.V
@@ -60,5 +60,16 @@ object HPolyhedronZS {
     def equalities = equalities0
   }
 
-  def apply[M, V, @sp(Double, Long) A](vPolyhedron: VPolyhedron[V, A], inequalityZeroSets: IndexedSeq[Set[Int]], equalities: IndexedSeq[LinearEquality[V, A]])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): HPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityZeroSets, equalities)
+  def apply[M, V, @sp(Double, Long) A](vPolyhedron: VPolyhedron[V, A], inequalityZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): HPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityZeroSets, equalities)
+
+  def fromDualDescription[M, V, @sp(Double, Long) A](hPolyhedron: HPolyhedron[V, A], vPolyhedron: VPolyhedron[V, A])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): HPolyhedronZS[M, V, A] = {
+    import M.V
+    val zeroSets = vPolyhedron.vertices.map { vertex =>
+      hPolyhedron.inequalities.indices.filter { k =>
+        val ineq = hPolyhedron.inequalities(k)
+        ineq.lhs.dot(vertex) === ineq.rhs
+      }.toSet
+    }
+    apply(vPolyhedron, zeroSets, hPolyhedron.equalities)
+  }
 }

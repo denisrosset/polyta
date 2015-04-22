@@ -17,7 +17,18 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
 trait SymHPolyhedron[V, @sp(Double) A] extends HPolyhedron[V, A] {
-  def symmetryGroup: Grp[(Perm, Perm)]
-  def equalityFamilies: IndexedSeq[IndexedSeq[LinearEquality[V, A]]]
-  def inequalityFamilies: IndexedSeq[IndexedSeq[LinearInequality[V, A]]]
+  def symmetryGroup: Grp[Perm]
+}
+
+object SymHPolyhedron {
+  @inline protected def build[V, A](inequalities0: Seq[LinearInequality[V, A]], equalities0: Seq[LinearEquality[V, A]], symmetryGroup0: Grp[Perm])(implicit V0: VecInField[V, A]): SymHPolyhedron[V, A] =
+    new SymHPolyhedron[V, A] {
+      def V = V0
+      def inequalities = inequalities0
+      def equalities = equalities0
+      def symmetryGroup = symmetryGroup0
+      def nX = inequalities.head.lhs.length
+    }
+  def apply[V, A](inequalities: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]], symmetryGroup: Grp[Perm])(implicit V: VecInField[V, A]): SymHPolyhedron[V, A] =
+    build(inequalities, equalities, symmetryGroup)
 }
