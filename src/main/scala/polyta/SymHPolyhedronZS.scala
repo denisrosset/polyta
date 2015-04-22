@@ -5,6 +5,7 @@ import scala.{specialized => sp}
 
 import spire.algebra._
 import spire.math.Rational
+import spire.syntax.action._
 import spire.syntax.cfor._
 import spire.syntax.order._
 import spire.syntax.innerProductSpace._
@@ -17,22 +18,28 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
-trait HPolyhedronZS[M, V, @sp(Double) A] extends HPolyhedron[V, A] {
+trait SymHPolyhedronZS[M, V, @sp(Double) A] extends SymHPolyhedron[V, A] {
   implicit def M: MatVecInField[M, V, A]
   implicit def MM: MatMutable[M, A]
   implicit def orderA: Order[A]
 
-  def vPolyhedron: VPolyhedron[V, A]
-  def inequalityZeroSets: Seq[Set[Int]]
+  def vPolyhedron: SymVPolyhedron[V, A]
+  def inequalityFamilyZeroSets: Seq[Set[Int]]
 
-  def inequalities: Seq[LinearInequality[V, A]] = new IndexedSeq[LinearInequality[V, A]] {
-    def length = inequalityZeroSets.length
-    def apply(k: Int): LinearInequality[V, A] = HZeroSet[M, V, A](vPolyhedron, inequalityZeroSets(k)).inequality
+  case class Family(representative: Set[Int]) extends IndexedSeq[LinearInequality[V, A]] {
+    lazy val symmetrySubgroup = symmetryGroup.setwiseStabilizer(representative.toSeq: _*)
+    lazy val cosets = (symmetrySubgroup \ symmetryGroup).iterator.toSeq
+    def length = cosets.length
+    def apply(k: Int): LinearInequality[V, A] = {
+      val g = cosets(k).g
+      val zeroSeq = representative.toSeq.map(_ <|+| g)
+      HZeroSet[M, V, A](vPolyhedron, zeroSeq.toSet).inequality
+    }
   }
 
   def nX: Int = vPolyhedron.nX
 }
-
+/*
 object HPolyhedronZS {
   protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: VPolyhedron[V, A], inequalityZeroSets0: Seq[Set[Int]], equalities0: Seq[LinearEquality[V, A]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): HPolyhedronZS[M, V, A] = new HPolyhedronZS[M, V, A] {
     def M = M0
@@ -57,3 +64,4 @@ object HPolyhedronZS {
     apply(vPolyhedron, zeroSets, hPolyhedron.equalities)
   }
 }
+ */

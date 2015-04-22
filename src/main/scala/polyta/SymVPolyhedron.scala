@@ -17,7 +17,10 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
 trait SymVPolyhedron[V, @sp(Double) A] extends VPolyhedron[V, A] {
-  def symmetryGroup: Grp[(Perm, Perm)]
+  /** Element of the symmetry group of the polyhedron. The first element
+    * of the pair acts on vertices, the second on rays. */
+  type G = (Perm, Perm)
+  def symmetryGroup: Grp[G]
 }
 
 object SymVPolyhedron {

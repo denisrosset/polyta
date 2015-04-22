@@ -55,12 +55,6 @@ trait SympolOptions {
 object Sympol {
   implicit def DefaultOptions = new SympolOptions { }
 
-/*  def toHPolyhedronSym[M, V](vPolyhedron: VPolyhedron[M, V, Rational](implicit
-    M: MatVecInField[M, V, Rational],
-    O: SympolOptions): HPolyhedron[M, V, Rational] = {
-    ???
-  }*/
-
   def toHPolyhedron[V](vPolyhedron: VPolyhedron[V, Rational])(implicit
     V: VecInField[V, Rational],
     O: SympolOptions): HPolyhedron[V, Rational] = {

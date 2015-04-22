@@ -33,16 +33,7 @@ trait VPolyhedronZS[M, V, @sp(Double) A] extends VPolyhedron[V, A] {
 
   def vertices: Seq[V] = new IndexedSeq[V] {
     def length = vertexZeroSets.length
-    def apply(k: Int): V = {
-      val ineqSatisfied: Seq[(V, A)] = vertexZeroSets(k).toSeq.map {
-        i => (hPolyhedron.inequalities(i).lhs, hPolyhedron.inequalities(i).rhs)
-      }
-      val eqSatisfied: Seq[(V, A)] = hPolyhedron.equalities.map( eq => (eq.lhs, eq.rhs) )
-      val satisfied = ineqSatisfied ++ eqSatisfied
-      val newA = M.fromRows(nX, satisfied.map(_._1): _*)
-      val newb = V.build(satisfied.map(_._2): _*)
-      lu(newA).solve(newb)
-    }
+    def apply(k: Int): V = VZeroSet(hPolyhedron, vertexZeroSets(k)).vertex
   }
   // rays are not yet supported
   def rays: Seq[V] = Seq.empty[V]
