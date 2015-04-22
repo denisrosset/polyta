@@ -29,6 +29,7 @@ object SymHPolyhedron {
       def symmetryGroup = symmetryGroup0
       def nX = inequalities.head.lhs.length
     }
+  
   def apply[V, A](inequalities: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]], symmetryGroup: Grp[Perm])(implicit V: VecInField[V, A]): SymHPolyhedron[V, A] =
     build(inequalities, equalities, symmetryGroup)
 }

@@ -9,6 +9,9 @@ import spire.math.Rational
 
 import qalg.algebra._
 
+import net.alasc.math.Grp
+import net.alasc.std.any._
+
 import formats._
 import formats.sympol._
 
@@ -84,43 +87,30 @@ object Sympol {
   }
 
   def findSymmetries[V](polyhedron: VPolyhedron[V, Rational])(implicit
-    V: VecInField[V, Rational]): SymmetryInfo = {
+    V: VecInField[V, Rational]): SymVPolyhedron[V, Rational] = {
     val input = new File("test.ext")
     val writer = new PrintWriter(input)
-    implicitly[FormatWrite[ExtData[V]]].write(ExtData.fromPolyhedron(polyhedron), writer)
+    val extData = ExtData.fromPolyhedron(polyhedron)
+    implicitly[FormatWrite[ExtData[V]]].write(extData, writer)
     writer.close
     val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
     val reader = new StringReader(output)
-    implicitly[FormatRead[SymmetryInfo]].parse(reader).get
+    val symInfo = implicitly[FormatRead[SymmetryInfo]].parse(reader).get
+    val generators = symInfo.decodeGenerators(extData.rayCols)
+    SymVPolyhedron[V, Rational](polyhedron.vertices, polyhedron.rays, Grp(generators: _*))
   }
 
   def findSymmetries[V](polyhedron: HPolyhedron[V, Rational])(implicit
-    V: VecInField[V, Rational]): SymmetryInfo = {
+    V: VecInField[V, Rational]): SymHPolyhedron[V, Rational] = {
     val input = new File("test.ine")
     val writer = new PrintWriter(input)
-    implicitly[FormatWrite[IneData[V]]].write(IneData.fromPolyhedron(polyhedron), writer)
+    val ineData = IneData.fromPolyhedron(polyhedron)
+    implicitly[FormatWrite[IneData[V]]].write(ineData, writer)
     writer.close
     val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
     val reader = new StringReader(output)
-    implicitly[FormatRead[SymmetryInfo]].parse(reader).get
+    val symInfo = implicitly[FormatRead[SymmetryInfo]].parse(reader).get
+    val generators = symInfo.decodeGenerators(ineData.equalityRows).map(_._1)
+    SymHPolyhedron[V, Rational](polyhedron.inequalities, polyhedron.equalities, Grp(generators: _*))
   }
 }
-
-/*
-object Porta {
-  implicit def DefaultOptions = new PortaOptions { }
-
-  def toVPolyhedron[M, V](hPolyhedron: HPolyhedron[M, V, Rational], validPoint: V)(implicit M: MatVecInField[M, V, Rational]): VPolyhedron[M, V, Rational] = {
-    import M.V
-    val input = new File("test.ieq")
-    val writer = new PrintWriter(input)
-    implicitly[FormatWrite[IEQData[M, V]]].write(IEQData(hPolyhedron, validPoint = Some(validPoint)), writer)
-    writer.close
-    val status = ("traf -o " + input.getAbsolutePath).!!
-    val output = new File("test.ieq.poi")
-    val reader = new FileReader(output)
-    val poi = implicitly[FormatRead[POIData[M, V]]].parse(reader).get
-    poi.polyhedron
-  }
-}
- */
