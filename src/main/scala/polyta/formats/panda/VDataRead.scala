@@ -18,7 +18,7 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
 
   type VPoly = VPolyhedronM[M, V, Rational]
  
-  object Parser extends ParserBase with PandaDataParser[V] {
+  object Parsers extends ParsersBase with PandaDataParsers[V] {
     implicit def V: VecInField[V, Rational] = VDataRead.this.V
 
     /* A Panda file can be either named or unnamed.

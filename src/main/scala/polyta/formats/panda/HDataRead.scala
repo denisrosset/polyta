@@ -20,7 +20,7 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
   type VCons = LinearConstraint[V, Rational]
   type HPoly = HPolyhedronM[M, V, Rational]
 
-  object Parser extends ParserBase with PandaDataParser[V] {
+  object Parsers extends ParsersBase with PandaDataParsers[V] with NamedExprParsers {
     implicit def M: MatVecInField[M, V, Rational] = HDataRead.this.M
     implicit def V: VecInField[V, Rational] = M.V
 
@@ -92,33 +92,6 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def hHeader: Parser[Header] = hNamedHeader | hUnnamedHeader | firstEqualitiesSection | firstInequalitiesSection
 
     // Support for named expressions
-
-    def onlyVariable: Parser[(String, Rational)] = variable ^^ { str => (str, Rational.one) }
-
-    def onlyCoefficient: Parser[(String, Rational)] = nonNegativeRational ^^ { rat => ("", rat) }
-
-    def coefficientAndVariable: Parser[(String, Rational)] = nonNegativeRational ~ variable ^^ {
-      case rat ~ str => (str, rat)
-    }
-
-    def positiveTerm: Parser[(String, Rational)] =
-      coefficientAndVariable | onlyVariable | onlyCoefficient
-
-    def firstTerm: Parser[(String, Rational)] = opt(sign) ~ positiveTerm ^^ {
-      case ~(Some(-1), (str, rat)) => (str, -rat)
-      case other ~ term => term
-    }
-
-    def nextTerm: Parser[(String, Rational)] = sign ~ positiveTerm ^^ {
-      case ~(-1, (str, rat)) => (str, -rat)
-      case other ~ term => term
-    }
-
-    def expr: Parser[Map[String, Rational]] = firstTerm ~ rep(nextTerm) ^^ {
-      case first ~ next => (Map(first._1 -> first._2) /: next) {
-        case (map, (v, r)) => Map(v -> r) + map
-      }
-    }
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("=" ^^^ EQ) | (">=" ^^^ GE)
 

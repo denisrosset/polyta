@@ -21,7 +21,7 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-trait PortaDataParser[V] extends RationalParser with AgnosticLineEndingParser {
+trait PortaDataParsers[V] extends RationalParsers with AgnosticLineEndingParsers {
   implicit def V: VecInField[V, Rational]
 
   override val whiteSpace = """([ \t])+""".r

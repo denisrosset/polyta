@@ -17,7 +17,7 @@ import qalg.syntax.all._
 import net.alasc.math.{Cycle, Cycles, Perm}
 import net.alasc.syntax.all._
 
-trait SympolParser extends RationalParser with AgnosticLineEndingParser with ParserUtils {
+trait SympolParsers extends RationalParsers with AgnosticLineEndingParsers with ParsersUtils {
 
   override val whiteSpace = """([ \t])+""".r
 
@@ -55,7 +55,7 @@ trait SympolParser extends RationalParser with AgnosticLineEndingParser with Par
     }
 }
 
-trait SympolParserV[V] extends SympolParser {
+trait SympolParsersV[V] extends SympolParsers {
   implicit def V: VecInField[V, Rational]
 
   def upToSymBeginLE: Parser[Boolean] =

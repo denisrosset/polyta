@@ -15,7 +15,7 @@ class IneDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead
 
   type HPoly = HPolyhedron[V, Rational]
 
-  object Parser extends ParserBase with SympolParserV[V] {
+  object Parsers extends ParsersBase with SympolParsersV[V] {
 
     implicit def V: VecInField[V, Rational] = IneDataRead.this.V
 

@@ -27,7 +27,7 @@ trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
 
   type VPoly = VPolyhedronM[M, V, Rational]
 
-  object Parser extends ParserBase with PortaDataParser[V] {
+  object Parsers extends ParsersBase with PortaDataParsers[V] {
     implicit def V = self.V
 
     def matrix(nCols: Int): Parser[M] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>

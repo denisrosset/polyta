@@ -24,7 +24,7 @@ import qalg.syntax.all._
 final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[IEQData[M, V]] {
   implicit def V: VecInField[V, Rational] = M.V
 
-  object Parser extends ParserBase with PortaDataParser[V] with ParserUtils {
+  object Parsers extends ParsersBase with PortaDataParsers[V] with ParsersUtils {
     implicit def V = IEQDataRead.this.V
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)

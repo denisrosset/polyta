@@ -4,7 +4,7 @@ package formats
 
 import scala.util.parsing.combinator._
 
-trait ParserUtils extends Parsers {
+trait ParsersUtils extends Parsers {
   def reportException[T](value: => T): Parser[T] = scala.util.Try(value) match {
     case scala.util.Success(t) => success(t)
     case scala.util.Failure(ex) => failure(ex.toString)

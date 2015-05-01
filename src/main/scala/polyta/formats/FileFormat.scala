@@ -16,13 +16,13 @@ object Converter {
 }
 
 trait FormatRead[Data] {
-  trait ParserBase extends RegexParsers {
+  trait ParsersBase extends RegexParsers {
     def data: Parser[Data]
   }
-  val Parser: ParserBase
+  val Parsers: ParsersBase
 
-  def parse(in: Reader): Parser.ParseResult[Data] = Parser.parse(Parser.data, in)
-  def parse(in: String): Parser.ParseResult[Data] = Parser.parse(Parser.data, in)
+  def parse(in: Reader): RegexParsers#ParseResult[Data] = Parsers.parse(Parsers.data, in)
+  def parse(in: String): RegexParsers#ParseResult[Data] = Parsers.parse(Parsers.data, in)
 }
 
 object FormatRead {

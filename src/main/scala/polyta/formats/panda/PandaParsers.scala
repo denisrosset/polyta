@@ -25,18 +25,20 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
+trait PandaDataParsersBase extends RationalParsers with JavaTokenParsers {
+  def variable: Parser[String] = ident
+}
+
 /** Base trait for Panda data files.
   * 
   * All sections are parsed without the final line ending.
   */
-trait PandaDataParser[V] extends RationalParser with AgnosticLineEndingParser with JavaTokenParsers with ParserUtils {
+trait PandaDataParsers[V] extends PandaDataParsersBase with AgnosticLineEndingParsers with ParsersUtils {
   implicit def V: VecInField[V, Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
-
-  def variable: Parser[String] = ident
 
   def namesHeading = "Names:" | "INDEX" | "INDICES" | "NAMES"
 

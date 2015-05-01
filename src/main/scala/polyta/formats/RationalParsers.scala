@@ -17,7 +17,7 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-trait RationalParser extends RegexParsers {
+trait RationalParsers extends RegexParsers {
   val integerRegex = """(-|\+)?\d+""".r
   def sign = ("+" ^^^ 1) | ("-" ^^^ -1)
   def bigInt: Parser[BigInt] = integerRegex ^^ { BigInt(_) }

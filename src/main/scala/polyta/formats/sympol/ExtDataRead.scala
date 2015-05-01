@@ -15,7 +15,7 @@ import qalg.syntax.all._
 class ExtDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[ExtData[V]] {
   type VPoly = VPolyhedron[V, Rational]
 
-  object Parser extends ParserBase with SympolParserV[V] {
+  object Parsers extends ParsersBase with SympolParsersV[V] {
     implicit def V: VecInField[V, Rational] = ExtDataRead.this.V
 
     def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => V.build(seq: _*) }

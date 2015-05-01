@@ -20,7 +20,7 @@ import net.alasc.syntax.all._
 
 class SymmetryInfoRead extends FormatRead[SymmetryInfo] {
 
-  object Parser extends ParserBase with SympolParser {
+  object Parsers extends ParsersBase with SympolParsers {
     def firstPartOrder: Parser[BigInt] = ("generators for Aut(P) of order" ~> positiveBigInt) <~ ":"
     def firstPartCycle: Parser[Cycle] = ("(" ~> repsep(positiveInt, ",")) <~ ")" ^^ { seq => Cycle(seq.map(_ - 1): _*) }
     def firstPartPerm: Parser[Perm] = rep1(firstPartCycle) ^^ { seq => Perm.Algebra.combine(seq.map(_.to[Perm])) }
