@@ -125,14 +125,14 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
       HPolyhedronM.fromLinearConstraints(dim, seq)
     }
 
-    type Section = Either[Maps, HPoly]
+    type Section = Either[Maps[M, V], HPoly]
 
     def constraintsSection(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] =
       constraintsPolyhedron(dim, namesOption) ^^ { poly => Right(poly) }
 
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = constraintsSection(dim, namesOption) | mapsSection(namesOption)
 
-    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
+    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps[M, V], HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, hpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
       val hpoly = HPolyhedronM.intersection((HPolyhedronM.empty[M, V, Rational](dim) +: hpolys): _*)

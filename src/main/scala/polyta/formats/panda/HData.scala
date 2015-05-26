@@ -14,7 +14,7 @@ import net.alasc.math.Perm
 case class HData[M, V](
   polyhedron: HPolyhedronM[M, V, Rational],
   names: Option[Seq[String]] = None,
-  maps: Seq[Perm] = Seq.empty)
+  maps: Seq[AffineTransform[M, V, Rational]] = Seq.empty)
 
 object HData {
   implicit def FormatRead[M, V](implicit M: MatVecInField[M, V, Rational]): FormatRead[HData[M, V]] = new HDataRead[M, V]

@@ -80,41 +80,46 @@ object Format {
     def apply(k: Int) = "x" + (k + 1).toString
   }
 
-  def writeVector[V, @sp(Double) A: Field: Order](vec: V, variableNames: Seq[String], out: Writer)(implicit V: Vec[V, A]): Unit = {
-    var wroteSomething: Boolean = false
-    var plusString = ""
-    val minusString = "-"
-    var space = ""
-    val zero = Field[A].zero
-    val minusOne = -Field[A].one
+  /** Writes a term in an expression.
+    * 
+    * @param coefficient Term coefficient
+    * @param variableName Term variable name, or "" if the term is a constant
+    * @param first Is this the first term in the sequence ?
+    * @param out Writer
+    * @param withSpaces Whether to write spaces between tokens
+    * @param ignoreZero Whether to skip the write of zero coefficients
+    * 
+    * @return false if anything is written, `first` otherwise
+    */
+  def writeTerm[A: Field: Order](coefficient: A, variableName: String, first: Boolean, out: Writer, withSpaces: Boolean = true, skipZero: Boolean = true): Boolean = {
+    val sign = coefficient.compare(Field[A].zero)
+    if (sign != 0 || !skipZero) {
+      if (sign >= 0 && !first) {
+        if (withSpaces) out.write(" ")
+        out.write("+")
+        if (withSpaces) out.write(" ")
+      }
+      if (sign < 0) {
+        if (withSpaces) out.write(" ")
+        out.write("-")
+        if (withSpaces) out.write(" ")
+      }
+      val absCoefficient = if (sign >= 0) coefficient else -coefficient
+      if (!absCoefficient.isOne || variableName.isEmpty) {
+        out.write(absCoefficient.toString)
+        if (withSpaces && variableName.nonEmpty) out.write(" ")
+      }
+      out.write(variableName)
+      false
+    } else first
+  }
+
+  def writeVector[V, @sp(Double) A: Field: Order](vec: V, variableNames: Seq[String], out: Writer, constantOpt: Opt[A] = Opt.empty[A], withSpaces: Boolean = true)(implicit V: Vec[V, A]): Unit = {
+    var first: Boolean = true
     cforRange(0 until vec.length) { k =>
-      val v = vec(k)
-      val sign = v.compare(zero)
-      if (sign > 0) {
-        out.write(space)
-        out.write(plusString)
-        out.write(" ")
-        if (!v.isOne) {
-          out.write(v.toString)
-          out.write(" ")
-        }
-        out.write(variableNames(k))
-      } else if (sign < 0) {
-        out.write(space)
-        out.write(minusString)
-        out.write(" ")
-        if (v =!= minusOne) {
-          out.write((-v).toString)
-          out.write(" ")
-        }
-        out.write(variableNames(k))
-      }
-      if (sign != 0) {
-        wroteSomething = true
-        plusString = "+"
-        space = " "
-      }
+      first = writeTerm(vec(k), variableNames(k), first, out, withSpaces = withSpaces, skipZero = true)
     }
-    if (!wroteSomething) out.write(zero.toString)
+    val constant = constantOpt.getOrElseFast(Field[A].zero)
+    writeTerm(constant, "", first, out, withSpaces, skipZero = !first)
   }
 }

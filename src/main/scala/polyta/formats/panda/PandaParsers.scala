@@ -58,17 +58,23 @@ trait PandaDataParsers[V] extends PandaDataParsersBase with AgnosticLineEndingPa
 
   def mapsHeader = "Maps:" | "MAPS"
 
-  def mapPerm(names: Seq[String]): Parser[Perm] = rep1(ident) into { seq =>
-    val images = seq.map(names.indexOf(_))
-    if (images.contains(-1)) failure("Invalid map: only permutations are supported") else success(Perm.fromImages(images))
+  val mapLine: Parser[String] = """[^\n\r]+""".r
+
+  def mapAffineTransform[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit M: MatVecInField[M, V, Rational]): Parser[AffineTransform[M, V, Rational]] = mapLine into { line =>
+    atp.parseAll(atp.terms(names), line) match {
+      case error: atp.NoSuccess => failure(error.msg)
+      case atp.Success(result, _) => success(result)
+    }
   }
 
-  def mapsPerms(names: Seq[String]): Parser[Maps] = mapsHeader ~> rep(lineEndings ~> mapPerm(names))
+  def mapsAffineTransforms[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit M: MatVecInField[M, V, Rational]): Parser[Maps[M, V]] = mapsHeader ~> rep(lineEndings ~> mapAffineTransform(names, atp))
 
-  type Maps = Seq[Perm]
+  type Maps[M, V] = Seq[AffineTransform[M, V, Rational]]
 
-  def mapsSection(namesOption: Option[Seq[String]]): Parser[Left[Maps, Nothing]] = namesOption match {
-    case Some(names) => mapsPerms(names) ^^ { maps => Left(maps) }
+  def mapsSection[M, V](namesOption: Option[Seq[String]])(implicit M: MatVecInField[M, V, Rational]): Parser[Left[Maps[M, V], Nothing]] = namesOption match {
+    case Some(names) =>
+      val atp = new AffineTransformParsers[M, V]
+      mapsAffineTransforms(names, atp) ^^ { maps => Left(maps) }
     case None => failure("Maps are available for named variables only")
   }
 

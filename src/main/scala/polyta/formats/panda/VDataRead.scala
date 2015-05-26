@@ -63,7 +63,7 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
       M.fromRows(cols, rows: _*)
     }
 
-    type Section = Either[Maps, VPoly]
+    type Section = Either[Maps[M, V], VPoly]
 
     def raysSection(dim: Int): Parser[Section] =
       ((raysHeading ~ lineEndings) ~> matrix(dim)) ^^ { m =>
@@ -77,7 +77,7 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
 
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = raysSection(dim) | verticesSection(dim) | mapsSection(namesOption)
 
-    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, VPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
+    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps[M, V], VPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, vpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
       val vpoly = VPolyhedronM.union((VPolyhedronM.empty[M, V, Rational](dim) +: vpolys): _*)

@@ -24,7 +24,7 @@ trait SymVPolyhedron[V, @sp(Double) A] extends VPolyhedron[V, A] {
 }
 
 object SymVPolyhedron {
-  @inline protected def build[V, A](vertices0: Seq[V], rays0: Seq[V], symmetryGroup0: Grp[(Perm, Perm)])(implicit V0: VecInField[V, A]): SymVPolyhedron[V, A] =
+  @inline protected def build[V, @sp(Double) A](vertices0: Seq[V], rays0: Seq[V], symmetryGroup0: Grp[(Perm, Perm)])(implicit V0: VecInField[V, A]): SymVPolyhedron[V, A] =
     new SymVPolyhedron[V, A] {
       def V = V0
       def vertices = vertices0
@@ -32,6 +32,9 @@ object SymVPolyhedron {
       def symmetryGroup = symmetryGroup0
       def nX = vertices.head.length
     }
-  def apply[V, A](vertices: Seq[V], rays: Seq[V], symmetryGroup: Grp[(Perm, Perm)])(implicit V: VecInField[V, A]): SymVPolyhedron[V, A] =
+  def apply[V, @sp(Double) A](vertices: Seq[V], rays: Seq[V], symmetryGroup: Grp[(Perm, Perm)])(implicit V: VecInField[V, A]): SymVPolyhedron[V, A] =
     build(vertices, rays, symmetryGroup)
+  def fromMaps[M, V, @sp(Double) A](vPolyhedron: VPolyhedron[V, A], maps: Iterable[AffineTransform[M, V, A]])(implicit M: MatVecInField[M, V, A]): SymVPolyhedron[V, A] = {
+    ???
+  }
 }
