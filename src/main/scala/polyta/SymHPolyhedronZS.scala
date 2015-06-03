@@ -46,6 +46,11 @@ trait SymHPolyhedronZS[M, V, @sp(Double) A] extends SymHPolyhedron[V, A] with HP
   implicit val permutable: Permutable[ZeroSet, Perm] = Permutable.setInt(PermutationRepresentations[Perm].forSize(vPolyhedron.vertices.size))
 
   def inequalityFamilyZeroSets: Seq[ZeroSet]
+  def families: Seq[BigIndexedSeq[LinearInequality[V, A]]] = new IndexedSeq[BigIndexedSeq[LinearInequality[V, A]]] {
+    def length = inequalityFamilyZeroSets.length
+    def apply(idx: Int): BigIndexedSeq[LinearInequality[V, A]] = family(inequalityFamilyZeroSets(idx))
+  }
+
   def inequalityZeroSets: Seq[ZeroSet] = inequalityFamilyZeroSets.flatMap( zs => Representatives.ordered(zs, vertexSymmetryGroup).map { x: RepresentativeOrdered[ZeroSet, Perm] => x.get }.iterator.toSeq )
 
   def family(representative: ZeroSet) = Representatives.ordered(representative, vertexSymmetryGroup).map {
@@ -54,6 +59,7 @@ trait SymHPolyhedronZS[M, V, @sp(Double) A] extends SymHPolyhedron[V, A] with HP
 
   override def nX: Int = vPolyhedron.nX
 }
+
 object SymHPolyhedronZS {
   protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: SymVPolyhedron[V, A], inequalityFamilyZeroSets0: Seq[Set[Int]], equalities0: Seq[LinearEquality[V, A]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): SymHPolyhedronZS[M, V, A] = new SymHPolyhedronZS[M, V, A] {
     def M = M0
@@ -65,9 +71,9 @@ object SymHPolyhedronZS {
     def equalities = equalities0
   }
 
-  def apply[M, V, @sp(Double, Long) A](vPolyhedron: SymVPolyhedron[V, A], inequalityFamilyZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityFamilyZeroSets, equalities)
+  def apply[M, V, @sp(Double, Long) A](vPolyhedron: SymVPolyhedron[V, A], inequalityFamilyZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit MT: MatType[A, V, M], M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityFamilyZeroSets, equalities)
 
-  def fromDualDescription[M, V, @sp(Double, Long) A](hPolyhedron: HPolyhedron[V, A], vPolyhedron: SymVPolyhedron[V, A])(implicit MT: MatrixType[A, V, M], M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = {
+  def fromDualDescription[M, V, @sp(Double, Long) A](hPolyhedron: HPolyhedron[V, A], vPolyhedron: SymVPolyhedron[V, A])(implicit MT: MatType[A, V, M], M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = {
     import M.V
     implicit val enumerable: EnumerableOrdered[Set[Int], Boolean] = EnumerableOrdered.setInt[Set[Int]](vPolyhedron.vertices.size)
     implicit val permutable: Permutable[Set[Int], Perm] = Permutable.setInt(PermutationRepresentations[Perm].forSize(vPolyhedron.vertices.size))

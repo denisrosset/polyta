@@ -16,16 +16,21 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
+import solvers._
+
 /** Polyhedron, i.e. possibly unbounded intersection of half-spaces, a set described
   * by inequality and equality constraints.
   */
-trait HPolyhedron[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] {
+trait HPolyhedron[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] { lhs =>
   override def toString = constraints.mkString("\n")
   def constraints: Seq[LinearConstraint[V, A]] = inequalities ++ equalities
   def equalities: Seq[LinearEquality[V, A]]
   def inequalities: Seq[LinearInequality[V, A]]
   def nX: Int
-//  def contains(v: V)(implicit AO: ApproxOrder[A]): Boolean
+  //  def contains(v: V)(implicit AO: ApproxOrder[A]): Boolean
+  // TODO: type class syntax
+  def symmetric(implicit S: SymmetryFinder[HPolyhedron[V, A], SymHPolyhedron[V, A]]): SymHPolyhedron[V, A] = S.symmetric(lhs)
+  def toV[VP](implicit C: HConverter[HPolyhedron[V, A], VP]): VP = C.toV(lhs)
 }
 
 object HPolyhedron {

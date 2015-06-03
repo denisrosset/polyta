@@ -16,16 +16,22 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
+import solvers._
+
 /** Polyhedron described by extremal rays and vertices, which are stored as
   * row vectors.
   */
-trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] {
+trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] { lhs =>
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n") + "Rays:\n" + rays.mkString("\n") + "\n"
   def vertices: Seq[V]
   def rays: Seq[V]
 
   def nX: Int
+  // TODO: type class syntax
+  def symmetric(implicit S: SymmetryFinder[VPolyhedron[V, A], SymVPolyhedron[V, A]]): SymVPolyhedron[V, A] = S.symmetric(lhs)
+  def toH[HP](implicit C: VConverter[VPolyhedron[V, A], HP]): HP = C.toH(lhs)
+
 }
 
 object VPolyhedron {
