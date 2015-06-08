@@ -20,7 +20,7 @@ import formats.sympol._
 import sys.process._
 
 object Sympol {
-  implicit def symmetryFinderH[V](implicit V: VecInField[V, Rational]): SymmetryFinder[HPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] = new SymmetryFinder[HPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] {
+  implicit def symmetryFinderH[V](implicit alg: AlgVF[V, Rational]): SymmetryFinder[HPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] = new SymmetryFinder[HPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] {
     def symmetric(polyhedron: HPolyhedron[V, Rational]): SymHPolyhedron[V, Rational] = {
       val input = File.createTempFile("sym", ".ine")
       val writer = new PrintWriter(input)
@@ -35,7 +35,7 @@ object Sympol {
     }
   }
 
-  implicit def symmetryFinderV[V](implicit V: VecInField[V, Rational]): SymmetryFinder[VPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] = new SymmetryFinder[VPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] {
+  implicit def symmetryFinderV[V](implicit alg: AlgVF[V, Rational]): SymmetryFinder[VPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] = new SymmetryFinder[VPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] {
     def symmetric(polyhedron: VPolyhedron[V, Rational]): SymVPolyhedron[V, Rational] = {
       val input = File.createTempFile("sym", ".ext")
       val writer = new PrintWriter(input)
@@ -91,7 +91,7 @@ object WithSymmetries {
 
 object WithoutSymmetry {
 
-  implicit def hConverter[V](implicit V: VecInField[V, Rational]): HConverter[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] = new HConverter[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] {
+  implicit def hConverter[V](implicit algVF: AlgVF[V, Rational]): HConverter[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] = new HConverter[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] {
     def toV(hPolyhedron: HPolyhedron[V, Rational]): VPolyhedron[V, Rational] = {
       val input = File.createTempFile("conv", ".ine")
       val writer = new PrintWriter(input)
@@ -103,7 +103,7 @@ object WithoutSymmetry {
     }
   }
 
-  implicit def vConverter[V](implicit V: VecInField[V, Rational]): VConverter[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] = new VConverter[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] {
+  implicit def vConverter[V](implicit algVF: AlgVF[V, Rational]): VConverter[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] = new VConverter[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] {
     def toH(vPolyhedron: VPolyhedron[V, Rational]): HPolyhedron[V, Rational] = {
       val input = File.createTempFile("conv", ".ext")
       val writer = new PrintWriter(input)

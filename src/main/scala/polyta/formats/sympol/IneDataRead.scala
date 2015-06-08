@@ -9,15 +9,16 @@ import spire.math.Rational
 import spire.syntax.field._
 
 import qalg.algebra._
+import qalg.algos._
 import qalg.syntax.all._
 
-class IneDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[IneData[V]] {
+class IneDataRead[V](implicit val algVF: AlgVF[V, Rational]) extends FormatRead[IneData[V]] {
 
   type HPoly = HPolyhedron[V, Rational]
 
   object Parsers extends ParsersBase with SympolParsersV[V] {
 
-    implicit def V: VecInField[V, Rational] = IneDataRead.this.V
+    implicit def algVF: AlgVF[V, Rational] = IneDataRead.this.algVF
 
     def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }

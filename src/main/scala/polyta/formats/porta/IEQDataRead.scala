@@ -24,6 +24,7 @@ import qalg.syntax.all._
 final class IEQDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[IEQData[M, V]] {
 
   object Parsers extends ParsersBase with PortaDataParsers[V] with ParsersUtils {
+    implicit def alg = IEQDataRead.this.alg
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
 
@@ -33,7 +34,7 @@ final class IEQDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends 
           val varMap: Map[Int, Rational] = (Map(xInd0 -> coeff0) /: seq) {
             case (m, (coeff ~ xInd)) => m + (xInd -> (m.getOrElse(xInd, Rational.zero) + coeff))
           }
-          V.tabulate(d)( k => varMap.getOrElse(k, Rational.zero) )
+          VecBuilder[V, Rational].tabulate(d)( k => varMap.getOrElse(k, Rational.zero) )
       }
 
     def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)

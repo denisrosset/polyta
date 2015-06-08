@@ -6,6 +6,7 @@ package sympol
 import spire.math.Rational
 
 import qalg.algebra._
+import qalg.algos._
 
 case class IneData[V](
   polyhedron: HPolyhedron[V, Rational],
@@ -17,6 +18,6 @@ object IneData {
     val equalityRows = (polyhedron.inequalities.size until (polyhedron.inequalities.size + polyhedron.equalities.size)).toSet
     IneData(polyhedron, equalityRows)
   }
-  implicit def FormatRead[V](implicit V: VecInField[V, Rational]): FormatRead[IneData[V]] = new IneDataRead[V]
-  implicit def FormatWrite[V](implicit V: VecInField[V, Rational]): FormatWrite[IneData[V]] = new IneDataWrite[V]
+  implicit def FormatRead[V](implicit algVF: AlgVF[V, Rational]): FormatRead[IneData[V]] = new IneDataRead[V]
+  implicit def FormatWrite[V](implicit algVF: AlgVF[V, Rational]): FormatWrite[IneData[V]] = new IneDataWrite[V]
 }

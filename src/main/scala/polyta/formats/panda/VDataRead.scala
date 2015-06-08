@@ -18,6 +18,7 @@ class VDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
   type VPoly = VPolyhedronM[M, V, Rational]
  
   object Parsers extends ParsersBase with PandaDataParsers[V] {
+    implicit def alg = VDataRead.this.alg
 
     /* A Panda file can be either named or unnamed.
      * 

@@ -22,13 +22,13 @@ import qalg.math._
 import qalg.syntax.all._
 
 trait PortaDataParsers[V] extends RationalParsers with AgnosticLineEndingParsers {
-  implicit def V: VecInField[V, Rational]
+  implicit def alg: AlgVF[V, Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
-  def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { V.build(_: _*) }
+  def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { VecBuilder[V, Rational].build(_: _*) }
 
   def lineNumber = "(" ~ nonNegativeInt ~ ")"
 

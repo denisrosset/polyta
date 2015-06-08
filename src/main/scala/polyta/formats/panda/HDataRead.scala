@@ -21,7 +21,7 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
   type HPoly = HPolyhedronM[M, V, Rational]
 
   object Parsers extends ParsersBase with PandaDataParsers[V] with NamedExprParsers {
-
+    implicit def alg = HDataRead.this.alg
     /* A Panda file can be either named or unnamed.
      * 
      * Only files with variable names can have symmetry information.

@@ -6,6 +6,7 @@ package sympol
 import spire.math.Rational
 
 import qalg.algebra._
+import qalg.algos._
 
 case class ExtData[V](
   polyhedron: VPolyhedron[V, Rational],
@@ -17,6 +18,6 @@ object ExtData {
     val rayCols = (polyhedron.vertices.size until (polyhedron.vertices.size + polyhedron.rays.size)).toSet
     ExtData(polyhedron, rayCols)
   }
-  implicit def FormatRead[V](implicit V: VecInField[V, Rational]): FormatRead[ExtData[V]] = new ExtDataRead[V]
-  implicit def FormatWrite[V](implicit V: VecInField[V, Rational]): FormatWrite[ExtData[V]] = new ExtDataWrite[V]
+  implicit def FormatRead[V](implicit alg: AlgVF[V, Rational]): FormatRead[ExtData[V]] = new ExtDataRead[V]
+  implicit def FormatWrite[V](implicit alg: AlgVF[V, Rational]): FormatWrite[ExtData[V]] = new ExtDataWrite[V]
 }

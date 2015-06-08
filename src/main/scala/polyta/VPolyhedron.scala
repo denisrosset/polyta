@@ -35,12 +35,12 @@ trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] { lhs =>
 }
 
 object VPolyhedron {
-  @inline protected def build[V, A](vertices0: Seq[V], rays0: Seq[V])(implicit V0: VecInField[V, A]): VPolyhedron[V, A] =
+  @inline protected def build[V, A](vertices0: Seq[V], rays0: Seq[V])(implicit alg0: AlgVF[V, A]): VPolyhedron[V, A] =
     new VPolyhedron[V, A] {
-      def V = V0
+      def alg = alg0
       def vertices = vertices0
       def rays = rays0
       def nX = vertices.head.length
     }
-  def apply[V, A](vertices: Seq[V], rays: Seq[V])(implicit V: VecInField[V, A]): VPolyhedron[V, A] = build(vertices, rays)
+  def apply[V, A](vertices: Seq[V], rays: Seq[V])(implicit alg: AlgVF[V, A]): VPolyhedron[V, A] = build(vertices, rays)
 }

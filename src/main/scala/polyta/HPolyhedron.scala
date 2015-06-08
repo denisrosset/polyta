@@ -34,12 +34,12 @@ trait HPolyhedron[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] { lhs =>
 }
 
 object HPolyhedron {
-  @inline protected def build[V, A](inequalities0: Seq[LinearInequality[V, A]], equalities0: Seq[LinearEquality[V, A]])(implicit V0: VecInField[V, A]): HPolyhedron[V, A] =
+  @inline protected def build[V, A](inequalities0: Seq[LinearInequality[V, A]], equalities0: Seq[LinearEquality[V, A]])(implicit alg0: AlgVF[V, A]): HPolyhedron[V, A] =
     new HPolyhedron[V, A] {
-      def V = V0
+      def alg = alg0
       def inequalities = inequalities0
       def equalities = equalities0
       def nX = inequalities.head.lhs.length
     }
-  def apply[V, A](inequalities: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit V: VecInField[V, A]): HPolyhedron[V, A] = build(inequalities, equalities)
+  def apply[V, A](inequalities: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit alg: AlgVF[V, A]): HPolyhedron[V, A] = build(inequalities, equalities)
 }

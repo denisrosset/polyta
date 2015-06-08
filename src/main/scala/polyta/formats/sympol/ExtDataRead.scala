@@ -12,11 +12,11 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-class ExtDataRead[V](implicit val V: VecInField[V, Rational]) extends FormatRead[ExtData[V]] {
+class ExtDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[ExtData[V]] {
   type VPoly = VPolyhedron[V, Rational]
 
   object Parsers extends ParsersBase with SympolParsersV[V] {
-    implicit def V: VecInField[V, Rational] = ExtDataRead.this.V
+    implicit def alg: AlgVF[V, Rational] = ExtDataRead.this.alg
 
     def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => V.build(seq: _*) }
 
