@@ -60,18 +60,18 @@ trait PandaDataParsers[V] extends PandaDataParsersBase with AgnosticLineEndingPa
 
   val mapLine: Parser[String] = """[^\n\r]+""".r
 
-  def mapAffineTransform[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit M: MatVecInField[M, V, Rational]): Parser[AffineTransform[M, V, Rational]] = mapLine into { line =>
+  def mapAffineTransform[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit alg: AlgMVF[M, V, Rational]): Parser[AffineTransform[M, V, Rational]] = mapLine into { line =>
     atp.parseAll(atp.terms(names), line) match {
       case error: atp.NoSuccess => failure(error.msg)
       case atp.Success(result, _) => success(result)
     }
   }
 
-  def mapsAffineTransforms[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit M: MatVecInField[M, V, Rational]): Parser[Maps[M, V]] = mapsHeader ~> rep(lineEndings ~> mapAffineTransform(names, atp))
+  def mapsAffineTransforms[M, V](names: Seq[String], atp: AffineTransformParsers[M, V])(implicit alg: AlgMVF[M, V, Rational]): Parser[Maps[M, V]] = mapsHeader ~> rep(lineEndings ~> mapAffineTransform(names, atp))
 
   type Maps[M, V] = Seq[AffineTransform[M, V, Rational]]
 
-  def mapsSection[M, V](namesOption: Option[Seq[String]])(implicit M: MatVecInField[M, V, Rational]): Parser[Left[Maps[M, V], Nothing]] = namesOption match {
+  def mapsSection[M, V](namesOption: Option[Seq[String]])(implicit alg: AlgMVF[M, V, Rational]): Parser[Left[Maps[M, V], Nothing]] = namesOption match {
     case Some(names) =>
       val atp = new AffineTransformParsers[M, V]
       mapsAffineTransforms(names, atp) ^^ { maps => Left(maps) }

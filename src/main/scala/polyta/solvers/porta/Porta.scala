@@ -8,6 +8,7 @@ import java.io.{File, PrintWriter, FileReader}
 import spire.math.Rational
 
 import qalg.algebra._
+import qalg.algos._
 
 import formats._
 import formats.porta._
@@ -30,8 +31,7 @@ trait PortaOptions {
 
 object Porta {
   implicit def DefaultOptions = new PortaOptions { }
-  def toHPolyhedron[M, V](vPolyhedron: VPolyhedronM[M, V, Rational])(implicit M: MatVecInField[M, V, Rational], O: PortaOptions): HPolyhedronM[M, V, Rational] = {
-    import M.V
+  def toHPolyhedron[M, V](vPolyhedron: VPolyhedronM[M, V, Rational])(implicit alg: AlgMVF[M, V, Rational], O: PortaOptions): HPolyhedronM[M, V, Rational] = {
     val input = new File("test.poi")
     val writer = new PrintWriter(input)
     implicitly[FormatWrite[POIData[M, V]]].write(POIData(vPolyhedron), writer)
@@ -43,8 +43,7 @@ object Porta {
     ieq.polyhedron
   }
 
-  def toVPolyhedron[M, V](hPolyhedron: HPolyhedronM[M, V, Rational], validPoint: V)(implicit M: MatVecInField[M, V, Rational]): VPolyhedronM[M, V, Rational] = {
-    import M.V
+  def toVPolyhedron[M, V](hPolyhedron: HPolyhedronM[M, V, Rational], validPoint: V)(implicit alg: AlgMVF[M, V, Rational]): VPolyhedronM[M, V, Rational] = {
     val input = new File("test.ieq")
     val writer = new PrintWriter(input)
     implicitly[FormatWrite[IEQData[M, V]]].write(IEQData(hPolyhedron, validPoint = Some(validPoint)), writer)

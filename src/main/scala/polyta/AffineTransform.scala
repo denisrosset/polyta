@@ -11,9 +11,7 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 
 trait AffineTransform[M, V, @sp(Double, Long) A] extends WithVariables {
-  implicit def M: MatVecInField[M, V, A]
-  implicit def V: VecInField[V, A] = M.V
-  implicit def A: Field[A] = M.scalar
+  implicit def pack: PackMVR[M, V, A]
 
   def mA: M
   def vb: V
@@ -25,14 +23,14 @@ trait AffineTransform[M, V, @sp(Double, Long) A] extends WithVariables {
 }
 
 object AffineTransform {
-  protected def build[M, V, @sp(Double, Long) A, G](mA0: M, vb0: V)(implicit M0: MatVecInField[M, V, A]): AffineTransform[M, V, A] =
+  protected def build[M, V, @sp(Double, Long) A, G](mA0: M, vb0: V)(implicit pack0: PackMVR[M, V, A]): AffineTransform[M, V, A] =
     new AffineTransform[M, V, A] {
-      def M = M0
+      def pack = pack0
       def mA = mA0
       def vb = vb0
     }
 
-  def apply[M, V, @sp(Double, Long) A](mA: M, vb: V)(implicit M: MatVecInField[M, V, A]) = build(mA, vb)
+  def apply[M, V, @sp(Double, Long) A](mA: M, vb: V)(implicit pack: PackMVR[M, V, A]) = build(mA, vb)
 
-  def fromPermutation[M, V, @sp(Double, Long) A, G](dim: Int, g: G)(implicit M: MatVecInField[M, V, A], G: PermutationAction[G]): AffineTransform[M, V, A] = ???
+  def fromPermutation[M, V, @sp(Double, Long) A, G](dim: Int, g: G)(implicit pack: PackMVR[M, V, A], G: PermutationAction[G]): AffineTransform[M, V, A] = ???
 }

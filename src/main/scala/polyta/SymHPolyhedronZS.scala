@@ -21,8 +21,7 @@ import net.alasc.math.enum._
 import net.alasc.std.set._
 
 trait SymHPolyhedronZS[M, V, @sp(Double) A] extends SymHPolyhedron[V, A] with HPolyhedronZS[M, V, A] {
-  implicit def M: MatVecInField[M, V, A]
-  implicit def MM: MatMutable[M, A]
+  implicit def alg: AlgMVF[M, V, A]
   implicit def orderA: Order[A]
 
   type ZeroSet = Set[Int]
@@ -61,20 +60,18 @@ trait SymHPolyhedronZS[M, V, @sp(Double) A] extends SymHPolyhedron[V, A] with HP
 }
 
 object SymHPolyhedronZS {
-  protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: SymVPolyhedron[V, A], inequalityFamilyZeroSets0: Seq[Set[Int]], equalities0: Seq[LinearEquality[V, A]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): SymHPolyhedronZS[M, V, A] = new SymHPolyhedronZS[M, V, A] {
-    def M = M0
-    def MM = MM0
-    def V = M0.V
+  protected def build[M, V, @sp(Double, Long) A](vPolyhedron0: SymVPolyhedron[V, A], inequalityFamilyZeroSets0: Seq[Set[Int]], equalities0: Seq[LinearEquality[V, A]])(implicit alg0: AlgMVF[M, V, A], orderA0: Order[A]): SymHPolyhedronZS[M, V, A] = new SymHPolyhedronZS[M, V, A] {
+    def alg = alg0
+    def V = alg0.V
     def orderA = orderA0
     def vPolyhedron = vPolyhedron0
     def inequalityFamilyZeroSets = inequalityFamilyZeroSets0
     def equalities = equalities0
   }
 
-  def apply[M, V, @sp(Double, Long) A](vPolyhedron: SymVPolyhedron[V, A], inequalityFamilyZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit MT: MatType[A, V, M], M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityFamilyZeroSets, equalities)
+  def apply[M, V, @sp(Double, Long) A: Order](vPolyhedron: SymVPolyhedron[V, A], inequalityFamilyZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit MT: MatType[A, V, M], alg: AlgMVF[M, V, A]): SymHPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityFamilyZeroSets, equalities)
 
-  def fromDualDescription[M, V, @sp(Double, Long) A](hPolyhedron: HPolyhedron[V, A], vPolyhedron: SymVPolyhedron[V, A])(implicit MT: MatType[A, V, M], M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): SymHPolyhedronZS[M, V, A] = {
-    import M.V
+  def fromDualDescription[M, V, @sp(Double, Long) A: Order](hPolyhedron: HPolyhedron[V, A], vPolyhedron: SymVPolyhedron[V, A])(implicit MT: MatType[A, V, M], alg: AlgMVF[M, V, A]): SymHPolyhedronZS[M, V, A] = {
     implicit val enumerable: EnumerableOrdered[Set[Int], Boolean] = EnumerableOrdered.setInt[Set[Int]](vPolyhedron.vertices.size)
     implicit val permutable: Permutable[Set[Int], Perm] = Permutable.setInt(PermutationRepresentations[Perm].forSize(vPolyhedron.vertices.size))
     val vertexSymmetryGroup = Grp.fromGenerators(vPolyhedron.symmetryGroup.generators.map(_._1))

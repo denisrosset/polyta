@@ -13,13 +13,11 @@ import qalg.syntax.all._
 
 import net.alasc.math.Perm
 
-class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[VData[M, V]] {
-  implicit def V: VecInField[V, Rational] = M.V
+class VDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[VData[M, V]] {
 
   type VPoly = VPolyhedronM[M, V, Rational]
  
   object Parsers extends ParsersBase with PandaDataParsers[V] {
-    implicit def V: VecInField[V, Rational] = VDataRead.this.V
 
     /* A Panda file can be either named or unnamed.
      * 
@@ -38,14 +36,14 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def firstRaysSection: Parser[Header] =
       (raysHeading ~ lineEndings) ~> rowVector into { first =>
         rep(lineEndings ~> rowVector(first.length)) ^^ { rest =>
-          (VPolyhedronM.fromRays(M.fromCols(first.length, first +: rest: _*)), None)
+          (VPolyhedronM.fromRays(MatBuilder[M, Rational].fromCols(first.length, first +: rest: _*)), None)
         }
       }
 
     def firstVerticesSection: Parser[Header] =
       (verticesHeading ~ lineEndings) ~> rowVector into { first =>
         rep(lineEndings ~> rowVector(first.length)) ^^ { rest =>
-          (VPolyhedronM.fromVertices(M.fromCols(first.length, first +: rest: _*)), None)
+          (VPolyhedronM.fromVertices(MatBuilder[M, Rational].fromCols(first.length, first +: rest: _*)), None)
         }
       }
 
@@ -60,7 +58,7 @@ class VDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
     def vHeader: Parser[Header] = vNamedHeader | vUnnamedHeader | firstRaysSection | firstVerticesSection
 
     def matrix(cols: Int): Parser[M] = repsep(rowVector(cols), lineEndings) ^^ { rows =>
-      M.fromRows(cols, rows: _*)
+      MatBuilder[M, Rational].fromRows(cols, rows: _*)
     }
 
     type Section = Either[Maps[M, V], VPoly]

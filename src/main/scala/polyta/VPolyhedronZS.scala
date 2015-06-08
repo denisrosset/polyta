@@ -21,9 +21,7 @@ import net.alasc.math.{Perm, Grp}
   * row vectors.
   */
 trait VPolyhedronZS[M, V, @sp(Double) A] extends VPolyhedron[V, A] {
-  implicit def M: MatVecInField[M, V, A]
-  implicit def MM: MatMutable[M, A]
-  implicit def VM: VecMutable[V, A]
+  implicit def alg: AlgMVF[M, V, A]
   implicit def orderA: Order[A]
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n")
@@ -42,20 +40,16 @@ trait VPolyhedronZS[M, V, @sp(Double) A] extends VPolyhedron[V, A] {
 }
 
 object VPolyhedronZS {
-  protected def build[M, V, @sp(Double, Long) A](hPolyhedron0: HPolyhedron[V, A], vertexZeroSets0: Seq[Set[Int]])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], VM0: VecMutable[V, A], orderA0: Order[A]): VPolyhedronZS[M, V, A] = new VPolyhedronZS[M, V, A] {
-    def M = M0
-    def MM = MM0
-    def VM = VM0
-    def V = M0.V
+  protected def build[M, V, @sp(Double, Long) A](hPolyhedron0: HPolyhedron[V, A], vertexZeroSets0: Seq[Set[Int]])(implicit alg0: AlgMVF[M, V, A], orderA0: Order[A]): VPolyhedronZS[M, V, A] = new VPolyhedronZS[M, V, A] {
+    def alg = alg0
     def orderA = orderA0
     def hPolyhedron = hPolyhedron0
     def vertexZeroSets = vertexZeroSets0
   }
 
-  def apply[M, V, @sp(Double, Long) A](hPolyhedron: HPolyhedron[V, A], vertexZeroSets: Seq[Set[Int]])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): VPolyhedronZS[M, V, A] = build(hPolyhedron, vertexZeroSets)
+  def apply[M, V, @sp(Double, Long) A: Order](hPolyhedron: HPolyhedron[V, A], vertexZeroSets: Seq[Set[Int]])(implicit alg: AlgMVF[M, V, A]): VPolyhedronZS[M, V, A] = build(hPolyhedron, vertexZeroSets)
 
-  def fromDualDescription[M, V, @sp(Double, Long) A](vPolyhedron: VPolyhedron[V, A], hPolyhedron: HPolyhedron[V, A])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], VM: VecMutable[V, A], orderA: Order[A]): VPolyhedronZS[M, V, A] = {
-    import M.V
+  def fromDualDescription[M, V, @sp(Double, Long) A: Order](vPolyhedron: VPolyhedron[V, A], hPolyhedron: HPolyhedron[V, A])(implicit alg: AlgMVF[M, V, A]): VPolyhedronZS[M, V, A] = {
     require(vPolyhedron.rays.isEmpty)
     val zeroSets = vPolyhedron.vertices.map { vertex =>
       hPolyhedron.inequalities.indices.filter { k =>

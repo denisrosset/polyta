@@ -9,6 +9,7 @@ import spire.algebra.Order
 import spire.math.Rational
 
 import qalg.algebra._
+import qalg.algos._
 
 import net.alasc.math.Grp
 import net.alasc.std.any._
@@ -53,11 +54,8 @@ object Sympol {
 object WithSymmetries {
   implicit def vConverter[M, V](implicit
     MT: MatType[Rational, V, M],
-    M: MatVecInField[M, V, Rational],
-    MM: MatMutable[M, Rational],
-    VM: VecMutable[V, Rational]): VConverter[VPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] = new VConverter[VPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] {
+    alg: AlgMVF[M, V, Rational]): VConverter[VPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] = new VConverter[VPolyhedron[V, Rational], SymHPolyhedron[V, Rational]] {
     def toH(vPolyhedron: VPolyhedron[V, Rational]): SymHPolyhedron[V, Rational] = {
-      import M.V
       val input = File.createTempFile("conv", ".ext")
       val writer = new PrintWriter(input)
       val extData = ExtData.fromPolyhedron(vPolyhedron)
@@ -74,11 +72,8 @@ object WithSymmetries {
 
   implicit def hConverter[M, V](implicit
     MT: MatType[Rational, V, M],
-    M: MatVecInField[M, V, Rational],
-    MM: MatMutable[M, Rational],
-    VM: VecMutable[V, Rational]): HConverter[HPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] = new HConverter[HPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] {
+    alg: AlgMVF[M, V, Rational]): HConverter[HPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] = new HConverter[HPolyhedron[V, Rational], SymVPolyhedron[V, Rational]] {
     def toV(hPolyhedron: HPolyhedron[V, Rational]): SymVPolyhedron[V, Rational] = {
-      import M.V
       val input = File.createTempFile("conv", ".ine")
       val writer = new PrintWriter(input)
       val ineData = IneData.fromPolyhedron(hPolyhedron)

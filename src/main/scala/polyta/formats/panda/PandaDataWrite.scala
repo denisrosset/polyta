@@ -9,6 +9,7 @@ import spire.math.Rational
 import spire.syntax.action._
 
 import qalg.algebra._
+import qalg.algos._
 
 import net.alasc.math.Perm
 
@@ -25,7 +26,7 @@ trait PandaDataWrite extends Any {
     out.write("\n")
   }
 
-  def writeMaps[M, V](maps: Seq[AffineTransform[M, V, Rational]], names: Seq[String], out: Writer)(implicit M: MatVecInField[M, V, Rational]): Unit = {
+  def writeMaps[M, V](maps: Seq[AffineTransform[M, V, Rational]], names: Seq[String], out: Writer)(implicit alg: AlgMVF[M, V, Rational]): Unit = {
     val afw = new AffineTransformWrite[M, V](names)
     out.write("Maps:\n")
     maps.foreach { affineTransform =>

@@ -24,8 +24,7 @@ import qalg.syntax.all._
 import net.alasc.math._
 import net.alasc.syntax.all._
 
-class HDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[HData[M, V]] with PandaDataWrite {
-  import M.V
+class HDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatWrite[HData[M, V]] with PandaDataWrite {
 
   def writeMatrix(m: M, v: V, namesOption: Option[Seq[String]], op: String, out: Writer): Unit = {
     cforRange(0 until m.nRows) { r =>

@@ -21,8 +21,7 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-final class IEQDataWrite[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[IEQData[M, V]] {
-  implicit def V: VecInField[V, Rational] = M.V
+final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatWrite[IEQData[M, V]] {
 
   def writeDim(d: Int, out: Writer): Unit = {
     out.write("DIM = ")

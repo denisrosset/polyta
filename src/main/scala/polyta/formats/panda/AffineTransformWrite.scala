@@ -24,8 +24,7 @@ import qalg.syntax.all._
 import net.alasc.math._
 import net.alasc.syntax.all._
 
-class AffineTransformWrite[M, V](val variableNames: Seq[String])(implicit val M: MatVecInField[M, V, Rational]) extends FormatWrite[AffineTransform[M, V, Rational]] {
-  import M.V
+class AffineTransformWrite[M, V](val variableNames: Seq[String])(implicit val alg: AlgMVF[M, V, Rational]) extends FormatWrite[AffineTransform[M, V, Rational]] {
 
   def writeImage(v: V, constant: Rational, out: Writer): Unit = {
     Format.writeVector(v, variableNames, out, constantOpt = Opt(constant), withSpaces = false)

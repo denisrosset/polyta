@@ -34,7 +34,7 @@ object SymVPolyhedron {
     }
   def apply[V, @sp(Double) A](vertices: Seq[V], rays: Seq[V], symmetryGroup: Grp[(Perm, Perm)])(implicit V: VecInField[V, A]): SymVPolyhedron[V, A] =
     build(vertices, rays, symmetryGroup)
-  def fromMaps[M, V, @sp(Double) A](vPolyhedron: VPolyhedron[V, A], maps: Iterable[AffineTransform[M, V, A]])(implicit M: MatVecInField[M, V, A]): SymVPolyhedron[V, A] = {
+  def fromMaps[M, V, @sp(Double) A](vPolyhedron: VPolyhedron[V, A], maps: Iterable[AffineTransform[M, V, A]])(implicit alg: AlgMVF[M, V, A]): SymVPolyhedron[V, A] = {
     ???
   }
 }

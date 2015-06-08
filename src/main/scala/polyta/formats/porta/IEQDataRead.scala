@@ -21,11 +21,9 @@ import qalg.algos._
 import qalg.math._
 import qalg.syntax.all._
 
-final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[IEQData[M, V]] {
-  implicit def V: VecInField[V, Rational] = M.V
+final class IEQDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[IEQData[M, V]] {
 
   object Parsers extends ParsersBase with PortaDataParsers[V] with ParsersUtils {
-    implicit def V = IEQDataRead.this.V
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
 
@@ -58,14 +56,14 @@ final class IEQDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) ext
           case LinearInequalityLE(vec, _) => vec
           case LinearInequalityGE(vec, _) => -vec
         }
-        val mA = M.fromRows(d, ineqRows: _*)
-        val vb = V.build(ineqs.map {
+        val mA = MatBuilder[M, Rational].fromRows(d, ineqRows: _*)
+        val vb = VecBuilder[V, Rational].build(ineqs.map {
           case LinearInequalityLE(_, r) => r
           case LinearInequalityGE(_, r) => -r
         }: _*)
         val eqRows = eqs.map(_.lhs)
-        val mAeq = M.fromRows(d, eqRows: _*)
-        val vbeq = V.build(eqs.map(_.rhs): _*)
+        val mAeq = MatBuilder[M, Rational].fromRows(d, eqRows: _*)
+        val vbeq = VecBuilder[V, Rational].build(eqs.map(_.rhs): _*)
         IEQData(polyhedron = HPolyhedronM(mA, vb, mAeq, vbeq))
       }
 

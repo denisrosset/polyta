@@ -24,5 +24,4 @@ trait HPolyhedralCone[V, @sp(Double, Long) A] extends HPolyhedron[V, A] {
   def equalities: IndexedSeq[LinearEqualityHom[V, A]]
   def inequalities: IndexedSeq[LinearInequalityHom[V, A]]
   def nX: Int
-//  def contains(v: V)(implicit AO: ApproxOrder[A]): Boolean
 }

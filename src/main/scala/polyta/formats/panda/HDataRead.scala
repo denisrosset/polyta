@@ -15,14 +15,12 @@ import qalg.syntax.all._
 
 import net.alasc.math.Perm
 
-class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends FormatRead[HData[M, V]] {
+class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[HData[M, V]] {
 
   type VCons = LinearConstraint[V, Rational]
   type HPoly = HPolyhedronM[M, V, Rational]
 
   object Parsers extends ParsersBase with PandaDataParsers[V] with NamedExprParsers {
-    implicit def M: MatVecInField[M, V, Rational] = HDataRead.this.M
-    implicit def V: VecInField[V, Rational] = M.V
 
     /* A Panda file can be either named or unnamed.
      * 
@@ -64,8 +62,8 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         rep(lineEndings ~> vecEquality(first.lhs.length)) ^^ { rest =>
           require(first.op == EQ)
           require(rest.forall(_.op == EQ))
-          val mAeq = M.fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
-          val vbeq = V.build(first.rhs +: rest.map(_.rhs): _*)
+          val mAeq = MatBuilder[M, Rational].fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
+          val vbeq = VecBuilder[V, Rational].build(first.rhs +: rest.map(_.rhs): _*)
           (HPolyhedronM.fromEqualities(mAeq, vbeq), None)
         }
       }
@@ -75,8 +73,8 @@ class HDataRead[M, V](implicit val M: MatVecInField[M, V, Rational]) extends For
         rep(lineEndings ~> vecInequality(first.lhs.length)) ^^ { rest =>
           require(first.op == LE)
           require(rest.forall(_.op == LE))
-          val mA = M.fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
-          val vb = V.build(first.rhs +: rest.map(_.rhs): _*)
+          val mA = MatBuilder[M, Rational].fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
+          val vb = VecBuilder[V, Rational].build(first.rhs +: rest.map(_.rhs): _*)
           (HPolyhedronM.fromInequalities(mA, vb), None)
         }
       }

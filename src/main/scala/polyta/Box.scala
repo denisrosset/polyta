@@ -16,15 +16,15 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-case class Box[V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val V: VecInField[V, A]) extends LinearConvexSet[V, A] {
+case class Box[V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val V: VecInRing[V, A]) extends LinearConvexSet[V, A] {
   require(lowerBounds.v.length == upperBounds.v.length)
   def nX: Int = lowerBounds.v.length
 }
 
 object Box {
-  def unbounded[V, @sp(Double) A](nX: Int)(implicit V: VecInField[V, A]): Box[V, A] =
+  def unbounded[V, @sp(Double) A](nX: Int)(implicit alg: AlgVR[V, A]): Box[V, A] =
     Box[V, A](Bounds.unbounded[V, A](nX), Bounds.unbounded[V, A](nX))
   // special case for Double vector, TODO: why ?
-  def apply[V](lb: V, ub: V)(implicit V: VecInField[V, Double]): Box[V, Double] =
+  def apply[V](lb: V, ub: V)(implicit alg: AlgVR[V, Double]): Box[V, Double] =
     Box[V, Double](Bounds(lb), Bounds(ub))
 }

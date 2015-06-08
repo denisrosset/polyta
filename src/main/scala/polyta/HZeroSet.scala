@@ -18,10 +18,8 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
 trait HZeroSet[M, V, @sp(Double) A] {
-  implicit def M: MatVecInField[M, V, A]
-  implicit def V: VecInField[V, A] = M.V
-  implicit def MM: MatMutable[M, A]
-  implicit def A: Field[A] = M.scalar
+  implicit def alg: AlgMVF[M, V, A]
+  implicit def A: Field[A] = alg.M.A
   implicit def orderA: Order[A]
 
   def vPolyhedron: VPolyhedron[V, A]
@@ -34,8 +32,8 @@ trait HZeroSet[M, V, @sp(Double) A] {
     val zeroVertices = zeroT.toSeq.map(vPolyhedron.vertices(_) - zeroH)
     val nonZeroIndex = (vPolyhedron.vertices.indices.toSet -- zeroSet).head
     val nonZeroVertex = vPolyhedron.vertices(nonZeroIndex) - zeroH
-    val space = M.fromRows(vPolyhedron.nX, zeroVertices :+ nonZeroVertex: _*)
-    val gram = gramSchmidt(space)
+    val space = MatBuilder[M, A].fromRows(vPolyhedron.nX, zeroVertices :+ nonZeroVertex: _*)
+    val gram = space.gramSchmidt
     val lhs = gram(zeroSet.size - 1, ::)
     val rhs = lhs.dot(zeroH)
     if (lhs.dot(nonZeroVertex) < rhs)
@@ -46,15 +44,14 @@ trait HZeroSet[M, V, @sp(Double) A] {
 }
 
 object HZeroSet {
-  protected def build[M, V, @sp(Double) A](vPolyhedron0: VPolyhedron[V, A], zeroSet0: Set[Int])(implicit M0: MatVecInField[M, V, A], MM0: MatMutable[M, A], orderA0: Order[A]): HZeroSet[M, V, A] =
+  protected def build[M, V, @sp(Double) A](vPolyhedron0: VPolyhedron[V, A], zeroSet0: Set[Int])(implicit alg0: AlgMVF[M, V, A], orderA0: Order[A]): HZeroSet[M, V, A] =
     new HZeroSet[M, V, A] {
-      def M = M0
-      def MM = MM0
+      def alg = alg0
       def orderA = orderA0
       def vPolyhedron = vPolyhedron0
       def zeroSet = zeroSet0
     }
 
-  def apply[M, V, @sp(Double) A](vPolyhedron: VPolyhedron[V, A], zeroSet: Set[Int])(implicit M: MatVecInField[M, V, A], MM: MatMutable[M, A], orderA: Order[A]): HZeroSet[M, V, A] =
+  def apply[M, V, @sp(Double) A: Order](vPolyhedron: VPolyhedron[V, A], zeroSet: Set[Int])(implicit alg: AlgMVF[M, V, A]): HZeroSet[M, V, A] =
     build(vPolyhedron, zeroSet)
 }

@@ -22,16 +22,14 @@ import qalg.math._
 import qalg.syntax.all._
 
 trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
-  implicit def M: MatVecInField[M, V, Rational]
-  implicit def V: VecInField[V, Rational] = M.V
+  implicit def alg: AlgMVF[M, V, Rational]
 
   type VPoly = VPolyhedronM[M, V, Rational]
 
   object Parsers extends ParsersBase with PortaDataParsers[V] {
-    implicit def V = self.V
 
     def matrix(nCols: Int): Parser[M] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>
-      M.tabulate(rows.size, nCols)( (r, c) => rows(r)(c))
+      MatBuilder[M, Rational].tabulate(rows.size, nCols)( (r, c) => rows(r)(c))
     }
 
     def coneSection(d: Int): Parser[VPoly] =
