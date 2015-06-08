@@ -19,7 +19,7 @@ import qalg.syntax.all._
 case class Bounds[V](v: V, isBoundSet: BitSet)
 
 object Bounds {
-  def unbounded[V, @sp(Double) A](nX: Int)(implicit V: VecFactory[V]): Bounds[V] = Bounds(zeros[V](nX), BitSet.empty)
+  def unbounded[V](nX: Int)(implicit V: VecFactory[V]): Bounds[V] = Bounds(zeros[V](nX), BitSet.empty)
 
   def apply[V](v: V)(implicit V0: VecInRing[V, Double]): Bounds[V] = {
     val isBoundSet = collection.mutable.BitSet.empty

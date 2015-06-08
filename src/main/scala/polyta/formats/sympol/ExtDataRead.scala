@@ -18,7 +18,7 @@ class ExtDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[Ex
   object Parsers extends ParsersBase with SympolParsersV[V] {
     implicit def alg: AlgVF[V, Rational] = ExtDataRead.this.alg
 
-    def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => V.build(seq: _*) }
+    def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => VecBuilder[V, Rational].build(seq: _*) }
 
     type VertexOrRay = Either[V, V]
     type Vertex = Left[V, V]

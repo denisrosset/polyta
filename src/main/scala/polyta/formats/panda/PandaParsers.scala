@@ -34,7 +34,7 @@ trait PandaDataParsersBase extends RationalParsers with JavaTokenParsers {
   * All sections are parsed without the final line ending.
   */
 trait PandaDataParsers[V] extends PandaDataParsersBase with AgnosticLineEndingParsers with ParsersUtils {
-  implicit def V: VecInField[V, Rational]
+  implicit def alg: AlgVF[V, Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
@@ -44,9 +44,9 @@ trait PandaDataParsers[V] extends PandaDataParsersBase with AgnosticLineEndingPa
 
   def namesSection: Parser[Seq[String]] = ((namesHeading ~ lineEndings) ~> rep1(variable))
 
-  def rowVector: Parser[V] = rep1(rational) ^^ { V.build(_: _*) }
+  def rowVector: Parser[V] = rep1(rational) ^^ { VecBuilder[V, Rational].build(_: _*) }
 
-  def rowVector(dim: Int): Parser[V] = repN(dim, rational) ^^ { V.build(_: _*) }
+  def rowVector(dim: Int): Parser[V] = repN(dim, rational) ^^ { VecBuilder[V, Rational].build(_: _*) }
 
   def namedHeader: Parser[Seq[String]] = opt(dimSection <~ lineEndings) ~ namesSection into {
     case None ~ seq => success(seq)

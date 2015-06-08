@@ -31,21 +31,21 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
      */
 
     def vecEquality: Parser[VCons] = rep(rational) ^^ { seq =>
-      LinearEquality(V.build(seq.init:_*), -seq.last)
+      LinearEquality(VecBuilder[V, Rational].build(seq.init:_*), -seq.last)
     }
 
     def vecEquality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => LinearEquality(V.build(lhs: _*), -minusRhs)
+        case lhs ~ minusRhs => LinearEquality(VecBuilder[V, Rational].build(lhs: _*), -minusRhs)
       }
 
     def vecInequality: Parser[VCons] = rep(rational) ^^ { seq =>
-      LinearInequalityLE(V.build(seq.init:_*), -seq.last)
+      LinearInequalityLE(VecBuilder[V, Rational].build(seq.init:_*), -seq.last)
     }
 
     def vecInequality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => LinearInequalityLE(V.build(lhs: _*), -minusRhs)
+        case lhs ~ minusRhs => LinearInequalityLE(VecBuilder[V, Rational].build(lhs: _*), -minusRhs)
       }
 
     def equalitiesHeading = "Equations:"
@@ -99,7 +99,7 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
         val newRhs = rhs.getOrElse("", Rational.zero) + lhs.getOrElse("", Rational.zero)
         newLhs.keys.find(!names.contains(_)) match {
           case Some(key) => failure(s"Variable $key is not present in names")
-          case None => success(LinearConstraint(V.tabulate(names.size)(k => newLhs.getOrElse(names(k), Rational.zero)), op, newRhs))
+          case None => success(LinearConstraint(VecBuilder[V, Rational].tabulate(names.size)(k => newLhs.getOrElse(names(k), Rational.zero)), op, newRhs))
         }
     }
 

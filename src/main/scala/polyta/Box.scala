@@ -23,7 +23,7 @@ case class Box[V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])
 
 object Box {
   def unbounded[V, @sp(Double) A](nX: Int)(implicit alg: AlgVF[V, A]): Box[V, A] =
-    Box[V, A](Bounds.unbounded[V, A](nX), Bounds.unbounded[V, A](nX))
+    Box[V, A](Bounds.unbounded[V](nX), Bounds.unbounded[V](nX))
   // special case for Double vector, TODO: why ?
   def apply[V](lb: V, ub: V)(implicit alg: AlgVF[V, Double]): Box[V, Double] =
     Box[V, Double](Bounds(lb), Bounds(ub))

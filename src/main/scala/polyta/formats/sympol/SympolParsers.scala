@@ -56,7 +56,7 @@ trait SympolParsers extends RationalParsers with AgnosticLineEndingParsers with 
 }
 
 trait SympolParsersV[V] extends SympolParsers {
-  implicit def V: VecInField[V, Rational]
+  implicit def alg: AlgVF[V, Rational]
 
   def upToSymBeginLE: Parser[Boolean] =
     opt("* UP TO SYMMETRY" ~ lineEnding) <~ ("begin" ~ lineEnding) ^^ {
@@ -69,7 +69,7 @@ trait SympolParsersV[V] extends SympolParsers {
       case m ~ d => (m, d)
     }
 
-  def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => V.build(cols: _*) }
+  def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => VecBuilder[V, Rational].build(cols: _*) }
 
   def HVHeader = "V-representation" | "H-representation"
 

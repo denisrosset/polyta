@@ -12,13 +12,13 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-class IneDataRead[V](implicit val algVF: AlgVF[V, Rational]) extends FormatRead[IneData[V]] {
+class IneDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[IneData[V]] {
 
   type HPoly = HPolyhedron[V, Rational]
 
   object Parsers extends ParsersBase with SympolParsersV[V] {
 
-    implicit def algVF: AlgVF[V, Rational] = IneDataRead.this.algVF
+    implicit def alg: AlgVF[V, Rational] = IneDataRead.this.alg
 
     def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
