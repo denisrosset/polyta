@@ -13,6 +13,9 @@ import qalg.algebra._
 import qalg.math._
 
 class PortaRead extends FunSuite {
+  implicit val pack = DenseM.rationalImmutableAlg
+  import pack._
+
   val path = "/com/faacets/polyta/formats/porta/"
   val resources = ResourceListing.list(getClass, "." + path)
   val poiFiles = resources.filter(_.endsWith(".poi"))
@@ -24,7 +27,7 @@ class PortaRead extends FunSuite {
   }
 
   test("All .poi files can be parsed") {
-    val formatRead = POIData.FormatRead[DenseM[Rational], DenseV[Rational]]
+    val formatRead = POIData.FormatRead[M, V]
     poiFiles.foreach { filename =>
       val reader = getReader(filename)
       formatRead.parse(reader).get
@@ -32,7 +35,7 @@ class PortaRead extends FunSuite {
   }
 
   test("All .ieq files can be parsed") {
-    val formatRead = IEQData.FormatRead[DenseM[Rational], DenseV[Rational]]
+    val formatRead = IEQData.FormatRead[M, V]
     ieqFiles.foreach { filename =>
       val reader = getReader(filename)
       formatRead.parse(reader).get

@@ -20,6 +20,8 @@ import formats.porta._
 import Porta.DefaultOptions
 
 class PortaConversion extends FunSuite {
+  implicit val pack = DenseM.rationalImmutableAlg
+  import pack._
 
   val path = "/com/faacets/polyta/solvers/porta/"
   val resources = ResourceListing.list(getClass, "." + path)
@@ -30,12 +32,6 @@ class PortaConversion extends FunSuite {
     val url = getClass.getResource(path + filename)
     new BufferedReader(new InputStreamReader(url.openStream))
   }
-
-  type V = DenseV[Rational]
-  type M = DenseM[Rational]
-  val V = VecInField[V, Rational]
-  val M = MatVecInField[M, V, Rational]
-
 
   def compareMatricesArbColOrder(m1: M, m2: M): Unit = {
     val n = m1.nCols
@@ -48,14 +44,14 @@ class PortaConversion extends FunSuite {
   def compareMatricesArbColOrderAndFactor(m1: M, m2: M): Unit = {
     val n = m1.nCols
     assert(n == m2.nCols)
-    val cols1 = (0 until n).map(c => withPrimes(m1(::, c))._1.toIndexedSeq).toSet
-    val cols2 = (0 until n).map(c => withPrimes(m2(::, c))._1.toIndexedSeq).toSet
+    val cols1 = (0 until n).map(c => m1(::, c).withPrimes.toIndexedSeq).toSet
+    val cols2 = (0 until n).map(c => m2(::, c).withPrimes.toIndexedSeq).toSet
     assert(cols1 == cols2)
   }
 
 
   def testPOI(filename: String): Unit = {
-    val formatRead = POIData.FormatRead[DenseM[Rational], DenseV[Rational]]
+    val formatRead = POIData.FormatRead[M, V]
     val reader = getReader(filename)
     val poi = formatRead.parse(reader).get
     val vpoly1 = poi.polyhedron

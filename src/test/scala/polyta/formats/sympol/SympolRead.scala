@@ -13,6 +13,9 @@ import qalg.algebra._
 import qalg.math._
 
 class SympolRead extends FunSuite {
+  implicit val pack = DenseM.rationalImmutableAlg
+  import pack._
+
   val path = "/com/faacets/polyta/formats/sympol/"
   val resources = ResourceListing.list(getClass, "." + path)
   val extFilenames = resources.filter(_.endsWith(".ext"))
@@ -25,7 +28,7 @@ class SympolRead extends FunSuite {
   }
 
   test("All .ine files can be parsed") {
-    val formatRead = IneData.FormatRead[DenseV[Rational]]
+    val formatRead = IneData.FormatRead[V]
     ineFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
       res.get
@@ -33,7 +36,7 @@ class SympolRead extends FunSuite {
   }
 
   test("All .ext files can be parsed") {
-    val formatRead = ExtData.FormatRead[DenseV[Rational]]
+    val formatRead = ExtData.FormatRead[V]
     extFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
       res.get
