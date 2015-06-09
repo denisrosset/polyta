@@ -18,10 +18,10 @@ import net.alasc.math.{Perm, Grp}
 
 import solvers._
 
-/** Polyhedron described by extremal rays and vertices, which are stored as
-  * row vectors.
+/** Polyhedron described by extremal rays and vertices.
   */
 trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] { lhs =>
+
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n") + "Rays:\n" + rays.mkString("\n") + "\n"
   def vertices: Seq[V]
@@ -29,18 +29,16 @@ trait VPolyhedron[V, @sp(Double) A] extends LinearConvexSet[V, A] { lhs =>
 
   def nX: Int
   // TODO: type class syntax
-  def symmetric(implicit S: SymmetryFinder[VPolyhedron[V, A], SymVPolyhedron[V, A]]): SymVPolyhedron[V, A] = S.symmetric(lhs)
-  def toH[HP](implicit C: VConverter[VPolyhedron[V, A], HP]): HP = C.toH(lhs)
+//  def symmetric(implicit S: SymmetryFinder[VPolyhedron[V, A], SymVPolyhedron[V, A]]): SymVPolyhedron[V, A] = S.symmetric(lhs)
+//  def toH[HP](implicit C: VConverter[VPolyhedron[V, A], HP]): HP = C.toH(lhs)
+}
 
+final class VPolyhedronImpl[V, @sp(Double) A](val vertices: Seq[V], val rays: Seq[V])(implicit val alg: AlgVF[V, A]) extends VPolyhedron[V, A] {
+  require(vertices.nonEmpty || rays.nonEmpty)
+
+  def nX = if (vertices.nonEmpty) vertices.head.length else rays.head.length
 }
 
 object VPolyhedron {
-  @inline protected def build[V, A](vertices0: Seq[V], rays0: Seq[V])(implicit alg0: AlgVF[V, A]): VPolyhedron[V, A] =
-    new VPolyhedron[V, A] {
-      def alg = alg0
-      def vertices = vertices0
-      def rays = rays0
-      def nX = vertices.head.length
-    }
-  def apply[V, A](vertices: Seq[V], rays: Seq[V])(implicit alg: AlgVF[V, A]): VPolyhedron[V, A] = build(vertices, rays)
+  def apply[V, A](vertices: Seq[V], rays: Seq[V])(implicit alg: AlgVF[V, A]): VPolyhedron[V, A] = new VPolyhedronImpl(vertices, rays)
 }

@@ -63,7 +63,7 @@ final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends
     out.write("INEQUALITIES_SECTION\n")
     val names = Format.x1toN(dim)
 
-    poly.inequalities.indices.foreach { r =>
+    poly.facets.indices.foreach { r =>
         Format.writeVector[V, Rational](poly.mA(r, ::), names, out)
       out.write(" <= ")
       out.write(poly.vb(r).toString)

@@ -16,9 +16,9 @@ import qalg.syntax.all._
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
+/** Vertices and rays are stored as row vectors. */
 trait VPolyhedronM[M, V, @sp(Double, Long) A] extends VPolyhedron[V, A] {
   implicit def alg: AlgMVF[M, V, A]
-  implicit override def A: Field[A] = alg.M.A
 
   def vertices: IndexedSeq[V] = new IndexedSeq[V] {
     def length = mV.nCols

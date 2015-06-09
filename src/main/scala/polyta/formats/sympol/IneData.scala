@@ -15,7 +15,7 @@ case class IneData[V](
 
 object IneData {
   def fromPolyhedron[V](polyhedron: HPolyhedron[V, Rational]): IneData[V] = {
-    val equalityRows = (polyhedron.inequalities.size until (polyhedron.inequalities.size + polyhedron.equalities.size)).toSet
+    val equalityRows = (polyhedron.facets.size until (polyhedron.facets.size + polyhedron.equalities.size)).toSet
     IneData(polyhedron, equalityRows)
   }
   implicit def FormatRead[V](implicit algVF: AlgVF[V, Rational]): FormatRead[IneData[V]] = new IneDataRead[V]

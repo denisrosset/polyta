@@ -57,7 +57,7 @@ class HDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatW
   def writePolyhedron(poly: HPolyhedronM[M, V, Rational], namesOption: Option[Seq[String]], out: Writer): Unit = {
     if (poly.equalities.nonEmpty)
       writeEquations(poly.mAeq, poly.vbeq, namesOption, out)
-    if (poly.inequalities.nonEmpty)
+    if (poly.facets.nonEmpty)
       writeInequalities(poly.mA, poly.vb, namesOption, out)
   }
 

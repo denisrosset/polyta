@@ -21,7 +21,7 @@ import net.alasc.math.{Perm, Grp}
   */
 trait VPolyhedralConeM[M, V, @sp(Double, Long) A] extends VPolyhedralCone[V, A] { self =>
   implicit def alg: AlgMVF[M, V, A]
-  implicit override def A: Field[A] = alg.M.A
+  implicit def A: Field[A] = alg.M.A
 
   /** Matrix of generating points, represented as column vectors. */
   def mR: M

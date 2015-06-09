@@ -18,14 +18,14 @@ import net.alasc.math.{Perm, Grp}
 
 trait HPolyhedronM[M, V, @sp(Double, Long) A] extends HPolyhedron[V, A] {
   implicit def alg: AlgMVF[M, V, A]
-  implicit override def A: Field[A] = alg.M.A
+  implicit def A: Field[A] = alg.M.A
 
   def equalities: IndexedSeq[LinearEquality[V, A]] = new IndexedSeq[LinearEquality[V, A]] {
     def length = nEqs
     def apply(r: Int): LinearEquality[V, A] = LinearEquality(mAeq(r, ::), vbeq(r))
   }
 
-  def inequalities: IndexedSeq[LinearInequality[V, A]] = new IndexedSeq[LinearInequality[V, A]] {
+  def facets: IndexedSeq[LinearInequality[V, A]] = new IndexedSeq[LinearInequality[V, A]] {
     def length = nIneqs
     def apply(r: Int): LinearInequality[V, A] = LinearInequalityLE(mA(r, ::), vb(r))
   }

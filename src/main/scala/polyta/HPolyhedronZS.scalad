@@ -42,7 +42,7 @@ object HPolyhedronZS {
   }
 
   def apply[M, V, @sp(Double, Long) A: Order](vPolyhedron: VPolyhedron[V, A], inequalityZeroSets: Seq[Set[Int]], equalities: Seq[LinearEquality[V, A]])(implicit alg: AlgMVF[M, V, A]): HPolyhedronZS[M, V, A] = build(vPolyhedron, inequalityZeroSets, equalities)
-
+/* WRONG!!!
   def fromDualDescription[M, V, @sp(Double, Long) A: Order](hPolyhedron: HPolyhedron[V, A], vPolyhedron: VPolyhedron[V, A])(implicit alg: AlgMVF[M, V, A]): HPolyhedronZS[M, V, A] = {
     val zeroSets = vPolyhedron.vertices.map { vertex =>
       hPolyhedron.inequalities.indices.filter { k =>
@@ -51,5 +51,5 @@ object HPolyhedronZS {
       }.toSet
     }
     apply(vPolyhedron, zeroSets, hPolyhedron.equalities)
-  }
+  }*/
 }
