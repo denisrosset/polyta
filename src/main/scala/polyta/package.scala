@@ -38,5 +38,16 @@ package object polyta {
       basis.map( vec => LinearEquality(vec, vec.dot(headV)) )
     }
   }
+  implicit class HPolytopeOps[V, @sp(Double) A, M](val hPolytope: HPolytope[V, A])(implicit alg: AlgMVF[M, V, A], orderA: Order[A]) {
+    def vertexOn(facetIndices: Set[Int]): V = {
+      val ineqSatisfied: Seq[(V, A)] = facetIndices.toSeq.map {
+        i => (hPolytope.facets(i).lhs, hPolytope.facets(i).rhs)
+      }
+      val eqSatisfied: Seq[(V, A)] = hPolytope.equalities.map( eq => (eq.lhs, eq.rhs) )
+      val satisfied = ineqSatisfied ++ eqSatisfied
+      val newA: M = MatBuilder[M, A].fromRows(hPolytope.nX, satisfied.map(_._1): _*)
+      val newb: V = VecBuilder[V, A].build(satisfied.map(_._2): _*)
+      newA.lu.solveV(newb)
+    }
+  }
 }
-

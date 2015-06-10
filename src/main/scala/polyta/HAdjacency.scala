@@ -18,29 +18,19 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
 trait HAdjacency[V, @sp(Double) A] {
-  def hPolyhedron: HPolyhedron[V, A]
-  def zeroSet: Set[Int]
+  def hPolytope: HPolytope[V, A]
+  def facetIndices: Set[Int]
   def vertex: V
 }
 
-final class HAdjacencyImpl[M, V, @sp(Double) A: Order](val hPolyhedron: HPolyhedron[V, A], val zeroSet: Set[Int])(implicit alg: AlgMVF[M, V, A]) extends HAdjacency[V, A] {
+final class HAdjacencyImpl[M, V, @sp(Double) A: Order](val hPolytope: HPolytope[V, A], val facetIndices: Set[Int])(implicit alg: AlgMVF[M, V, A]) extends HAdjacency[V, A] {
   implicit def A: Field[A] = alg.V.A
 
-  override def toString: String = zeroSet.toSeq.sorted.mkString("VZeroSet(", ", ", ")")
+  override def toString: String = facetIndices.toSeq.sorted.mkString("HAdjacency(", ", ", ")")
 
-  def vertex: V = {
-    val ineqSatisfied: Seq[(V, A)] = zeroSet.toSeq.map {
-      i => (hPolyhedron.facets(i).lhs, hPolyhedron.facets(i).rhs)
-    }
-
-    val eqSatisfied: Seq[(V, A)] = hPolyhedron.equalities.map( eq => (eq.lhs, eq.rhs) )
-    val satisfied = ineqSatisfied ++ eqSatisfied
-    val newA: M = MatBuilder[M, A].fromRows(hPolyhedron.nX, satisfied.map(_._1): _*)
-    val newb: V = VecBuilder[V, A].build(satisfied.map(_._2): _*)
-    newA.lu.solveV(newb)
-  }
+  def vertex: V = hPolytope.vertexOn(facetIndices)
 }
 
 object HAdjacency {
-  def apply[V, @sp(Double) A: Order, M](hPolyhedron: HPolyhedron[V, A], zeroSet: Set[Int])(implicit alg: AlgMVF[M, V, A]): HAdjacency[V, A] = new HAdjacencyImpl[M, V, A](hPolyhedron, zeroSet)
+  def apply[V, @sp(Double) A: Order, M](hPolytope: HPolytope[V, A], facetIndices: Set[Int])(implicit alg: AlgMVF[M, V, A]): HAdjacency[V, A] = new HAdjacencyImpl[M, V, A](hPolytope, facetIndices)
 }
