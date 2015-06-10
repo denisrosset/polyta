@@ -26,7 +26,6 @@ final class HPolytopeImpl[V, @sp(Double, Long) A](val facets: Seq[LinearInequali
   def nX = facets.head.lhs.length
 }
 
-
 object HPolytope {
   def apply[V, A](facets: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit alg: AlgVF[V, A]): HPolytope[V, A] = new HPolytopeImpl(facets, equalities)
 }

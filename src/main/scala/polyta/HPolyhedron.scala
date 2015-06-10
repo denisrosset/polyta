@@ -30,7 +30,7 @@ trait HPolyhedron[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] { lhs =>
   //  def contains(v: V)(implicit AO: ApproxOrder[A]): Boolean
   // TODO: type class syntax
 //  def symmetric(implicit S: SymmetryFinder[HPolyhedron[V, A], SymHPolyhedron[V, A]]): SymHPolyhedron[V, A] = S.symmetric(lhs)
-  def toV[VP](implicit C: HConverter[HPolyhedron[V, A], VP]): VP = C.toV(lhs)
+//  def toV[VP](implicit C: HConverter[HPolyhedron[V, A], VP]): VP = C.toV(lhs)
 }
 
 final class HPolyhedronImpl[V, @sp(Double, Long) A](val facets: Seq[LinearInequality[V, A]], val equalities: Seq[LinearEquality[V, A]])(implicit alg: AlgVF[V, A]) extends HPolyhedron[V, A] {

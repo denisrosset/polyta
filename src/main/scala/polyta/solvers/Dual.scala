@@ -4,6 +4,6 @@ package solvers
 
 import scala.{specialized => sp}
 
-trait HConverter[-HPoly, +VPoly] {
-  def toV(polyhedron: HPoly): VPoly
+trait Dual[Poly, PolyDual] {
+  def dual(polyhedron: Poly): PolyDual
 }

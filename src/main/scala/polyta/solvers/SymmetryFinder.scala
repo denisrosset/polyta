@@ -2,6 +2,6 @@ package com.faacets
 package polyta
 package solvers
 
-trait SymmetryFinder[-Poly, +SymPoly] extends Any {
-  def symmetric(p: Poly): SymPoly
+trait SymmetryFinder[P, S] extends Any {
+  def symmetric(polytope: P): S
 }

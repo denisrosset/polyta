@@ -32,7 +32,6 @@ final class SymHPolytopeImpl[G, V, @sp(Double) A](val facets: Seq[LinearInequali
       .map(_.toSeq.sorted).toSeq.sortBy(_.head).map( seq => seq.map(facets(_)) )
 }
 
-
 object SymHPolytope {
   def apply[G, V, A](facets: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]], symmetryGroup: Grp[G], facetRepresentation: Representation[G])(implicit alg: AlgVF[V, A]): SymHPolytope[G, V, A] =
     new SymHPolytopeImpl(facets, equalities, symmetryGroup, facetRepresentation)
