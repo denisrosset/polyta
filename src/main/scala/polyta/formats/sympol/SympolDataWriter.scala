@@ -45,14 +45,14 @@ trait SympolDataWrite extends Any {
     }
     if (si.upToSymmetryWRTO)
       out.write("* w.r.t. to the original inequalities/vertices\n")
-    out.write(si.generators.size)
+    out.write(si.generators.size.toString)
     out.write("\n")
     si.generators.foreach { perm =>
       out.write("  ")
       writePermutation1(perm, out)
       out.write("\n")
     }
-    out.write(si.base.size)
+    out.write(si.base.size.toString)
     out.write("\n")
     out.write("  ")
     out.write(si.base.mkString(" "))
