@@ -50,10 +50,8 @@ object Sympol {
       SymVPolytope[Perm, V, Rational](polytope.vertices, Grp(generators: _*), PermutationRepresentations[Perm].forSize(polytope.vertices.size))
     }
   }
-}
 
-object WithSymmetries {
-  implicit def vConverter[V, M](implicit alg: AlgMVF[M, V, Rational]): ReducedDual[VPolytope[V, Rational], VReducedDual[Perm, V, Rational]] = new ReducedDual[VPolytope[V, Rational], VReducedDual[Perm, V, Rational]] {
+  implicit def vReducedDual[V, M](implicit alg: AlgMVF[M, V, Rational]): ReducedDual[VPolytope[V, Rational], VReducedDual[Perm, V, Rational]] = new ReducedDual[VPolytope[V, Rational], VReducedDual[Perm, V, Rational]] {
     def reducedDual(vPolytope: VPolytope[V, Rational]): VReducedDual[Perm, V, Rational] = {
       val input = File.createTempFile("conv", ".ext")
       val writer = new PrintWriter(input)
@@ -66,11 +64,11 @@ object WithSymmetries {
       val generators = data.symmetryInfo.get.decodeGenerators(extData.rayCols).map(_._1)
       val symVPolytope = SymVPolytope[Perm, V, Rational](vPolytope.vertices, Grp(generators: _*), PermutationRepresentations[Perm].forSize(vPolytope.vertices.size))
       val hPolytope = HPolytope(data.polyhedron.facets, data.polyhedron.equalities)
-      VReducedDual[Perm, V, Rational](symVPolytope, hPolytope)
+      VReducedDual(symVPolytope, hPolytope)
     }
   }
 
-  implicit def hConverter[V, M](implicit alg: AlgMVF[M, V, Rational]): ReducedDual[HPolytope[V, Rational], HReducedDual[Perm, V, Rational]] = new ReducedDual[HPolytope[V, Rational], HReducedDual[Perm, V, Rational]] {
+  implicit def hReducedDual[V, M](implicit alg: AlgMVF[M, V, Rational]): ReducedDual[HPolytope[V, Rational], HReducedDual[Perm, V, Rational]] = new ReducedDual[HPolytope[V, Rational], HReducedDual[Perm, V, Rational]] {
     def reducedDual(hPolytope: HPolytope[V, Rational]): HReducedDual[Perm, V, Rational] = {
       val input = File.createTempFile("conv", ".ine")
       val writer = new PrintWriter(input)
@@ -81,16 +79,14 @@ object WithSymmetries {
       val reader = new StringReader(output)
       val data = implicitly[FormatRead[ExtData[V]]].parse(reader).get
       val generators = data.symmetryInfo.get.decodeGenerators(ineData.equalityRows)
-      if (data.polyhedron.rays.nonEmpty) throw new IllegalArgumentException("Cannot have rays on a bounded polytope.") 
+      if (data.polyhedron.rays.nonEmpty) throw new IllegalArgumentException("Cannot have rays on a bounded polytope.")
       val symHPolytope = SymHPolytope[Perm, V, Rational](hPolytope.facets, hPolytope.equalities, Grp.fromGenerators(generators.map(_._1)), PermutationRepresentations[Perm].forSize(hPolytope.facets.size))
       val vPolytope = VPolytope[V, Rational](data.polyhedron.vertices)
-      HReducedDual[Perm, V, Rational](symHPolytope, vPolytope)
+      HReducedDual(symHPolytope, vPolytope)
     }
   }
-}
 
-object WithoutSymmetry {
-  implicit def hConverter[V](implicit algVF: AlgVF[V, Rational]): Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] = new Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] {
+  implicit def hDual[V](implicit algVF: AlgVF[V, Rational]): Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] = new Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] {
     def dual(hPolyhedron: HPolyhedron[V, Rational]): VPolyhedron[V, Rational] = {
       val input = File.createTempFile("conv", ".ine")
       val writer = new PrintWriter(input)
@@ -102,7 +98,7 @@ object WithoutSymmetry {
     }
   }
 
-  implicit def vConverter[V](implicit algVF: AlgVF[V, Rational]): Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] = new Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] {
+  implicit def vDual[V](implicit algVF: AlgVF[V, Rational]): Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] = new Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] {
     def dual(vPolyhedron: VPolyhedron[V, Rational]): HPolyhedron[V, Rational] = {
       val input = File.createTempFile("conv", ".ext")
       val writer = new PrintWriter(input)
@@ -115,11 +111,10 @@ object WithoutSymmetry {
   }
 }
 
-
 /*
-sealed trait SympolMethod {
-  def optionString: String
-}
+ sealed trait SympolMethod {
+ def optionString: String
+ }
 
 /** Direct dual description */
 case object Direct extends SympolMethod {

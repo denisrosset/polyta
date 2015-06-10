@@ -16,6 +16,13 @@ import net.alasc.math.{Perm, Grp}
 
 package object polyta {
   implicit class VPolytopeOps[V, @sp(Double) A](val vPolytope: VPolytope[V, A])(implicit alg: AlgVF[V, A], orderA: Order[A]) {
+    def facetSets(hPolytope: HPolytope[V, A]): Seq[Set[Int]] =
+      hPolytope.facets.map { facet =>
+        vPolytope.vertices.indices.filter { k =>
+          val vertex = vPolytope.vertices(k)
+          facet.lhs.dot(vertex) === facet.rhs
+        }.toSet
+      }
     def facetOn(vertexIndices: Set[Int]): LinearInequality[V, A] = {
       implicit def A: Field[A] = alg.V.A
       val zeroSeq = vertexIndices.toSeq
@@ -39,6 +46,14 @@ package object polyta {
     }
   }
   implicit class HPolytopeOps[V, @sp(Double) A, M](val hPolytope: HPolytope[V, A])(implicit alg: AlgMVF[M, V, A], orderA: Order[A]) {
+    def vertexSets(vPolytope: VPolytope[V, A]): Seq[Set[Int]] =
+      vPolytope.vertices.map { vertex =>
+        hPolytope.facets.indices.filter { k =>
+          val facet = hPolytope.facets(k)
+          facet.lhs.dot(vertex) === facet.rhs
+        }.toSet
+      }
+
     def vertexOn(facetIndices: Set[Int]): V = {
       val ineqSatisfied: Seq[(V, A)] = facetIndices.toSeq.map {
         i => (hPolytope.facets(i).lhs, hPolytope.facets(i).rhs)

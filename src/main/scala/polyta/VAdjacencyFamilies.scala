@@ -14,9 +14,11 @@ import qalg.algebra._
 import qalg.algos._
 
 trait VAdjacencyFamilies[G, V, @sp(Double) A] {
+  override def toString: String = s"Polytope $vPolytope with ${families.size} facet families"
+
   def vPolytope: SymVPolytope[G, V, A]
   def representativeIndexSets: Seq[Set[Int]]
-  def representatives: Seq[VAdjacencyFamily[G, V, A]]
+  def families: Seq[VAdjacencyFamily[G, V, A]]
 }
 
 object VAdjacencyFamilies {
@@ -24,5 +26,5 @@ object VAdjacencyFamilies {
 }
 
 final class VAdjacencyFamiliesImpl[G, V, @sp(Double) A: Order](val vPolytope: SymVPolytope[G, V, A], val representativeIndexSets: Seq[Set[Int]])(implicit alg: AlgVF[V, A]) extends VAdjacencyFamilies[G, V, A] {
-  def representatives: Seq[VAdjacencyFamily[G, V, A]] = representativeIndexSets.map( set => VAdjacencyFamily(vPolytope, set) )
+  def families: Seq[VAdjacencyFamily[G, V, A]] = representativeIndexSets.map( set => VAdjacencyFamily(vPolytope, set) )
 }

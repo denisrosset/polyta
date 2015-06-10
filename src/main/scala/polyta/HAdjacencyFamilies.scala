@@ -14,9 +14,11 @@ import qalg.algebra._
 import qalg.algos._
 
 trait HAdjacencyFamilies[G, V, @sp(Double) A] {
+  override def toString: String = s"Polytope $hPolytope with ${families.size} vertex families"
+
   def hPolytope: SymHPolytope[G, V, A]
   def representativeIndexSets: Seq[Set[Int]]
-  def representatives: Seq[HAdjacencyFamily[G, V, A]]
+  def families: Seq[HAdjacencyFamily[G, V, A]]
 }
 
 object HAdjacencyFamilies {
@@ -24,5 +26,5 @@ object HAdjacencyFamilies {
 }
 
 final class HAdjacencyFamiliesImpl[G, V, @sp(Double) A: Order, M](val hPolytope: SymHPolytope[G, V, A], val representativeIndexSets: Seq[Set[Int]])(implicit alg: AlgMVF[M, V, A]) extends HAdjacencyFamilies[G, V, A] {
-  def representatives: Seq[HAdjacencyFamily[G, V, A]] = representativeIndexSets.map( set => HAdjacencyFamily(hPolytope, set) )
+  def families: Seq[HAdjacencyFamily[G, V, A]] = representativeIndexSets.map( set => HAdjacencyFamily(hPolytope, set) )
 }

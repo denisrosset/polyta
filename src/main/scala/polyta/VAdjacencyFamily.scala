@@ -14,6 +14,8 @@ import qalg.algebra._
 import qalg.algos._
 
 trait VAdjacencyFamily[G, V, @sp(Double) A] {
+  override def toString = s"Family of size ${representatives.size}, representative $representativeIndexSet"
+
   def vPolytope: SymVPolytope[G, V, A]
   def representativeIndexSet: Set[Int]
   def representative: LinearInequality[V, A]

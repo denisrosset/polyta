@@ -14,6 +14,7 @@ import qalg.algebra._
 import qalg.algos._
 
 trait HAdjacencyFamily[G, V, @sp(Double) A] {
+  override def toString = s"Family of size ${representatives.size}, representative $representativeIndexSet"
   def hPolytope: SymHPolytope[G, V, A]
   def representativeIndexSet: Set[Int]
   def representative: V

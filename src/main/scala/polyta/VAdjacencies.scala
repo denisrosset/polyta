@@ -21,13 +21,5 @@ final class VAdjacenciesImpl[V, @sp(Double, Long) A: Order](val vPolytope: VPoly
 
 object VAdjacencies {
   def apply[V, @sp(Double) A: Order](vPolytope: VPolytope[V, A], facetSets: Seq[Set[Int]])(implicit alg: AlgVF[V, A]): VAdjacencies[V, A] = new VAdjacenciesImpl[V, A](vPolytope, facetSets)
-  def apply[V, @sp(Double) A: Order](vPolytope: VPolytope[V, A], hPolytope: HPolytope[V, A])(implicit alg: AlgVF[V, A]): VAdjacencies[V, A] = {
-    val zeroSets = hPolytope.facets.map { facet =>
-      vPolytope.vertices.indices.filter { k =>
-        val vertex = vPolytope.vertices(k)
-        facet.lhs.dot(vertex) === facet.rhs
-      }.toSet
-    }
-    apply(vPolytope, zeroSets)
-  }
+  def apply[V, @sp(Double) A: Order](vPolytope: VPolytope[V, A], hPolytope: HPolytope[V, A])(implicit alg: AlgVF[V, A]): VAdjacencies[V, A] = apply(vPolytope, vPolytope.facetSets(hPolytope))
 }

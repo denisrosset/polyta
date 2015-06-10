@@ -4,6 +4,6 @@ package solvers
 
 import scala.{specialized => sp}
 
-trait Dual[Poly, PolyDual] {
+trait Dual[-Poly, +PolyDual] {
   def dual(polyhedron: Poly): PolyDual
 }
