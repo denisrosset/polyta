@@ -20,7 +20,7 @@ import formats._
 import formats.sympol._
 
 import sys.process._
-
+/*
 trait SympolLowerPriority {
   implicit def vReducedDual[P <: VPolytope[V, Rational], V, M](implicit alg: AlgMVF[M, V, Rational], ev: NoImplicit[P <:< SymVPolytope[_, V, Rational]]): ReducedDual[P, VReducedDual[Perm, V, Rational]] = new ReducedDual[P, VReducedDual[Perm, V, Rational]] {
     def reducedDual(vPolytope: P): VReducedDual[Perm, V, Rational] = {
@@ -56,10 +56,10 @@ trait SympolLowerPriority {
       HReducedDual(symHPolytope, vPolytope)
     }
   }
-}
+}*/
 
-object Sympol extends SympolLowerPriority {
-  implicit def symmetryFinderH[P <: HPolytope[V, Rational], V](implicit alg: AlgVF[V, Rational], ev: NoImplicit[P <:< SymHPolytope[_, V, Rational]]): SymmetryFinder[P, SymHPolytope[Perm, V, Rational]] = new SymmetryFinder[P, SymHPolytope[Perm, V, Rational]] {
+trait SympolImplicits {
+  implicit def symmetricH[P <: HPolytope[V, Rational], V](implicit alg: AlgVF[V, Rational], ev: NoImplicit[P <:< SymHPolytope[_, V, Rational]]): Symmetric[P, SymHPolytope[Perm, V, Rational]] = new Symmetric[P, SymHPolytope[Perm, V, Rational]] {
     def symmetric(polytope: P): SymHPolytope[Perm, V, Rational] = {
       val input = File.createTempFile("sym", ".ine")
       val writer = new PrintWriter(input)
@@ -74,7 +74,7 @@ object Sympol extends SympolLowerPriority {
     }
   }
 
-  implicit def symmetryFinderV[P <: VPolytope[V, Rational], V](implicit alg: AlgVF[V, Rational], ev: NoImplicit[P <:< SymVPolytope[_, V, Rational]]): SymmetryFinder[P, SymVPolytope[Perm, V, Rational]] = new SymmetryFinder[P, SymVPolytope[Perm, V, Rational]] {
+  implicit def symmetricV[P <: VPolytope[V, Rational], V](implicit alg: AlgVF[V, Rational], ev: NoImplicit[P <:< SymVPolytope[_, V, Rational]]): Symmetric[P, SymVPolytope[Perm, V, Rational]] = new Symmetric[P, SymVPolytope[Perm, V, Rational]] {
     def symmetric(polytope: P): SymVPolytope[Perm, V, Rational] = {
       val input = File.createTempFile("sym", ".ext")
       val writer = new PrintWriter(input)
@@ -122,27 +122,31 @@ object Sympol extends SympolLowerPriority {
     }
   }
 
-  implicit def hDual[V](implicit algVF: AlgVF[V, Rational]): Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] = new Dual[HPolyhedron[V, Rational], VPolyhedron[V, Rational]] {
-    def dual(hPolyhedron: HPolyhedron[V, Rational]): VPolyhedron[V, Rational] = {
+  implicit def hDual[V](implicit algVF: AlgVF[V, Rational]): Dual[HPolytope[V, Rational], VPolytope[V, Rational]] = new Dual[HPolytope[V, Rational], VPolytope[V, Rational]] {
+    def dual(hPolytope: HPolytope[V, Rational]): VPolytope[V, Rational] = {
       val input = File.createTempFile("conv", ".ine")
       val writer = new PrintWriter(input)
-      implicitly[FormatWrite[IneData[V]]].write(IneData.fromPolyhedron(hPolyhedron), writer)
+      implicitly[FormatWrite[IneData[V]]].write(IneData.fromPolyhedron(hPolytope), writer)
       writer.close
       val output = ("sympol --no-automorphisms -d -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
-      implicitly[FormatRead[ExtData[V]]].parse(reader).get.polyhedron
+      val data = implicitly[FormatRead[ExtData[V]]].parse(reader).get.polyhedron
+      assert(data.rays.isEmpty)
+      VPolytope(data.vertices)
+      
     }
   }
 
-  implicit def vDual[V](implicit algVF: AlgVF[V, Rational]): Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] = new Dual[VPolyhedron[V, Rational], HPolyhedron[V, Rational]] {
-    def dual(vPolyhedron: VPolyhedron[V, Rational]): HPolyhedron[V, Rational] = {
+  implicit def vDual[V](implicit algVF: AlgVF[V, Rational]): Dual[VPolytope[V, Rational], HPolytope[V, Rational]] = new Dual[VPolytope[V, Rational], HPolytope[V, Rational]] {
+    def dual(vPolytope: VPolytope[V, Rational]): HPolytope[V, Rational] = {
       val input = File.createTempFile("conv", ".ext")
       val writer = new PrintWriter(input)
-      implicitly[FormatWrite[ExtData[V]]].write(ExtData.fromPolyhedron(vPolyhedron), writer)
+      implicitly[FormatWrite[ExtData[V]]].write(ExtData.fromPolyhedron(vPolytope), writer)
       writer.close
       val output = ("sympol --no-automorphisms -d -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
-      implicitly[FormatRead[IneData[V]]].parse(reader).get.polyhedron
+      val data = implicitly[FormatRead[IneData[V]]].parse(reader).get.polyhedron
+      HPolytope(data.facets, data.equalities)
     }
   }
 }

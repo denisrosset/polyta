@@ -18,6 +18,8 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 
 trait SymVPolytope[G, V, @sp(Double) A] extends VPolytope[V, A] {
+    override def toString =
+      "\nVertices:\n" + vertices.mkString("\n") + "\nSymmetry group:\n" + symmetryGroup.toString + "\n"
   def symmetryGroup: Grp[G]
   def vertexRepresentation: Representation[G]
   def vertexSymmetryGroup(v: Int): Grp[G]
