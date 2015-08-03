@@ -52,6 +52,7 @@ trait VPolytopeFromH[V, @sp(Double, Long) A] extends VPolytope[V, A] {
   trait Element extends ElementBase[V]
   type Ray = Nothing
   final class Vertex(val facetIndices: Set[Int]) extends Element with VertexBase[V] {
+    type VX = Vertex
     def point = hPolytope.vertexOn(facetIndices)
     def representatives = new Iterable[Vertex] {
       val subgrp = hPolytope.symGroup.setwiseStabilizer(facetIndices)

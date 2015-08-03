@@ -21,11 +21,14 @@ import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 
 trait FacetBase[V, @sp(Double, Long) A] extends Any {
+  override def toString = inequality.toString
+  type F <: FacetBase[V, A]
   def inequality: LinearInequality[V, A]
-  def representatives: Iterable[FacetBase[V, A]]
+  def representatives: Iterable[F]
 }
 
 final class SingleFacet[V, @sp(Double, Long) A](val inequality: LinearInequality[V, A]) extends FacetBase[V, A] {
+  type F = SingleFacet[V, A]
   def representatives = Iterable(this)
 }
 
@@ -37,10 +40,11 @@ trait HPolytope[V, @sp(Double, Long) A] extends Polytope[V, A] {
 
   override def toString = (facets.map(_.toString) ++ equalities.map(_.toString)).mkString("\n")
 
-  type Facet <: FacetBase[V, A]
+  type Facet <: FacetBase[V, A] { type F = Facet }
   type Equality = LinearEquality[V, A]
 
   def facets: Seq[Facet]
+  def allFacets: Seq[Facet] = facets.flatMap(_.representatives)
   def equalities: Seq[Equality]
 
   /** Action of the symmetry group on facets. */
@@ -63,13 +67,9 @@ trait HPolytope[V, @sp(Double, Long) A] extends Polytope[V, A] {
     pack.MLU.lu(newA).solveV(newb)
   }
 
-  def flatten: HPolytope[V, A] = {
-    val inequalities: Seq[LinearInequality[V, A]] = facets.flatMap { facet =>
-      val subgrp = symSubgroup(facet)
-      val cosets = subgrp \ symGroup
-      cosets.iterator.map { coset => (facet <|+| coset.g).inequality }
-    }
-    HPolytope(nX, inequalities, equalities)
+  def flatten: HPolytope[V, A] = { // TODO: produce HPolytopeCombSym instead
+    val allInequalities: Seq[LinearInequality[V, A]] = allFacets.map(_.inequality)
+    HPolytope(nX, allInequalities, equalities)
   }
 }
 
@@ -80,6 +80,7 @@ final class HPolytopeNoSym[M, V, @sp(Double, Long) A](val mA: M, val vb: V, val 
     def length = mA.nRows
     def apply(i: Int): Facet = new Facet(LinearInequality(mA(i, ::), LE, vb(i)))
   }
+  override def allFacets = facets
   def equalities: Seq[Equality] = new IndexedSeq[Equality] {
     def length = mAeq.nRows
     def apply(i: Int): Equality = LinearEquality(mAeq(i, ::), vbeq(i))

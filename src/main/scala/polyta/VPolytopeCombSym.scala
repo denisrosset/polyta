@@ -52,6 +52,7 @@ final class VPolytopeCombSym[V, @sp(Double, Long) A](val nX: Int, val vertexPoin
   type G = (Perm, Perm) // vertex permutation, ray permutation
   sealed trait Element extends ElementBase[V]
   final class Vertex(val index: Int) extends Element with VertexBase[V] {
+    type VX = Vertex
     def point: V = vertexPoints(index)
     def representatives: Iterable[Vertex] = {
       import net.alasc.math.OrbitInstances._
@@ -60,6 +61,7 @@ final class VPolytopeCombSym[V, @sp(Double, Long) A](val nX: Int, val vertexPoin
     }
   }
   final class Ray(val index: Int) extends Element with RayBase[V] {
+    type R = Ray
     def point: V = rayPoints(index)
     def representatives: Iterable[Ray] = {
       import net.alasc.math.OrbitInstances._

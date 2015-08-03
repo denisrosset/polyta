@@ -12,13 +12,13 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-class ExtDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[ExtData[V]] {
-  type VPoly = VPolyhedron[V, Rational]
+class ExtDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends FormatRead[ExtData[V]] {
+  type VPoly = VPolytope[V, Rational]
 
   object Parsers extends ParsersBase with SympolParsersV[V] {
-    implicit def alg: AlgVF[V, Rational] = ExtDataRead.this.alg
+    implicit def pack: PackField.ForV[V, Rational] = ExtDataRead.this.pack
 
-    def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => VecBuilder[V, Rational].build(seq: _*) }
+    def vector(d: Int): Parser[V] = repN(d, rational) ^^ { seq => VecBuild[V, Rational].build(seq: _*) }
 
     type VertexOrRay = Either[V, V]
     type Vertex = Left[V, V]
@@ -36,7 +36,7 @@ class ExtDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[Ex
             case (_: Ray, i) => i
           }.toSet
           val (verticesV, raysV) = util.PartitionEither(seq)
-          (upTo, VPolyhedron.apply(verticesV, raysV), rayCols)
+          (upTo, VPolytope[V, Rational](d, verticesV, raysV), rayCols)
         }
       }
 

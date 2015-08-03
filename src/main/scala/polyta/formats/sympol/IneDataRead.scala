@@ -3,22 +3,26 @@ package polyta
 package formats
 package sympol
 
+import scala.language.implicitConversions
+
 import scala.util.parsing.combinator._
 
 import spire.math.Rational
 import spire.syntax.field._
 
+import qalg.indup.algebra._
 import qalg.algebra._
 import qalg.algos._
+import qalg.syntax.indup.all._
 import qalg.syntax.all._
 
-class IneDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[IneData[V]] {
+class IneDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends FormatRead[IneData[V]] {
 
-  type HPoly = HPolyhedron[V, Rational]
+  type HPoly = HPolytope[V, Rational]
 
   object Parsers extends ParsersBase with SympolParsersV[V] {
 
-    implicit def alg: AlgVF[V, Rational] = IneDataRead.this.alg
+    implicit def pack: PackField.ForV[V, Rational] = IneDataRead.this.pack
 
     def linearity: Parser[Seq[Int]] = ("linearity" ~> positiveInt) into { n =>
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
@@ -35,9 +39,9 @@ class IneDataRead[V](implicit val alg: AlgVF[V, Rational]) extends FormatRead[In
           }
           val inequalities = inequalityRows.map { k =>
             val row = rowVectors(k)
-            LinearInequalityLE(-row(1 to d), row(0))
+            LinearInequality(-row(1 to d), LE, row(0))
           }
-          (upTo, HPolyhedron(inequalities, equalities), equalityRows.toSet)
+          (upTo, HPolytope(d, inequalities, equalities), equalityRows.toSet)
         }
       }
 

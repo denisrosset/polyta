@@ -24,14 +24,14 @@ import qalg.syntax.all._
 import net.alasc.math._
 import net.alasc.syntax.all._
 
-class IneDataWrite[V](implicit val V: VecInField[V, Rational]) extends FormatWrite[IneData[V]] with SympolDataWrite {
+class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite[IneData[V]] with SympolDataWrite {
 
   def writeHeader(upToSymmetry: Boolean, out: Writer): Unit = {
     out.write("H-representation\n")
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolyhedron(poly: HPolyhedron[V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
+  def writePolytope(poly: HPolytope[V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
     val n = poly.equalities.size + poly.facets.size
     require(equalityRows.size == poly.equalities.size)
     if (equalityRows.nonEmpty) {
@@ -55,7 +55,7 @@ class IneDataWrite[V](implicit val V: VecInField[V, Rational]) extends FormatWri
         Format.writeVectorSep[V, Rational](-poly.equalities(eqR).lhs, " ", out)
         eqR += 1
       } else {
-        val ineqGE = poly.facets(ineqR).toGE
+        val ineqGE = poly.facets(ineqR).inequality.toGE
         out.write((-ineqGE.rhs).toString)
         out.write(" ")
         Format.writeVectorSep[V, Rational](ineqGE.lhs, " ", out)
@@ -68,7 +68,7 @@ class IneDataWrite[V](implicit val V: VecInField[V, Rational]) extends FormatWri
 
   def write(data: IneData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
-    writePolyhedron(data.polyhedron, data.equalityRows, out)
+    writePolytope(data.polyhedron, data.equalityRows, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
 }

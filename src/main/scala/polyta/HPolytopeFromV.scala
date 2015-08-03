@@ -34,6 +34,7 @@ trait HPolytopeFromV[V, @sp(Double, Long) A] extends HPolytope[V, A] {
   require(vPolytope.rays.isEmpty)
 
   final class Facet(val vertexIndices: Set[Int]) extends FacetBase[V, A] {
+    type F = Facet
     def inequality = vPolytope.facetOn(vertexIndices)
     def representatives = new Iterable[Facet] {
       val subgrp = vPolytope.symGroup.setwiseStabilizer(vertexIndices, vPolytope.representation)

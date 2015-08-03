@@ -29,9 +29,9 @@ object LinearEquality {
   def apply[V, @sp(Double, Long) A](lhs: V, rhs: A): LinearEquality[V, A] = new Impl(lhs, rhs)
 }
 
-trait LinearInequality[V, @sp(Double, Long) A] extends LinearConstraint[V, A] {
-/*  def toLE: LinearInequalityLE[V, A]
-  def toGE: LinearInequalityGE[V, A]*/
+trait LinearInequality[V, @sp(Double, Long) A] extends LinearConstraint[V, A] { self =>
+  def toLE(implicit V: VecRing[V, A], A: Ring[A]): LinearInequality[V, A] = if (op == LE) self else LinearInequality(-lhs, LE, -rhs)
+  def toGE(implicit V: VecRing[V, A], A: Ring[A]): LinearInequality[V, A] = if (op == GE) self else LinearInequality(-lhs, GE, -rhs)
 }
 
 object LinearInequality {

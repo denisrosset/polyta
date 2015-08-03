@@ -13,7 +13,8 @@ import qalg.algebra._
 import qalg.math._
 
 class SympolRead extends FunSuite {
-  implicit val pack = DenseM.rationalImmutableAlg
+  import Matrix.packs._
+  implicit val pack = PackFI[Rational]
   import pack._
 
   val path = "/com/faacets/polyta/formats/sympol/"

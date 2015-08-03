@@ -21,23 +21,28 @@ import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 
 trait ElementBase[V] extends Any {
+  override def toString = point.toString
   def point: V
   def representatives: Iterable[ElementBase[V]]
 }
 
 trait VertexBase[V] extends Any with ElementBase[V] {
-  def representatives: Iterable[VertexBase[V]]
+  type VX <: VertexBase[V]
+  def representatives: Iterable[VX]
 }
 
 trait RayBase[V] extends Any with ElementBase[V] {
-  def representatives: Iterable[RayBase[V]]
+  type R <: RayBase[V]
+  def representatives: Iterable[R]
 }
 
-final class SingleVertex[V](val point: V) extends AnyVal with VertexBase[V] {
+final class SingleVertex[V](val point: V) extends VertexBase[V] {
+  type VX = SingleVertex[V]
   def representatives = Iterable(this)
 }
 
-final class SingleRay[V](val point: V) extends AnyVal with RayBase[V] {
+final class SingleRay[V](val point: V) extends RayBase[V] {
+  type R = SingleRay[V]
   def representatives = Iterable(this)
 }
 
@@ -47,14 +52,16 @@ trait VPolytope[V, @sp(Double) A] extends Polytope[V, A] { lhs =>
   implicit val pack: PackField.ForV[V, A]
   implicit def orderA: Order[A]
   override def toString =
-    "\nVertices:\n" + vertices.mkString("\n")
+    "\nVertices:\n" + vertices.mkString("\n") + "\nRays:\n" + rays.mkString("\n")
 
   type Element <: ElementBase[V]
-  type Vertex <: Element with VertexBase[V]
-  type Ray <: Element with RayBase[V]
+  type Vertex <: Element with VertexBase[V] { type VX = Vertex }
+  type Ray <: Element with RayBase[V] { type R = Ray }
 
   def vertices: Seq[Vertex]
+  def allVertices: Seq[Vertex] = vertices.flatMap(_.representatives)
   def rays: Seq[Ray]
+  def allRays: Seq[Ray] = rays.flatMap(_.representatives)
 
   /** Action of the symmetry group on vertices and rays. */
   implicit def elementAction: Action[Element, G]
@@ -111,10 +118,12 @@ final class VPolytopeNoSym[M, V, @sp(Double, Long) A](val vertexPoints: M, val r
     def length = vertexPoints.nRows
     def apply(i: Int): Vertex = new SingleVertex(vertexPoints(i, ::))
   }
+  override def allVertices = vertices
   def rays: Seq[Ray] = new IndexedSeq[Ray] {
-    def length = rayPoints.nCols
+    def length = rayPoints.nRows
     def apply(i: Int): Ray = new SingleRay(rayPoints(i, ::))
   }
+  override def allRays = rays
   object elementAction extends Action[Element, Unit] {
     def actl(g: Unit, e: Element): Element = e
     def actr(e: Element, g: Unit): Element = e
