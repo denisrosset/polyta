@@ -17,6 +17,7 @@ import spire.util._
 
 import qalg.algebra._
 import qalg.algos._
+import qalg.syntax.indup.all._
 import qalg.syntax.all._
 
 object Format {

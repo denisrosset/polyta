@@ -4,7 +4,7 @@ package gallery
 
 import scala.{specialized => sp}
 
-import spire.algebra.Field
+import spire.algebra.{Field, Order}
 import spire.math.Rational
 import spire.syntax.field._
 
@@ -12,20 +12,20 @@ import qalg.algebra._
 import qalg.algos._
 
 object Cube {
-  def inV[M, V, @sp(Double, Long) A](dim: Int)(implicit alg: AlgMVF[M, V, A]): VPolytopeM[M, V, A] = {
-    implicit def A: Field[A] = alg.M.A
-    def gen(d: Int): List[List[Int]] = if (d == 0) List(Nil) else for {
+  def inV[V, @sp(Double, Long) A: Order](dim: Int)(implicit pack: PackField.ForV[V, A]): VPolytope[V, A] = {
+    import pack.A
+    def gen(d: Int): List[List[A]] = if (d == 0) List(Nil) else for {
       rest <- gen(d - 1)
-      x <- List(0, 1)
+      x <- List(A.zero, A.one)
     } yield x :: rest
-    val vertices = MatBuilder[M, A].fromCols(dim, gen(dim).map(coeffs => VecBuilder[V, A].build(coeffs.map(A.fromInt(_)): _*)): _*)
-    VPolytopeM(vertices)
+    val vertices = gen(dim).map(coeffs => VecBuild[V, A].build(coeffs: _*))
+    VPolytope[V, A](dim, vertices, Seq.empty)
   }
-  def inH[M, V, @sp(Double, Long) A](dim: Int)(implicit alg: AlgMVF[M, V, A]): HPolytopeM[M, V, A] = {
-    implicit def A: Field[A] = alg.M.A
-    def oneAt(at: Int): V = VecBuilder[V, A].tabulate(dim)(k => if (k == at) A.one else A.zero)
-    def constraint1(k: Int) = LinearInequalityLE(oneAt(k), A.one)
-    def constraint2(k: Int) = LinearInequalityLE(-oneAt(k), A.zero)
-    HPolytopeM.fromLinearConstraints[M, V, A](dim, (0 until dim).flatMap(k => Seq(constraint1(k), constraint2(k))))
+  def inH[V, @sp(Double, Long) A](dim: Int)(implicit pack: PackField.ForV[V, A]): HPolytope[V, A] = {
+    import pack.A
+    def oneAt(at: Int): V = VecBuild[V, A].tabulate(dim)(k => if (k == at) A.one else A.zero)
+    def constraint1(k: Int) = LinearInequality(oneAt(k), LE, A.one)
+    def constraint2(k: Int) = LinearInequality(-oneAt(k), LE, A.zero)
+    HPolytope[V, A](dim, (0 until dim).flatMap(k => Seq(constraint1(k), constraint2(k))), Seq.empty)
   }
 }
