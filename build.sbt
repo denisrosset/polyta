@@ -13,7 +13,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.bitbucket.inkytonik.dsinfo" %% "dsinfo" % "0.4.0",
-  "org.scalacheck" %% "scalacheck" % "1.12.4" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.12.2" % "test",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "org.spire-math" %% "spire" % "0.10.1",
   "net.alasc" %% "alasc" % "0.10.1-SNAPSHOT",

@@ -18,56 +18,68 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 
-/** Does not support unbounded polytopes. */
-trait VPolytopeFromH[V, @sp(Double, Long) A] extends VPolytope[V, A] {
-  def hPolytope: HPolytopeCombSym[V, A]
-  def nX = hPolytope.nX
+/** Polytope in the V representation, obtained from the conversion of a polytope in the
+  * H representation.
+  * Does not (yet) support unbounded polytopes (i.e. with rays). */
+trait VPolytopeFromH[V, @sp(Double, Long) A, G0] extends VPolytope[V, A] {
+
+  /** Polytope in the H representation, with a possible combinatorial symmetry. */
+  val hPolytope: HPolytopeCombSym[_, V, A, G0]
+  /** Indices of the facets that support representatives of the vertices of the polytope
+    * in the V representation. For each family of vertices, a single representative is
+    * present. */
   def vertexFacetIndices: Seq[Set[Int]]
+
+  type G = G0
+
+  implicit val pack: PackField.ForV[V, A] = hPolytope.pack
+  implicit var orderA: Order[A] = hPolytope.orderA
+
+  val nX = hPolytope.nX
+
   def vertices = vertexFacetIndices.map(new Vertex(_))
   def rays = Seq.empty
-  type G = Perm
   def symGroup = hPolytope.symGroup
-  def symSubgroup(e: Element): Grp[G] = e match {
-    case v: Vertex => symGroup.setwiseStabilizer(v.facetIndices)
-    case _ => symGroup
+
+  trait Element extends ElementBase[V, G]
+
+  type Ray = Nothing
+
+  final class Vertex(val facetIndices: Set[Int]) extends Element with VertexBase[V, G0] {
+    type E = Vertex
+    def point = hPolytope.vertexOn(facetIndices.toSeq.map(hPolytope.allFacets(_)))
+    def symSubgroup: Grp[G] = symGroup.setwiseStabilizer(facetIndices, hPolytope.representation)
+    def representatives = new Iterable[Vertex] {
+      val subgrp = symSubgroup
+      override def size = (hPolytope.symGroup.order / subgrp.order).toInt
+      def iterator = {
+        val cosets = subgrp \ hPolytope.symGroup
+        cosets.iterator.map { coset => new Vertex(facetIndices.map(hPolytope.facetIndexAction.actr(_, coset.g))) }
+      }
+    }
   }
+
   object elementAction extends Action[Element, G] {
-    def actr(e: Element, p: Perm): Element = e match {
-      case v: Vertex => vertexAction.actr(v, p)
+    def actr(e: Element, g: G): Element = e match {
+      case v: Vertex => vertexAction.actr(v, g)
       case _ => e
     }
-    def actl(p: Perm, e: Element) = e match {
-      case v: Vertex => vertexAction.actl(p, v)
+    def actl(g: G, e: Element) = e match {
+      case v: Vertex => vertexAction.actl(g, v)
       case _ => e
     }
   }
   object vertexAction extends Action[Vertex, G] {
-    def actr(v: Vertex, p: Perm): Vertex = new Vertex(v.facetIndices.map(_ <|+| p))
-    def actl(p: Perm, v: Vertex): Vertex = new Vertex(v.facetIndices.map(p |+|> _))
+    def actr(v: Vertex, g: G): Vertex = new Vertex(v.facetIndices.map(hPolytope.facetIndexAction.actr(_, g)))
+    def actl(g: G, v: Vertex): Vertex = new Vertex(v.facetIndices.map(hPolytope.facetIndexAction.actl(g, _)))
   }
   object rayAction extends Action[Ray, G] {
-    def actr(r: Ray, p: Perm): Ray = r
-    def actl(p: Perm, r: Ray): Ray = r
-  }
-  trait Element extends ElementBase[V]
-  type Ray = Nothing
-  final class Vertex(val facetIndices: Set[Int]) extends Element with VertexBase[V] {
-    type VX = Vertex
-    def point = hPolytope.vertexOn(facetIndices)
-    def representatives = new Iterable[Vertex] {
-      val subgrp = hPolytope.symGroup.setwiseStabilizer(facetIndices)
-      override def size = (hPolytope.symGroup.order / subgrp.order).toInt
-      def iterator = {
-        val cosets = subgrp \ hPolytope.symGroup
-        cosets.iterator.map { coset => new Vertex(facetIndices.map(_ <|+| coset.g)) }
-      }
-    }
+    def actr(r: Ray, g: G): Ray = r
+    def actl(g: G, r: Ray): Ray = r
   }
 }
 
 object VPolytopeFromH {
-  final class Impl[V, @sp(Double, Long) A](val hPolytope: HPolytopeCombSym[V, A], val vertexFacetIndices: Seq[Set[Int]])(implicit val pack: PackField.ForV[V, A], val orderA: Order[A]) extends VPolytopeFromH[V, A] {
-
-  }
-  def apply[V, @sp(Double, Long) A: Order](hPolytope: HPolytopeCombSym[V, A], vertexFacetIndices: Seq[Set[Int]])(implicit pack: PackField.ForV[V, A]) : VPolytopeFromH[V, A] = new Impl(hPolytope, vertexFacetIndices)
+  final class Impl[V, @sp(Double, Long) A, G](val hPolytope: HPolytopeCombSym[_, V, A, G], val vertexFacetIndices: Seq[Set[Int]]) extends VPolytopeFromH[V, A, G] { }
+  def apply[V, @sp(Double, Long) A, G](hPolytope: HPolytopeCombSym[_, V, A, G], vertexFacetIndices: Seq[Set[Int]]): VPolytopeFromH[V, A, G] = new Impl(hPolytope, vertexFacetIndices)
 }

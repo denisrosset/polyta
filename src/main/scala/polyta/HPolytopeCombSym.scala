@@ -13,29 +13,72 @@ import spire.util._
 import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
+import qalg.syntax.indup.all._
 
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 
-final class HPolytopeCombSym[V, @sp(Double, Long) A](val nX: Int, val allInequalities: Seq[LinearInequality[V, A]], val equalities: Seq[LinearEquality[V, A]], val symGroup: Grp[Perm])(implicit val pack: PackField.ForV[V, A]) extends HPolytope[V, A] {
-  type G = Perm
+/** Polytope with combinatorial symmetry. The facets are described using `mA` and `vb`, such that
+  * `mA * x <= vb`, and all facet representatives are present in `mA`, `vb`. The symmetry group
+  * is composed of permutations that permute the facets, i.e. the rows of `mA`, `vb`.
+  * 
+  * Equalities are described using `mAeq`, `vbeq`, such that `mAeq * x = vbeq`; we do not consider
+  * the action of symmetry group on equality constraints.
+  */
+final class HPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
+  val mA: M,
+  val vb: V,
+  val mAeq: M,
+  val vbeq: V,
+  val symGroup: Grp[G0],
+  val facetIndexAction: FaithfulPermutationAction[G0],
+  val facetOrbitRepresentatives: Seq[Int])(implicit val pack: PackField.ForMV[M, V, A], val orderA: Order[A]) extends HPolytope[V, A] {
 
-  val orbits: Seq[Int] = DomainOrbits.orbits(symGroup, Perm.Representations.forSize(allInequalities.size)).map(_.head).toSeq.sorted
-  def facets = orbits.map(index => new Facet(index))
-  override def allFacets = allInequalities.indices.map(new Facet(_))
-  def symSubgroup(f: Facet): Grp[Perm] = symGroup.stabilizer(f.index)._1
-  final class Facet(val index: Int) extends FacetBase[V, A] {
+  type G = G0
+
+  val nX: Int = mA.nCols
+
+  val totalFacets = mA.nRows
+
+  object representation extends Representation[G] {
+    def size = totalFacets
+    def action = facetIndexAction
+    def represents(g: G) = true
+    def representations = Opt.empty
+  }
+
+  val facets = facetOrbitRepresentatives.view.map(new Facet(_))
+
+  override val allFacets = (0 until mA.nRows).view.map(new Facet(_))
+
+  val equalities = (0 until mAeq.nRows).view.map(i => LinearEquality(mAeq(i, ::), vbeq(i)))
+
+  final class Facet(val index: Int) extends FacetBase[V, A, G] {
     type F = Facet
-    def inequality: LinearInequality[V, A] = allInequalities(index)
+    def inequality: LinearInequality[V, A] = LinearInequality(mA(index, ::), LE, vb(index))
     def representatives: Iterable[Facet] = {
-      import net.alasc.math.OrbitInstances._
-      val orbit = Set(index) <|+| symGroup.generators
+      val orbit = Orbits.orbit(index, symGroup.generators, facetIndexAction)
       orbit.map( new Facet(_) )
     }
+    def symSubgroup: Grp[G] = symGroup.stabilizer(index, representation)._1
   }
-  object action extends Action[Facet, Perm] {
-    def actr(f: Facet, p: Perm): Facet = new Facet(f.index <|+| p)
-    def actl(p: Perm, f: Facet): Facet = new Facet(p |+|> f.index)
+
+  object action extends Action[Facet, G] {
+    def actr(f: Facet, g: G): Facet = new Facet(facetIndexAction.actr(f.index, g))
+    def actl(g: G, f: Facet): Facet = new Facet(facetIndexAction.actl(g, f.index))
+  }
+}
+
+object HPolytopeCombSym {
+  def apply[M, V, A: Order, G](mA: M, vb: V, mAeq: M, vbeq: V, symGroup: Grp[G], facetAction: FaithfulPermutationAction[G])(implicit pack: PackField.ForMV[M, V, A]): HPolytopeCombSym[M, V, A, G] = {
+    val totalFacets = mA.nRows
+    val orbits: Set[collection.immutable.BitSet] = Orbits.orbits(totalFacets, symGroup.generators, facetAction)
+    val orbitRepresentatives = orbits.map(_.head).toSeq.sorted
+    new HPolytopeCombSym(mA, vb, mAeq, vbeq, symGroup, facetAction, orbitRepresentatives)
+  }
+  def apply[M, V, A: Order, P: PermutationRepresentations](mA: M, vb: V, mAeq: M, vbeq: V, symGroup: Grp[P])(implicit pack: PackField.ForMV[M, V, A]): HPolytopeCombSym[M, V, A, P] = {
+    val action = PermutationRepresentations[P].forSize(mA.nRows).action
+    HPolytopeCombSym(mA, vb, mAeq, vbeq, symGroup, action)
   }
 }

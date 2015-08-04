@@ -12,6 +12,7 @@ import spire.util._
 
 import qalg.algebra._
 import qalg.algos._
+import qalg.syntax.indup.all._
 import qalg.syntax.all._
 
 import net.alasc.algebra._
@@ -19,59 +20,52 @@ import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 import net.alasc.util._
 
-// TODO: split into vertices/rays and allVertices/allRays
-final class VPolytopeCombSym[V, @sp(Double, Long) A](val nX: Int, val vertexPoints: Seq[V], val rayPoints: Seq[V], val symGroup: Grp[(Perm, Perm)])(implicit val pack: PackField.ForV[V, A], val orderA: Order[A]) extends VPolytope[V, A] {
-  val nVertices = vertexPoints.size
-  val nRays = rayPoints.size
-  object representation extends Representation[G] {
-    def represents(g: G): Boolean = g._1.supportMax.getOrElse(-1) < nVertices && g._2.supportMax.getOrElse(-1) < nRays
-    def size = nVertices + nRays
-    def representations = Opt.empty
-    object action extends FaithfulPermutationAction[G] {
-      def actr(i: Int, g: G): Int =
-        if (i < nVertices) i <|+| g._1 else ((i - nVertices) <|+| g._2) + nVertices
-      def actl(g: G, i: Int) =
-        if (i < nVertices) g._1 |+|> i else (g._2 |+|> (i - nVertices)) + nVertices
-      def support(g: G): Set[Int] = g._1.support ++ (g._2.support.map(_ + nVertices))
-      def supportMax(g: G): NNOption = g._2.supportMax match {
-        case NNOption(mx) => NNSome(mx + nVertices)
-        case _ => g._1.supportMax
-      }
-      def supportMin(g: G): NNOption = g._1.supportMin match {
-        case NNOption(mn) => NNSome(mn)
-        case _ => g._2.supportMin match {
-          case NNOption(mn) => NNSome(mn + nVertices)
-          case _ => NNNone
-        }
-      }
-      def supportMaxElement = size - 1
-    }
-  }
-  def vertices = vertexPoints.indices.map(new Vertex(_))
-  def rays = rayPoints.indices.map(new Ray(_))
-  type G = (Perm, Perm) // vertex permutation, ray permutation
-  sealed trait Element extends ElementBase[V]
-  final class Vertex(val index: Int) extends Element with VertexBase[V] {
-    type VX = Vertex
-    def point: V = vertexPoints(index)
+final class VPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
+  val allVertexPoints: M,
+  val allRayPoints: M,
+  val symGroup: Grp[G0],
+  val vertexIndexAction: PermutationAction[G0], // TODO: support for non-faithful representations
+  val rayIndexAction: PermutationAction[G0],
+  val vertexOrbitRepresentatives: Seq[Int],
+  val rayOrbitRepresentatives: Seq[Int]
+)(
+  implicit val pack: PackField.ForMV[M, V, A],
+  val orderA: Order[A]
+) extends VPolytope[V, A] {
+
+  type G = G0
+
+  val nX = allVertexPoints.nCols
+
+  val totalVertices = allVertexPoints.nRows
+  val totalRays = allRayPoints.nRows
+
+  val representation = new ProductRepresentation(totalVertices, vertexIndexAction, totalRays, rayIndexAction)
+
+  val vertices = vertexOrbitRepresentatives.view.map(new Vertex(_))
+  val rays = rayOrbitRepresentatives.view.map(new Ray(_))
+
+  override val allVertices = (0 until allVertexPoints.nRows).view.map(new Vertex(_))
+  override val allRays = (0 until allRayPoints.nRows).view.map(new Ray(_))
+
+  sealed trait Element extends ElementBase[V, G]
+  final class Vertex(val index: Int) extends Element with VertexBase[V, G] {
+    type E = Vertex
+    def point: V = allVertexPoints(index, ::)
     def representatives: Iterable[Vertex] = {
-      import net.alasc.math.OrbitInstances._
-      val orbit = Set(index) <|+| symGroup.generators.map(_._1)
+      val orbit = Orbits.orbit(index, symGroup.generators, vertexIndexAction)
       orbit.map( new Vertex(_) )
     }
+    def symSubgroup: Grp[G] = symGroup.stabilizer(index, representation)._1
   }
-  final class Ray(val index: Int) extends Element with RayBase[V] {
-    type R = Ray
-    def point: V = rayPoints(index)
+  final class Ray(val index: Int) extends Element with RayBase[V, G] {
+    type E = Ray
+    def point: V = allRayPoints(index, ::)
     def representatives: Iterable[Ray] = {
-      import net.alasc.math.OrbitInstances._
-      val orbit = Set(index) <|+| symGroup.generators.map(_._2)
+      val orbit = Orbits.orbit(index, symGroup.generators, rayIndexAction)
       orbit.map( new Ray(_) )
     }
-  }
-  def symSubgroup(e: Element): Grp[G] = e match {
-    case v: Vertex => symGroup.stabilizer(v.index, representation)._1
-    case r: Ray => symGroup.stabilizer(vertexPoints.size + r.index, representation)._1
+    def symSubgroup: Grp[G] = symGroup.stabilizer(index + totalVertices, representation)._1
   }
   implicit object elementAction extends Action[Element, G] {
     def actr(e: Element, g: G): Element = e match {
@@ -84,11 +78,45 @@ final class VPolytopeCombSym[V, @sp(Double, Long) A](val nX: Int, val vertexPoin
     }
   }
   implicit object vertexAction extends Action[Vertex, G] {
-    def actr(v: Vertex, g: G): Vertex = new Vertex(v.index <|+| g._1)
-    def actl(g: G, v: Vertex): Vertex = new Vertex(g._1 |+|> v.index)
+    def actr(v: Vertex, g: G): Vertex = new Vertex(vertexIndexAction.actr(v.index, g))
+    def actl(g: G, v: Vertex): Vertex = new Vertex(vertexIndexAction.actl(g, v.index))
   }
   implicit object rayAction extends Action[Ray, G] {
-    def actr(r: Ray, g: G): Ray = new Ray(r.index <|+| g._2)
-    def actl(g: G, r: Ray): Ray = new Ray(g._2 |+|> r.index)
+    def actr(r: Ray, g: G): Ray = new Ray(rayIndexAction.actr(r.index, g))
+    def actl(g: G, r: Ray): Ray = new Ray(rayIndexAction.actl(g, r.index))
   }
+}
+
+object VPolytopeCombSym {
+  import collection.immutable.BitSet
+
+  def apply[M, V, A: Order, G](allVertexPoints: M, allRayPoints: M, symGroup: Grp[G], vertexAction: PermutationAction[G], rayAction: PermutationAction[G])(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, G] = {
+    val totalVertices = allVertexPoints.nRows
+    val totalRays = allRayPoints.nRows
+    val generators = symGroup.generators
+    val vertexOrbits = Orbits.orbits(totalVertices, generators, vertexAction)
+    val rayOrbits = Orbits.orbits(totalRays, generators, rayAction)
+    val vertexOrbitRepresentatives = vertexOrbits.map(_.head).toSeq.sorted
+    val rayOrbitRepresentatives = rayOrbits.map(_.head).toSeq.sorted
+    new VPolytopeCombSym(allVertexPoints, allRayPoints, symGroup,
+      vertexAction, rayAction,
+      vertexOrbitRepresentatives, rayOrbitRepresentatives)
+  }
+
+  def apply[M, V, A: Order,
+    P1: PermutationRepresentations,
+    P2: PermutationRepresentations](
+    allVertexPoints: M,
+      allRayPoints: M,
+      symGroup: Grp[(P1, P2)]
+  )(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, (P1, P2)] = {
+    val totalVertices = allVertexPoints.nRows
+    val totalRays = allRayPoints.nRows
+    val vertexSingleAction = PermutationRepresentations[P1].forSize(totalVertices).action.on[(P1, P2)](_._1)
+    val raySingleAction = PermutationRepresentations[P2].forSize(totalRays).action.on[(P1, P2)](_._2)
+
+    apply(allVertexPoints, allRayPoints, symGroup,
+      vertexSingleAction, raySingleAction)
+  }
+//  def apply[M, V, A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A] = new VPolytopeCombSym(vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)], 0 until vertexPoints.nRows, 0 until rayPoints.nRows)
 }
