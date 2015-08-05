@@ -20,7 +20,7 @@ import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
 import net.alasc.std.unit._
 
-trait FacetBase[V, @sp(Double, Long) A, G] extends Any {
+trait FacetBase[V, @sp(Double, Long) A, G] {
   override def toString = inequality.toString
   type F <: FacetBase[V, A, G]
   def inequality: LinearInequality[V, A]
@@ -82,8 +82,8 @@ trait HPolytope[V, @sp(Double, Long) A] extends Polytope[V, A] {
 }
 
 object HPolytope {
-  def apply[M, V, A: Order](mA: M, vb: V, mAeq: M, vbeq: V)(implicit pack: PackField.ForMV[M, V, A]): HPolytopeCombSym[M, V, A, Unit] = HPolytopeCombSym(mA, vb, mAeq, vbeq, Grp.trivial[Unit], FaithfulPermutationAction[Unit])
-  def apply[V, A: Order](nX: Int, facets: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit pack: PackField.ForV[V, A]): HPolytope[V, A] = {
+  def apply[M, V, A: Order](mA: M, vb: V, mAeq: M, vbeq: V)(implicit pack: PackField.ForMV[M, V, A]): HPolytopeCombSym[M, V, A, Perm] = HPolytopeCombSym(mA, vb, mAeq, vbeq, Grp.trivial[Perm])
+  def apply[V, A: Order](nX: Int, facets: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit pack: PackField.ForV[V, A]): HPolytopeCombSym[_, V, A, Perm] = {
     type M = pack.M
     implicit val M = pack.M
     implicit val V = pack.V

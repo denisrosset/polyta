@@ -118,5 +118,10 @@ object VPolytopeCombSym {
     apply(allVertexPoints, allRayPoints, symGroup,
       vertexSingleAction, raySingleAction)
   }
-//  def apply[M, V, A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A] = new VPolytopeCombSym(vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)], 0 until vertexPoints.nRows, 0 until rayPoints.nRows)
+
+  def apply[M, V, A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, (Perm, Perm)] = {
+    import spire.std.tuples._
+    import net.alasc.std.product._
+    apply(vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)])
+  }
 }

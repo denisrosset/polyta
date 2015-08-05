@@ -68,7 +68,7 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
 
   def write(data: IneData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
-    writePolytope(data.polyhedron, data.equalityRows, out)
+    writePolytope(data.polytope, data.equalityRows, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
 }

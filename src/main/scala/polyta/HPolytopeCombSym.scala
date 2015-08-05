@@ -37,9 +37,9 @@ final class HPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
 
   type G = G0
 
-  val nX: Int = mA.nCols
+  def nX: Int = mA.nCols
 
-  val totalFacets = mA.nRows
+  def totalFacets = mA.nRows
 
   object representation extends Representation[G] {
     def size = totalFacets
@@ -48,11 +48,11 @@ final class HPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
     def representations = Opt.empty
   }
 
-  val facets = facetOrbitRepresentatives.view.map(new Facet(_))
+  def facets = facetOrbitRepresentatives.view.map(new Facet(_))
 
-  override val allFacets = (0 until mA.nRows).view.map(new Facet(_))
+  override def allFacets = (0 until mA.nRows).view.map(new Facet(_))
 
-  val equalities = (0 until mAeq.nRows).view.map(i => LinearEquality(mAeq(i, ::), vbeq(i)))
+  def equalities = (0 until mAeq.nRows).view.map(i => LinearEquality(mAeq(i, ::), vbeq(i)))
 
   final class Facet(val index: Int) extends FacetBase[V, A, G] {
     type F = Facet
@@ -62,6 +62,12 @@ final class HPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
       orbit.map( new Facet(_) )
     }
     def symSubgroup: Grp[G] = symGroup.stabilizer(index, representation)._1
+  }
+
+  def facetIndexSet(vertex: VertexBase[V, _]): Set[Int] = {
+    import pack.A
+    val res = (mA ::* vertex.point) - vb
+    (0 until res.length).toSet.filter(i => res(i).isZero)
   }
 
   object action extends Action[Facet, G] {

@@ -5,6 +5,7 @@ import scala.{specialized => sp}
 
 import spire.algebra._
 import spire.math.Rational
+import spire.std.tuples._
 import spire.syntax.action._
 import spire.syntax.order._
 import spire.syntax.innerProductSpace._
@@ -18,9 +19,9 @@ import qalg.syntax.algos.all._
 
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
-import net.alasc.std.unit._
+import net.alasc.std.product._
 
-trait ElementBase[V, G] extends Any {
+trait ElementBase[V, G] {
   type E <: ElementBase[V, G]
   override def toString = point.toString
   def point: V
@@ -30,12 +31,12 @@ trait ElementBase[V, G] extends Any {
   def symSubgroup: Grp[G]
 }
 
-trait VertexBase[V, G] extends Any with ElementBase[V, G] {
+trait VertexBase[V, G] extends ElementBase[V, G] {
   type E <: VertexBase[V, G]
   def representatives: Iterable[E]
 }
 
-trait RayBase[V, G] extends Any with ElementBase[V, G] {
+trait RayBase[V, G] extends ElementBase[V, G] {
   type E <: RayBase[V, G]
   def representatives: Iterable[E]
 }
@@ -114,12 +115,11 @@ trait VPolytope[V, @sp(Double) A] extends Polytope[V, A] { lhs =>
 
 object VPolytope {
   type ForG[V, A, G0] = VPolytope[V, A] { type G = G0 }
-  def apply[M, V, @sp(Double, Long) A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, Unit] =
-    VPolytopeCombSym[M, V, A, Unit](
-      vertexPoints, rayPoints, Grp.trivial[Unit],
-      PermutationAction[Unit], PermutationAction[Unit])
+  def apply[M, V, @sp(Double, Long) A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, (Perm, Perm)] =
+    VPolytopeCombSym[M, V, A, Perm, Perm](
+      vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)])
 
-  def apply[V, @sp(Double, Long) A: Order](nX: Int, vertexPoints: Seq[V], rayPoints: Seq[V])(implicit pack: PackField.ForV[V, A]): VPolytope[V, A] = {
+  def apply[V, @sp(Double, Long) A: Order](nX: Int, vertexPoints: Seq[V], rayPoints: Seq[V])(implicit pack: PackField.ForV[V, A]): VPolytopeCombSym[_, V, A, (Perm, Perm)] = {
     type M = pack.M
     implicit val M = pack.M
     val vertexM = M.fromRows(nX)(vertexPoints: _*)

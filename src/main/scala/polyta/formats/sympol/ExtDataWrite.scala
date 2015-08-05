@@ -58,7 +58,7 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
 
   def write(data: ExtData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
-    writePolytope(data.polyhedron, data.rayCols, out)
+    writePolytope(data.polytope, data.rayCols, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
 }
