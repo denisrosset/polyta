@@ -58,6 +58,12 @@ trait SympolParsers extends RationalParsers with AgnosticLineEndingParsers with 
 trait SympolParsersV[V] extends SympolParsers {
   implicit def pack: PackField.ForV[V, Rational]
 
+  def upToSymLE: Parser[Boolean] =
+    opt("* UP TO SYMMETRY" ~ lineEnding) ^^ {
+      case Some(text) => true
+      case None => false
+    }
+
   def upToSymBeginLE: Parser[Boolean] =
     opt("* UP TO SYMMETRY" ~ lineEnding) <~ ("begin" ~ lineEnding) ^^ {
       case Some(text) => true

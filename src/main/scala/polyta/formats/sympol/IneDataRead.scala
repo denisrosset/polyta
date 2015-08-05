@@ -27,8 +27,8 @@ class IneDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends For
       repN(n, positiveInt) ^^ { seq => seq.map(_ - 1) }
     }
 
-    def hPolyhedron: Parser[(Boolean, HPoly, Set[Int])] =
-      (("H-representation" ~ lineEnding) ~> upToSymBeginLE ~ opt(linearity) ~ dimensions) into {
+    def hPolytope: Parser[(Boolean, HPoly, Set[Int])] =
+      (("H-representation" ~ lineEnding) ~> upToSymLE ~ opt(linearity <~ lineEnding) ~ (("begin" ~ lineEnding) ~> dimensions)) into {
         case ~(~(upTo: Boolean, linOpt), (m: Int, d: Int)) => repN(m, rowVector(d + 1) <~ lineEnding) <~ ("end" ~ lineEnding) ^^ { rowVectors =>
           val equalityRows = linOpt.getOrElse(Seq.empty).sorted
           val inequalityRows = ((0 until m).toSet -- equalityRows.toSet).toSeq.sorted
@@ -44,7 +44,7 @@ class IneDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends For
         }
       }
 
-    def data: Parser[IneData[V]] = phrase(comments(HVHeader) ~> hPolyhedron into {
+    def data: Parser[IneData[V]] = phrase(comments(HVHeader) ~> hPolytope into {
       case (upTo, poly, equalityRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
         IneData(poly, equalityRows, symOption)
       }
