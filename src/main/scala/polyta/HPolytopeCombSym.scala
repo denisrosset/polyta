@@ -7,13 +7,13 @@ import spire.algebra._
 import spire.math.Rational
 import spire.syntax.cfor._
 import spire.syntax.action._
+import spire.syntax.order._
 import spire.syntax.vectorSpace._
 import spire.util._
 
 import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
-import qalg.syntax.indup.all._
 
 import net.alasc.algebra._
 import net.alasc.math.{Perm, Grp}
@@ -66,8 +66,8 @@ final class HPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
 
   def facetIndexSet(vertex: VertexBase[V, _]): Set[Int] = {
     import pack.A
-    val res = (mA ::* vertex.point) - vb
-    (0 until res.length).toSet.filter(i => res(i).isZero)
+    val res = mA ::* vertex.point
+    (0 until res.length).toSet.filter(i => res(i) === vb(i))
   }
 
   object action extends Action[Facet, G] {

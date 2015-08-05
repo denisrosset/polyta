@@ -7,12 +7,12 @@ import spire.algebra._
 import spire.math.Rational
 import spire.syntax.cfor._
 import spire.syntax.action._
+import spire.syntax.order._
 import spire.syntax.vectorSpace._
 import spire.util._
 
 import qalg.algebra._
 import qalg.algos._
-import qalg.syntax.indup.all._
 import qalg.syntax.all._
 
 import net.alasc.algebra._
@@ -35,18 +35,25 @@ final class VPolytopeCombSym[M, V, @sp(Double, Long) A, G0](
 
   type G = G0
 
-  val nX = allVertexPoints.nCols
+  def nX = allVertexPoints.nCols
 
-  val totalVertices = allVertexPoints.nRows
-  val totalRays = allRayPoints.nRows
+  def totalVertices = allVertexPoints.nRows
+  def totalRays = allRayPoints.nRows
 
-  val representation = new ProductRepresentation(totalVertices, vertexIndexAction, totalRays, rayIndexAction)
+  def representation = new ProductRepresentation(totalVertices, vertexIndexAction, totalRays, rayIndexAction)
 
-  val vertices = vertexOrbitRepresentatives.view.map(new Vertex(_))
-  val rays = rayOrbitRepresentatives.view.map(new Ray(_))
+  def vertices = vertexOrbitRepresentatives.view.map(new Vertex(_))
+  def rays = rayOrbitRepresentatives.view.map(new Ray(_))
 
-  override val allVertices = (0 until allVertexPoints.nRows).view.map(new Vertex(_))
-  override val allRays = (0 until allRayPoints.nRows).view.map(new Ray(_))
+  override def allVertices = (0 until allVertexPoints.nRows).view.map(new Vertex(_))
+  override def allRays = (0 until allRayPoints.nRows).view.map(new Ray(_))
+
+  def vertexIndexSet(facet: FacetBase[V, A, _]): Set[Int] = {
+    import pack.A
+    val ineq = facet.inequality
+    val res = allVertexPoints ::* ineq.lhs // vertices are sorted as rows
+    (0 until res.length).toSet.filter(i => res(i) === ineq.rhs)
+  }
 
   sealed trait Element extends ElementBase[V, G]
   final class Vertex(val index: Int) extends Element with VertexBase[V, G] {

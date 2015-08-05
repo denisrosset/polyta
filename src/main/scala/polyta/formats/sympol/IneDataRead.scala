@@ -13,7 +13,6 @@ import spire.syntax.field._
 import qalg.indup.algebra._
 import qalg.algebra._
 import qalg.algos._
-import qalg.syntax.indup.all._
 import qalg.syntax.all._
 
 class IneDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends FormatRead[IneData[V]] {

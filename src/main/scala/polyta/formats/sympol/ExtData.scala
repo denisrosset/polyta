@@ -13,7 +13,7 @@ import qalg.algos._
 
 case class ExtData[V](
   polytope: VPolytope[V, Rational],
-  rayCols: Set[Int],
+  rayRows: Set[Int],
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object ExtData {

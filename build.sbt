@@ -28,5 +28,10 @@ scalacOptions ++= Seq("-unchecked", "-feature", "-deprecation")
 initialCommands in console := """
 import com.faacets._; import qalg._; import polyta._
 import spire.math.Rational; import qalg.math._
-
+import Matrix.packs._
+import qalg.syntax.all._
+import qalg.syntax.algos.all._
+import qalg.syntax.indup.all._
+import net.alasc.math.{Grp, Perm}
+import net.alasc.syntax.all._
 """

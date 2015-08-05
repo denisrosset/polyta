@@ -31,10 +31,10 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolytope(poly: VPolytope[V, Rational], rayCols: Set[Int], out: Writer): Unit = {
+  def writePolytope(poly: VPolytope[V, Rational], rayRows: Set[Int], out: Writer): Unit = {
     out.write("begin\n")
     val n = poly.vertices.size + poly.rays.size
-    require(rayCols.size == poly.rays.size)
+    require(rayRows.size == poly.rays.size)
     out.write(n.toString)
     out.write(" ")
     out.write((poly.nX + 1).toString)
@@ -42,7 +42,7 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
     var vertC = 0
     var rayC = 0
     cforRange(0 until n) { c =>
-      if (rayCols.contains(c)) {
+      if (rayRows.contains(c)) {
         out.write("0 ")
         Format.writeVectorSep[V, Rational](poly.rays(rayC).point, " ", out)
         rayC += 1
@@ -58,7 +58,7 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
 
   def write(data: ExtData[V], out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
-    writePolytope(data.polytope, data.rayCols, out)
+    writePolytope(data.polytope, data.rayRows, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
 }

@@ -7,8 +7,6 @@ import spire.syntax.cfor._
 
 import qalg.algebra._
 import qalg.algos._
-import qalg.syntax.indup.all._
-import qalg.syntax.algos.all._
 import qalg.syntax.all._
 
 import net.alasc.algebra._

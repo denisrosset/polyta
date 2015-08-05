@@ -32,18 +32,18 @@ class ExtDataRead[V](implicit val pack: PackField.ForV[V, Rational]) extends For
     def vPolyhedron: Parser[(Boolean, VPoly, Set[Int])] =
       (("V-representation" ~ lineEnding) ~> upToSymBeginLE ~ dimensions) into {
         case ~(upTo: Boolean, (m: Int, d: Int)) => (repN(m, vertexOrRay(d) <~ lineEnding) <~ ("end" ~ lineEnding)) ^^ { seq =>
-          val rayCols = seq.zipWithIndex.collect {
+          val rayRows = seq.zipWithIndex.collect {
             case (_: Ray, i) => i
           }.toSet
           val (verticesV, raysV) = util.PartitionEither(seq)
-          (upTo, VPolytope[V, Rational](d, verticesV, raysV), rayCols)
+          (upTo, VPolytope[V, Rational](d, verticesV, raysV), rayRows)
         }
       }
 
     def data: Parser[ExtData[V]] = phrase(
       comments(HVHeader) ~> vPolyhedron into {
-        case (upTo, poly, rayCols) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
-          ExtData(poly, rayCols, symOption)
+        case (upTo, poly, rayRows) => opt(symmetryInfo(upTo)) <~ opt(lineEndings) ^^ { symOption =>
+          ExtData(poly, rayRows, symOption)
         }
       })
   }
