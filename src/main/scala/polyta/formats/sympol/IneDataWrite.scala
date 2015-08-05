@@ -32,7 +32,7 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
   }
 
   def writePolytope(poly: HPolytope[V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
-    val n = poly.equalities.size + poly.facets.size
+    val n = poly.equalities.size + poly.allFacets.size
     require(equalityRows.size == poly.equalities.size)
     if (equalityRows.nonEmpty) {
       out.write("linearity ")
@@ -55,7 +55,7 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
         Format.writeVectorSep[V, Rational](-poly.equalities(eqR).lhs, " ", out)
         eqR += 1
       } else {
-        val ineqGE = poly.facets(ineqR).inequality.toGE
+        val ineqGE = poly.allFacets(ineqR).inequality.toGE
         out.write((-ineqGE.rhs).toString)
         out.write(" ")
         Format.writeVectorSep[V, Rational](ineqGE.lhs, " ", out)

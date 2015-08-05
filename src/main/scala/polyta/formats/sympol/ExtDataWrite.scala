@@ -33,8 +33,8 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
 
   def writePolytope(poly: VPolytope[V, Rational], rayRows: Set[Int], out: Writer): Unit = {
     out.write("begin\n")
-    val n = poly.vertices.size + poly.rays.size
-    require(rayRows.size == poly.rays.size)
+    val n = poly.allVertices.size + poly.allRays.size
+    require(rayRows.size == poly.allRays.size)
     out.write(n.toString)
     out.write(" ")
     out.write((poly.nX + 1).toString)
@@ -44,11 +44,11 @@ class ExtDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
     cforRange(0 until n) { c =>
       if (rayRows.contains(c)) {
         out.write("0 ")
-        Format.writeVectorSep[V, Rational](poly.rays(rayC).point, " ", out)
+        Format.writeVectorSep[V, Rational](poly.allRays(rayC).point, " ", out)
         rayC += 1
       } else {
         out.write("1 ")
-        Format.writeVectorSep[V, Rational](poly.vertices(vertC).point, " ", out)
+        Format.writeVectorSep[V, Rational](poly.allVertices(vertC).point, " ", out)
         vertC += 1
       }
       out.write("\n")
