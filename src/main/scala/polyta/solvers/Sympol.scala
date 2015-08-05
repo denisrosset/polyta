@@ -42,7 +42,7 @@ object Sympol {
       val ineData = IneData.fromPolytope(hPolytope)
       FormatWrite[IneData[V]].write(ineData, writer)
       writer.close
-      val output = ("sympol -a -i " + input.getAbsolutePath).!!
+      val output = ("sympol --cdd -a -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
       val data = FormatRead[ExtData[V]].parse(reader).get
       assert(data.polytope.rays.isEmpty)
@@ -58,7 +58,7 @@ object Sympol {
       val ineData = IneData.fromSymPolytope(hPolytope)
       FormatWrite[IneData[V]].write(ineData, writer)
       writer.close
-      val options = if (hPolytope.symGroup.order == 1) "--no-automorphisms -d" else "-a"
+      val options = if (hPolytope.symGroup.order == 1) "--no-automorphisms -d" else "-a --cdd"
       val output = (s"sympol $options -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
       val data = FormatRead[ExtData[V]].parse(reader).get
@@ -79,7 +79,7 @@ object Sympol {
       val extData = ExtData.fromPolytope(vPolytope)
       FormatWrite[ExtData[V]].write(extData, writer)
       writer.close
-      val output = ("sympol -a -i " + input.getAbsolutePath).!!
+      val output = ("sympol --cdd -a -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
       val data = FormatRead[IneData[V]].parse(reader).get
       val permutations = data.symmetryInfo.get.decodeGenerators(extData.rayRows).map(_._1)
@@ -95,10 +95,12 @@ object Sympol {
       val extData = ExtData.fromSymPolytope(vPolytope)
       FormatWrite[ExtData[V]].write(extData, writer)
       writer.close
-      val options = if (vPolytope.symGroup.order == 1) "--no-automorphisms -d" else "-a"
-      val output = ("sympol $options " + input.getAbsolutePath).!!
+      val options = if (vPolytope.symGroup.order == 1) "--no-automorphisms -d" else "-a --cdd"
+      val output = (s"sympol $options -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
-      val data = FormatRead[IneData[V]].parse(reader).get
+      val parsed = FormatRead[IneData[V]].parse(reader)
+      println(parsed)
+      val data = parsed.get
       val indexSets = data.polytope.facets.map(vPolytope.vertexIndexSet(_)).toIndexedSeq
       HPolytopeFromV(vPolytope, indexSets, data.polytope.equalities.toIndexedSeq)
   }
