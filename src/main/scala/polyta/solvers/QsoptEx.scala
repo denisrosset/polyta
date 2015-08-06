@@ -4,7 +4,6 @@ package solvers
 
 import Predef.{any2stringadd => _,_}
 
-
 import scala.{specialized => sp}
 import java.io.{File, PrintWriter, FileReader}
 
@@ -40,7 +39,6 @@ object QsoptEx {
       variableNames,
       LPObjective("obj", direction, f),
       ineqs ++ eqs,
-      Box.unbounded[V, Rational](hPolytope.nX),
       integerVariables)
     FormatWrite[LPData[V]].write(lpData, writer)
     writer.close

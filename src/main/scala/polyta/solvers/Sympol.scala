@@ -98,9 +98,7 @@ object Sympol {
       val options = if (vPolytope.symGroup.order == 1) "--no-automorphisms -d" else "-a --cdd"
       val output = (s"sympol $options -i " + input.getAbsolutePath).!!
       val reader = new StringReader(output)
-      val parsed = FormatRead[IneData[V]].parse(reader)
-      println(parsed)
-      val data = parsed.get
+      val data = FormatRead[IneData[V]].parse(reader).get
       val indexSets = data.polytope.facets.map(vPolytope.vertexIndexSet(_)).toIndexedSeq
       HPolytopeFromV(vPolytope, indexSets, data.polytope.equalities.toIndexedSeq)
   }
