@@ -28,7 +28,6 @@ case class LPData[V](
   val variableNames: Seq[String],
   val objective: LPObjective[V],
   val constraints: Seq[LPConstraint[V]],
-  val bounds: Box[V, Rational],
   val integerVariables: Set[Int]
 )
 

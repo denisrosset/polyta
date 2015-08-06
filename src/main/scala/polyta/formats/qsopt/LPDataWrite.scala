@@ -62,37 +62,6 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
     }
   }
 
-  def writeBounds(bounds: Box[V, Rational], variableNames: Seq[String], out: Writer): Unit = {
-/*    out.write("Bounds\n")
-    bounds.foreach {
-      case FreeBound(variable) =>
-        out.write(ident)
-        out.write(variable)
-        out.write(" free\n")
-      case ExplicitBound(variable, None, None) =>
-      case ExplicitBound(variable, lb, ub) =>
-        out.write(ident)
-        lb match {
-          case Some(_: MinusInf[A]) => out.write("-inf <= ")
-          case Some(Scalar(a)) =>
-            out.write(a.toString)
-            out.write(" <= ")
-          case Some(_: PlusInf[A]) => sys.error("Cannot have +infinity as lower bound")
-          case None =>
-        }
-        out.write(variable)
-        ub match {
-          case Some(_: MinusInf[A]) =>
-            sys.error("Cannot have -infinity as upper bound")
-          case Some(Scalar(a)) =>
-            out.write(" <= ")
-            out.write(a.toString)
-          case Some(_: PlusInf[A]) => out.write(" <= inf")
-          case None =>
-        }
-        out.write("\n")
-    }*/
-  }
   def writeIntegerVariables(integerVariables: Set[Int], variableNames: Seq[String], out: Writer) = {
     if (integerVariables.nonEmpty) {
       out.write("Integer\n")
@@ -104,12 +73,13 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
       out.write("\n")
     }
   }
+
   def writeEnd(out: Writer) = out.write("End\n")
+
   def write(data: LPData[V], out: Writer): Unit = {
     writeProblem(data.problemName, out)
     writeObjective(data.objective, data.variableNames, out)
     writeConstraints(data.constraints, data.variableNames, out)
-    writeBounds(data.bounds, data.variableNames, out)
     writeIntegerVariables(data.integerVariables, data.variableNames, out)
     writeEnd(out)
   }
