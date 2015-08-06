@@ -20,57 +20,50 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-trait LPDataWrite[@sp(Double) A] extends Any {
-  implicit def A: Field[A]
-  implicit def orderA: Order[A]
+class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends FormatWrite[LPData[V]] {
 
   def ident = "    "
 
-  def writeProblem(problemName: Option[String], out: Writer): Unit =
-    problemName match {
-      case Some(name) =>
-        out.write("Problem\n")
-        out.write(ident)
-        out.write(name)
-        out.write("\n")
-      case None =>
-    }
+  def writeProblem(problemName: String, out: Writer): Unit = {
+    out.write("Problem\n")
+    out.write(ident)
+    out.write(problemName)
+    out.write("\n")
+  }
 
-  def writeObjective(objective: Objective[A], out: Writer): Unit  = {
+  def writeObjective(objective: LPObjective[V], variableNames: Seq[String], out: Writer): Unit  = {
     val firstLine = objective.direction match {
       case Max => out.write("Maximize\n")
       case Min => out.write("Minimize\n")
     }
     out.write(ident)
-    objective.name match {
-      case Some(n) =>
-        out.write(n)
-        out.write(":")
-      case None =>
-    }
-    Format.writeVector(objective.f, out)
+    out.write(objective.name)
+    out.write(":")
+    Format.writeVector[V, Rational](objective.f, variableNames, out)
     out.write("\n")
   }
-  def writeConstraint(constraints: Seq[Constraint[A]], out: Writer): Unit = {
+
+  def writeConstraint(name: String, constraint: LinearConstraint[V, Rational], variableNames: Seq[String], out: Writer): Unit = {
+    out.write(ident)
+    out.write(name)
+    out.write(":")
+    Format.writeVector[V, Rational](constraint.lhs, variableNames, out)
+    out.write(" ")
+    out.write(constraint.op.toString)
+    out.write(" ")
+    out.write(constraint.rhs.toString)
+    out.write("\n")
+  }
+
+  def writeConstraints(constraints: Seq[LPConstraint[V]], variableNames: Seq[String], out: Writer): Unit = {
     out.write("Subject\n")
-    constraints.foreach { constraint =>
-      out.write(ident)
-      constraint.name match {
-        case Some(n) =>
-          out.write(n)
-          out.write(":")
-        case None =>
-      }
-      Format.writeVector(constraint.lhs, out)
-      out.write(" ")
-      out.write(constraint.op.toString)
-      out.write(" ")
-      Format.writeVector(constraint.rhs, out)
-      out.write("\n")
+    constraints.foreach { c =>
+      writeConstraint(c.name, c.constraint, variableNames, out)
     }
   }
-  def writeBounds(bounds: Seq[Bound[A]], out: Writer): Unit = {
-    out.write("Bounds\n")
+
+  def writeBounds(bounds: Box[V, Rational], variableNames: Seq[String], out: Writer): Unit = {
+/*    out.write("Bounds\n")
     bounds.foreach {
       case FreeBound(variable) =>
         out.write(ident)
@@ -98,26 +91,26 @@ trait LPDataWrite[@sp(Double) A] extends Any {
           case None =>
         }
         out.write("\n")
-    }
+    }*/
   }
-  def writeIntegerVariables(integerVariables: Seq[String], out: Writer) = {
-    out.write("Integer\n")
+  def writeIntegerVariables(integerVariables: Set[Int], variableNames: Seq[String], out: Writer) = {
     if (integerVariables.nonEmpty) {
+      out.write("Integer\n")
       out.write(ident)
       integerVariables.foreach { variable =>
-        out.write(variable)
+        out.write(variableNames(variable))
         out.write(" ")
       }
       out.write("\n")
     }
   }
   def writeEnd(out: Writer) = out.write("End\n")
-  def write(data: LPData[A], out: Writer): Unit = {
+  def write(data: LPData[V], out: Writer): Unit = {
     writeProblem(data.problemName, out)
-    writeObjective(data.objective, out)
-    writeConstraint(data.constraints, out)
-    writeBounds(data.bounds, out)
-    writeIntegerVariables(data.integerVariables, out)
+    writeObjective(data.objective, data.variableNames, out)
+    writeConstraints(data.constraints, data.variableNames, out)
+    writeBounds(data.bounds, data.variableNames, out)
+    writeIntegerVariables(data.integerVariables, data.variableNames, out)
     writeEnd(out)
   }
 }

@@ -48,7 +48,6 @@ class SympolRead extends FunSuite {
     val formatRead = SymmetryInfo.FormatRead
     autoFilenames.foreach { filename =>
       val res = formatRead.parse(getReader(filename))
-      println(res)
       res.get
     }
   }

@@ -16,13 +16,13 @@ import qalg.algebra._
 import qalg.algos._
 import qalg.syntax.all._
 
-case class Box[V, @sp(Double) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val pack: PackField.ForV[V, A]) extends LinearConvexSet[V, A] {
+case class Box[V, @sp(Double, Long) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val pack: PackField.ForV[V, A]) extends LinearConvexSet[V, A] {
   require(lowerBounds.v.length == upperBounds.v.length)
   def nX: Int = lowerBounds.v.length
 }
 
 object Box {
-  def unbounded[V, @sp(Double) A](nX: Int)(implicit pack: PackField.ForV[V, A]): Box[V, A] =
+  def unbounded[V, @sp(Double, Long) A](nX: Int)(implicit pack: PackField.ForV[V, A]): Box[V, A] =
     Box[V, A](Bounds.unbounded[V](nX), Bounds.unbounded[V](nX))
   // special case for Double vector, TODO: why ?
   def apply[V](lb: V, ub: V)(implicit pack: PackField.ForV[V, Double]): Box[V, Double] =

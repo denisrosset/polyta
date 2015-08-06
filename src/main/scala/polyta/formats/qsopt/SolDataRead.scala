@@ -22,39 +22,37 @@ import qalg.syntax.all._
 
 import solvers._
 
-trait SolDataRead[A] extends FormatRead[SolData[A]] {
-  trait SolDataParser extends ParserBase with AgnosticLineEndingParser {
+class SolDataRead extends FormatRead[SolData] {
+  object Parsers extends ParsersBase with AgnosticLineEndingParsers with RationalParsers {
     override val skipWhitespace = true
     override val whiteSpace = """([ \t])+""".r
-
-    def value: Parser[A]
 
     def optimal = "OPTIMAL" ^^^ OptimumFound
     def infeasible = "INFEASIBLE" ^^^ Infeasible
     def unbounded = "UNBOUNDED" ^^^ Unbounded
-    def unsolved = ("UNDEFINED" | "NOT_SOLVED") ^^^ CouldNotSolve
-    def status = optimal | infeasible | unbounded | unsolved
+    def unsolved = ("UNDEFINED" | "NOT_SOLVED") ^^ { SolverFailure[String](_) }
+    def status: Parser[SolverStatus[String]] = optimal | infeasible | unbounded | unsolved
     def firstStatusLine = (("status" ~ "=") ~> status) <~ lineEnding
     def secondStatusLine = ("status" ~> status) <~ lineEnding
-    def valueLine: Parser[A] = (("Value" ~ "=") ~> value) <~ lineEnding
+    def valueLine: Parser[Rational] = (("Value" ~ "=") ~> rational) <~ lineEnding
     def name = "[a-zA-Z][a-zA-Z0-9]*".r
-    def varLine: Parser[(String, A)] = (name <~ "=") ~ value ^^ {
+    def varLine: Parser[(String, Rational)] = (name <~ "=") ~ rational ^^ {
       case n ~ v => (n, v)
     }
-    def varLines: Parser[Map[String, A]] = rep(varLine <~ lineEnding) ^^ (_.toMap)
-    def varsSection: Parser[Map[String, A]] = ("VARS:" ~ lineEnding) ~> varLines
-    def reducedCostSection: Parser[Map[String, A]] = ("REDUCED COST:" ~ lineEnding) ~> varLines
-    def piSection: Parser[Map[String, A]] = ("PI:" ~ lineEnding) ~> varLines
-    def slackSection: Parser[Map[String, A]] = ("SLACK:" ~ lineEnding) ~> varLines
+    def varLines: Parser[Map[String, Rational]] = rep(varLine <~ lineEnding) ^^ (_.toMap)
+    def varsSection: Parser[Map[String, Rational]] = ("VARS:" ~ lineEnding) ~> varLines
+    def reducedCostSection: Parser[Map[String, Rational]] = ("REDUCED COST:" ~ lineEnding) ~> varLines
+    def piSection: Parser[Map[String, Rational]] = ("PI:" ~ lineEnding) ~> varLines
+    def slackSection: Parser[Map[String, Rational]] = ("SLACK:" ~ lineEnding) ~> varLines
 
-    def data: Parser[SolData[A]] = firstStatusLine into {
+    def data: Parser[SolData] = firstStatusLine into {
       case OptimumFound => secondStatusLine into {
         case OptimumFound => (valueLine ~ varsSection ~ reducedCostSection ~ piSection ~ slackSection) ^^ {
           case vl ~ vr ~ rc ~ pi ~ sl => SolData(OptimumFound, Some(vl), vr, rc, pi, sl)
         }
         case _ => failure("Inconsistent output")
       }
-      case status => success(SolData[A](status))
+      case status => success(SolData(status))
     }
   }
 }
