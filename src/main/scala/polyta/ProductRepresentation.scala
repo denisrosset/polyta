@@ -10,16 +10,12 @@ import spire.syntax.action._
 import spire.syntax.vectorSpace._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
 import net.alasc.algebra._
-import net.alasc.math.{Perm, Grp}
-import net.alasc.std.unit._
+import net.alasc.prep._
 import net.alasc.util._
 
-class ProductRepresentation[G](val size1: Int, val action1: PermutationAction[G], val size2: Int, val action2: PermutationAction[G]) extends Representation[G] {
+/* TODO: here we cheat and assume that the representation given by the action of both action1 and action2 is faithful. */
+class ProductRepresentation[G](val size1: Int, val action1: PermutationAction[G], val size2: Int, val action2: PermutationAction[G]) extends FaithfulPRep[G] {
   def size = size1 + size2
   def represents(g: G): Boolean =
     (action1.supportMax(g).getOrElse(-1) < size1) && (action2.supportMax(g).getOrElse(-1) < size2)

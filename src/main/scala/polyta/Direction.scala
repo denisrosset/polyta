@@ -3,5 +3,9 @@ package polyta
 
 sealed trait Direction
 
-case object Min extends Direction
-case object Max extends Direction
+object Direction {
+
+  case object Min extends Direction
+  case object Max extends Direction
+
+}

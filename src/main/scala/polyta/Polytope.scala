@@ -1,41 +1,39 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-
-import spire.algebra._
-import spire.math.Rational
+import spire.algebra.Order
 import spire.syntax.cfor._
-import spire.syntax.vectorSpace._
-import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import net.alasc.attributes._
+import net.alasc.finite.Grp
 
-import net.alasc.algebra._
-import net.alasc.math.{Perm, Grp}
+/** Polytope. */
+trait Polytope[A] extends ConvexSet[A] with Attributable { lhs =>
 
-/** Polytope. Unbounded polytopes will be supported in the future. */
+  implicit def A: LinAlg[A]
 
-trait Polytope[V, @sp(Double, Long) A] extends LinearConvexSet[V, A] { lhs =>
+  /** Type of the symmetry group elements. */
   type G
+
   /** (Partial) symmetry group of the polytope. */
   def symGroup: Grp[G]
 
   /** Generate the full description of the polytope, without taking symmetries in account. */
-  def flatten: Polytope[V, A]
+  def symmetriesDiscarded: Polytope[A]
 
-  def nX: Int
-
-  /** Certificate that the polytope is bounded. */ 
-  class Bounded
-  /** Certificate that the polytope is full dimensional. */
-  class FullDimensional
-  /** Certificate that the polytope contains the origin. */
-  class ContainsOrigin
 }
 
 object Polytope {
-  type ForG[V, A, G0] = Polytope[V, A] { type G = G0 }
+
+  type ForG[A, G0] = Polytope[A] { type G = G0 }
+
+  /** Attribute: the polytope is bounded. */ 
+  val bounded = Attr.Bool("bounded")
+
+  /** Attribute: the polytope is full dimensional. */
+  val fullDimensional = Attr.Bool("fullDimensional")
+
+  /** Attribute: the polytope contains the origin. */
+  val containsOrigin = Attr.Bool("containsOrigin")
+
 }

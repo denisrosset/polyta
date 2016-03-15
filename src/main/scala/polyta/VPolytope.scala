@@ -11,34 +11,12 @@ import spire.syntax.order._
 import spire.syntax.innerProductSpace._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
 import net.alasc.algebra._
-import net.alasc.math.{Perm, Grp}
+import net.alasc.finite.Grp
+import net.alasc.perms.Perm
 import net.alasc.std.product._
 
-trait ElementBase[V, G] {
-  type E <: ElementBase[V, G]
-  override def toString = point.toString
-  def point: V
-  /** Representatives of this element under symmetry. */
-  def representatives: Iterable[E]
-  /** Subgroup of the polytope symmetry group leaving this element invariant. */
-  def symSubgroup: Grp[G]
-}
-
-trait VertexBase[V, G] extends ElementBase[V, G] {
-  type E <: VertexBase[V, G]
-  def representatives: Iterable[E]
-}
-
-trait RayBase[V, G] extends ElementBase[V, G] {
-  type E <: RayBase[V, G]
-  def representatives: Iterable[E]
-}
-
+import scalin.immutable.{Mat, Vec}
 /*
 final class SingleVertex[V](val point: V) extends VertexBase[V] {
   type VX = SingleVertex[V]
@@ -53,26 +31,36 @@ final class SingleRay[V](val point: V) extends RayBase[V] {
 
 /** Polytope described by extremal vertices. */
 
-trait VPolytope[V, @sp(Double) A] extends Polytope[V, A] { lhs =>
-  implicit val pack: PackField.ForV[V, A]
-  implicit def orderA: Order[A]
+trait VPolytope[A] extends Polytope[A] { lhs =>
+
+  type Element <: VPolytope.Element.ForG[A, G]
+  type Vertex <: Element with VPolytope.Vertex.ForG[A, G] { type E = Vertex }
+  type Ray <: Element with VPolytope.Ray.ForG[A, G] { type E = Ray }
+
+  /** Vertex representatives, one for each orbit. */
+  def vertices: Seq[Vertex]
+
+  /** All vertices. */
+  def allVertices: Seq[Vertex] = vertices.flatMap(_.representatives)
+
+  /** Ray representatives, one for each orbit. */
+  def rays: Seq[Ray]
+
+  /** All rays. */
+  def allRays: Seq[Ray] = rays.flatMap(_.representatives)
+
   override def toString =
     "\nVertices:\n" + vertices.mkString("\n") + "\nRays:\n" + rays.mkString("\n")
 
-  type Element <: ElementBase[V, G]
-  type Vertex <: Element with VertexBase[V, G] { type E = Vertex }
-  type Ray <: Element with RayBase[V, G] { type E = Ray }
-
-  def vertices: Seq[Vertex]
-  def allVertices: Seq[Vertex] = vertices.flatMap(_.representatives)
-  def rays: Seq[Ray]
-  def allRays: Seq[Ray] = rays.flatMap(_.representatives)
-
   /** Action of the symmetry group on vertices and rays. */
   implicit def elementAction: Action[Element, G]
-  implicit def vertexAction: Action[Vertex, G]
-  implicit def rayAction: Action[Ray, G]
 
+  /** Action of the symmetry group on vertices. */
+  implicit def vertexAction: Action[Vertex, G]
+
+  /** Action of the symmetry group on rays. */
+  implicit def rayAction: Action[Ray, G]
+/*
   /** TODO: what happens with rays ? */
   def facetOn(onVertices: Seq[Vertex], satisfying: Vertex): LinearInequality[V, A] = {
     implicit def A: Field[A] = pack.A
@@ -107,21 +95,75 @@ trait VPolytope[V, @sp(Double) A] extends Polytope[V, A] { lhs =>
       cosets.iterator.map { coset => (ray <|+| coset.g).point }
     }
     VPolytope(nX, vertexPoints, rayPoints)
-  }
+  }*/
 }
 
 
 object VPolytope {
-  type ForG[V, A, G0] = VPolytope[V, A] { type G = G0 }
-  def apply[M, V, @sp(Double, Long) A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, (Perm, Perm)] =
-    VPolytopeCombSym[M, V, A, Perm, Perm](
-      vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)])
 
-  def apply[V, @sp(Double, Long) A: Order](nX: Int, vertexPoints: Seq[V], rayPoints: Seq[V])(implicit pack: PackField.ForV[V, A]): VPolytopeCombSym[_, V, A, (Perm, Perm)] = {
-    type M = pack.M
-    implicit val M = pack.M
-    val vertexM = M.fromRows(nX)(vertexPoints: _*)
-    val rayM = M.fromRows(nX)(rayPoints:_ *)
-    apply(vertexM, rayM)(implicitly, pack)
+  type ForG[A, G0] = VPolytope[A] { type G = G0 }
+
+  trait Element[A] {
+
+    def point: Vec[A]
+
+    override def toString = point.toString
+
+    /** Symmetry group element type. */
+    type G
+
+    /** Self type */
+    type E <: Element.ForG[A, G]
+
+    /** Representatives of this element under symmetry. */
+    def representatives: Iterable[E]
+
+    /** Subgroup of the polytope symmetry group leaving this element invariant. */
+    def symSubgroup: Grp[G]
+
   }
+
+  object Element {
+
+    type ForG[A, G0] = Element[A] { type G = G0 }
+
+  }
+
+
+  trait Vertex[A] extends Element[A] {
+
+    type E <: Vertex.ForG[A, G]
+
+  }
+
+  object Vertex {
+
+    type ForG[A, G0] = Vertex[A] { type G = G0 }
+
+  }
+
+  trait Ray[A] extends Element[A] {
+
+    type E <: Ray.ForG[A, G]
+
+  }
+
+  object Ray {
+
+    type ForG[A, G0] = Ray[A] { type G = G0 }
+
+  }
+
+  /*
+   def apply[M, V, @sp(Double, Long) A: Order](vertexPoints: M, rayPoints: M)(implicit pack: PackField.ForMV[M, V, A]): VPolytopeCombSym[M, V, A, (Perm, Perm)] =
+   VPolytopeCombSym[M, V, A, Perm, Perm](
+   vertexPoints, rayPoints, Grp.trivial[(Perm, Perm)])
+
+   def apply[V, @sp(Double, Long) A: Order](nX: Int, vertexPoints: Seq[V], rayPoints: Seq[V])(implicit pack: PackField.ForV[V, A]): VPolytopeCombSym[_, V, A, (Perm, Perm)] = {
+   type M = pack.M
+   implicit val M = pack.M
+   val vertexM = M.fromRows(nX)(vertexPoints: _*)
+   val rayM = M.fromRows(nX)(rayPoints:_ *)
+   apply(vertexM, rayM)(implicitly, pack)
+   }*/
 }
