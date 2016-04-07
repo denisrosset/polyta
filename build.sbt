@@ -1,10 +1,10 @@
 // inspired by Spire build.sbt file
 
 val attributesVersion = "0.11.0.1"
-val alascVersion = "0.11.0.2"
+val alascVersion = "0.11.0.3-SNAPSHOT"
 val disciplineVersion = "0.4"
 val fastParseVersion = "0.3.7"
-val metalVersion = "0.11.0.1"
+val metalVersion = "0.11.0.5-SNAPSHOT"
 val scalaCheckVersion = "1.12.4"
 val scalaTestVersion = "3.0.0-M7"
 val scalinVersion = "0.11.0.4"
@@ -37,7 +37,8 @@ libraryDependencies ++= Seq(
   "net.alasc" %% "alasc-core" % alascVersion,
   "net.alasc" %% "alasc-scalin" % alascVersion,
   "net.alasc" %% "scalin-core" % scalinVersion,
-  "com.lihaoyi" %% "fastparse" % fastParseVersion
+  "com.lihaoyi" %% "fastparse" % fastParseVersion,
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 )
 
 scalacOptions ++= commonScalacOptions.diff(Seq(

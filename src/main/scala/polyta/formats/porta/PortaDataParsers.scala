@@ -16,19 +16,16 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.{Mat, Vec}
 
 trait PortaDataParsers[V] extends RationalParsers with AgnosticLineEndingParsers {
-  implicit def alg: AlgVF[V, Rational]
+  implicit def Q: LinAlg[Rational]
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
-  def rowVector(d: Int): Parser[V] = repN(d, rational) ^^ { VecBuilder[V, Rational].build(_: _*) }
+  def rowVector(d: Int): Parser[Vec[Rational]] = repN(d, rational) ^^ { Q.IVec.fromSeq(_) }
 
   def lineNumber = "(" ~ nonNegativeInt ~ ")"
 

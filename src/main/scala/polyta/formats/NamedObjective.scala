@@ -1,7 +1,6 @@
 package com.faacets
 package polyta
 package formats
-package qsopt
 
 case class NamedObjective[A](
   direction: Direction,

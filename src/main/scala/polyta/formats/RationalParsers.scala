@@ -13,10 +13,6 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
 trait RationalParsers extends RegexParsers {
   val integerRegex = """(-|\+)?\d+""".r
   def sign = ("+" ^^^ 1) | ("-" ^^^ -1)

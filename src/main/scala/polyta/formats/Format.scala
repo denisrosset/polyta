@@ -15,9 +15,7 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import scalin.{Vec, Mat}
 
 object Format {
   /** Writes an affine expression represented as a map of variable names to
@@ -26,7 +24,7 @@ object Format {
     * Special case: the empty key "" is a scalar coefficient, i.e.
     * Map("" -> 2, "x" -> 3) is equal to "3 x + 2".
     */
-  def writeVector[@sp(Double) A: Field: Order](vec: Map[String, A], out: Writer): Unit = {
+  def writeVector[A: Field: Order](vec: Map[String, A], out: Writer): Unit = {
     var wroteSomething: Boolean = false
     var plusString = ""
     val minusString = "-"
@@ -66,7 +64,7 @@ object Format {
     if (!wroteSomething) out.write(zero.toString)
   }
 
-  def writeVectorSep[V, @sp(Double) A: Field: Order](vec: V, sep: String, out: Writer)(implicit V: Vec[V, A]): Unit = {
+  def writeVectorSep[A: Field: Order](vec: Vec[A], sep: String, out: Writer): Unit = {
     var prefix = ""
     cforRange(0 until vec.length) { k =>
       out.write(prefix)
@@ -114,7 +112,7 @@ object Format {
     } else first
   }
 
-  def writeVector[V, @sp(Double) A: Field: Order](vec: V, variableNames: Seq[String], out: Writer, constantOpt: Opt[A] = Opt.empty[A], withSpaces: Boolean = true)(implicit V: Vec[V, A]): Unit = {
+  def writeVector[@sp(Double) A: Field: Order](vec: Vec[A], variableNames: Seq[String], out: Writer, constantOpt: Opt[A] = Opt.empty[A], withSpaces: Boolean = true): Unit = {
     var first: Boolean = true
     cforRange(0 until vec.length) { k =>
       first = writeTerm(vec(k), variableNames(k), first, out, withSpaces = withSpaces, skipZero = true)

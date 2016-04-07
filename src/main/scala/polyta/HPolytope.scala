@@ -10,25 +10,13 @@ import spire.syntax.action._
 import spire.syntax.vectorSpace._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-import qalg.syntax.indup.all._
-import qalg.syntax.algos.all._
-
 import net.alasc.algebra._
-import net.alasc.math.{Perm, Grp}
+import net.alasc.finite.Grp
+import net.alasc.prep.PGrp.default._
+import net.alasc.perms.Perm
 import net.alasc.std.unit._
 
-trait FacetBase[V, @sp(Double, Long) A, G] {
-  override def toString = inequality.toString
-  type F <: FacetBase[V, A, G]
-  def inequality: LinearInequality[V, A]
-  /** Representatives of this facet under symmetry. */
-  def representatives: Iterable[F]
-  /** Subgroup of the polytope symmetry group leaving this facet invariant. */
-  def symSubgroup: Grp[G]
-}
+import scalin.immutable.{Mat, Vec}
 
 /*
 final class SingleFacet[V, @sp(Double, Long) A](val inequality: LinearInequality[V, A]) extends FacetBase[V, A] {
@@ -40,28 +28,37 @@ final class SingleFacet[V, @sp(Double, Long) A](val inequality: LinearInequality
 /** Polytope, i.e. possibly intersection of half-spaces, a set described
   * by inequality and equality constraints.
   */
-trait HPolytope[V, @sp(Double, Long) A] extends Polytope[V, A] {
-  implicit val pack: PackField.ForV[V, A]
-  implicit def orderA: Order[A]
-  override def toString = (facets.map(_.toString) ++ equalities.map(_.toString)).mkString("\n")
+trait HPolytope[A] extends Polytope[A] { lhs =>
+
+  type G
 
   /** Facet type for this polytope type. */
-  type Facet <: FacetBase[V, A, G] { type F = Facet }
+  type Facet <: HPolytope.Facet.ForG[A, G] { type F = Facet }
+
   /** Type alias for linear equality constraints. */
-  type Equality = LinearEquality[V, A]
+  type Equality = LinearEquality[A]
 
   /** Facet representatives under symmetry. */
   def facets: Seq[Facet]
+
   /** All facet representatives. */
   def allFacets: Seq[Facet] = facets.flatMap(_.representatives)
+
   /** Equality constraints. */
   def equalities: Seq[Equality]
+
+  override def toString = (facets.map(_.toString) ++ equalities.map(_.toString)).mkString("\n")
 
   /** Action of the symmetry group on facets. */
   implicit def action: Action[Facet, G]
 
+  def symmetriesDiscarded: HPolytope[A] = {
+    val allInequalities: Seq[LinearInequality[A]] = allFacets.map(_.inequality)
+    HPolytope(dim, allInequalities, equalities)
+  }
+
 //  def rayOn(facets: Iterable[Facet], satisfying: Facet)
-  def vertexOn(onFacets: Seq[Facet]): V = {
+/*  def vertexOn(onFacets: Seq[Facet]): V = {
     type M = pack.M
     val M = pack.M
     val ineqSatisfied: Seq[(V, A)] = onFacets.map { facet =>
@@ -75,27 +72,41 @@ trait HPolytope[V, @sp(Double, Long) A] extends Polytope[V, A] {
     pack.MLU.lu(newA).solveV(newb)
   }
 
-  def flatten: HPolytope[V, A] = { // TODO: produce HPolytopeCombSym instead
-    val allInequalities: Seq[LinearInequality[V, A]] = allFacets.map(_.inequality)
-    HPolytope(nX, allInequalities, equalities)
-  }
+  */
 }
 
 object HPolytope {
-  def apply[M, V, A: Order](mA: M, vb: V, mAeq: M, vbeq: V)(implicit pack: PackField.ForMV[M, V, A]): HPolytopeCombSym[M, V, A, Perm] = HPolytopeCombSym(mA, vb, mAeq, vbeq, Grp.trivial[Perm])
-  def apply[V, A: Order](nX: Int, facets: Seq[LinearInequality[V, A]], equalities: Seq[LinearEquality[V, A]])(implicit pack: PackField.ForV[V, A]): HPolytopeCombSym[_, V, A, Perm] = {
-    type M = pack.M
-    implicit val M = pack.M
-    implicit val V = pack.V
-    implicit val A = pack.A
-    val mA = M.fromRows(nX)(facets.map {
-      facet => if (facet.op == LE) facet.lhs else -facet.lhs
-    }: _*)
-    val vb = V.build(facets.map {
-      facet => if (facet.op == LE) facet.rhs else -facet.rhs
-    }: _*)
-    val mAeq = M.fromRows(nX, M.defaultOptions)(equalities.map(_.lhs): _*)
-    val vbeq = pack.V.build(equalities.map(_.rhs): _*)
-    apply(mA, vb, mAeq, vbeq)(Order[A], pack)
+
+  trait Facet[A] {
+    def inequality: LinearInequality[A]
+    override def toString = inequality.toString
+    /** Symmetry group element type. */
+    type G
+    /** Self type. */
+    type F <: Facet.ForG[A, G]
+    /** Representatives of this facet under symmetry. */
+    def representatives: Iterable[F]
+    /** Subgroup of the polytope symmetry group leaving this facet invariant. */
+    def symSubgroup: Grp[G]
   }
+
+  object Facet {
+    type ForG[A, G0] = Facet[A] { type G = G0 }
+  }
+
+  def apply[A](mA: Mat[A], vb: Vec[A], mAeq: Mat[A], vbeq: Vec[A])(implicit A: LinAlg[A]): HPolytopeCombSym[A] = HPolytopeCombSym(mA, vb, mAeq, vbeq, Grp.trivial[Perm])
+
+  def apply[A](dim: Int, facets: Seq[LinearInequality[A]], equalities: Seq[LinearEquality[A]])(implicit A: LinAlg[A]): HPolytopeCombSym[A] = {
+    import A.{fieldA, IMat, IVec}
+    import ComparisonOp._
+
+    val mA = IMat.tabulate(facets.size, dim) { (r, c) =>
+      if (facets(r).op == LE) facets(r).lhs(c) else -facets(r).lhs(c)
+    }
+    val vb = IVec.tabulate(facets.size)( i => if (facets(i).op == LE) facets(i).rhs else -facets(i).rhs )
+    val mAeq = IMat.tabulate(equalities.size, dim)( (r, c) => equalities(r).lhs(c) )
+    val vbeq = IVec.tabulate(equalities.size)( i => equalities(i).rhs )
+    apply(mA, vb, mAeq, vbeq)
+  }
+
 }

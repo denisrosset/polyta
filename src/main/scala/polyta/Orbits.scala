@@ -11,7 +11,7 @@ import net.alasc.algebra._
 object Orbits {
 
   def orbit[G](i: Int, generators: Iterable[G], action: Action[Int, G]): scala.collection.immutable.BitSet = {
-  import scala.collection.mutable.BitSet
+    import scala.collection.mutable.BitSet
     var res = BitSet(i)
     var toCheck = BitSet(i)
     var newAdded = BitSet(i)
@@ -38,10 +38,9 @@ object Orbits {
   }
 
   def orbits[G](size: Int, generators: Iterable[G], action: Action[Int, G]): Set[scala.collection.immutable.BitSet] = {
-    import net.alasc.math.OrbitInstances._
     implicit val action0 = action
-    val rem = mutable.BitSet.empty ++= 0 until size
-    val orbits = Set.newBuilder[immutable.BitSet]
+    val rem = scala.collection.mutable.BitSet.empty ++= 0 until size
+    val orbits = Set.newBuilder[scala.collection.immutable.BitSet]
     while (rem.nonEmpty) {
       val curOrbit = orbit(rem.head, generators, action)
       orbits += curOrbit

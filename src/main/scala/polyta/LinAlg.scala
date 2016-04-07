@@ -13,13 +13,13 @@ trait LinAlg[A] {
 
   type UMat <: scalin.mutable.Mat[A]
   type UVec <: scalin.mutable.Vec[A]
-  def UMat: MatField[A, UMat]
-  def UVec: VecField[A, UVec]
+  implicit def UMat: MatField[A, UMat]
+  implicit def UVec: VecField[A, UVec]
 
   type IMat <: scalin.immutable.Mat[A]
   type IVec <: scalin.immutable.Vec[A]
-  def IMat: MatField[A, IMat]
-  def IVec: VecField[A, IVec]
+  implicit def IMat: MatField[A, IMat]
+  implicit def IVec: VecField[A, IVec]
 
   def result(mat: UMat): IMat
   def result(vec: UVec): IVec
