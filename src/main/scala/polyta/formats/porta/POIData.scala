@@ -7,12 +7,12 @@ import spire.math.Rational
 
 import scalin.{Mat, Vec}
 
-case class POIData(polytope: VPolytopeCombSym[Rational])
+case class POIData(polytope: VPolytopeM[Rational])
 
 object POIData {
-/*  TODO
- implicit def FormatRead[M, V](implicit alg0: AlgMVF[M, V, Rational]): FormatRead[POIData[M, V]] = new POIDataRead[M, V] {
-    def alg = alg0
-  }
-  implicit def FormatWrite[M, V](implicit alg: AlgMVF[M, V, Rational]): FormatWrite[POIData[M, V]] = new POIDataWrite[M, V]*/
+
+  implicit val FormatRead: FormatRead[POIData] = new POIDataRead
+
+  implicit val FormatWrite: FormatWrite[POIData] = new POIDataWrite
+
 }

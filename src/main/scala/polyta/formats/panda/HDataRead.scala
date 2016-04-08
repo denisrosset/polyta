@@ -9,19 +9,19 @@ import spire.math.Rational
 import spire.std.map._
 import spire.syntax.field._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
+import scalin.immutable.dense._
+import scalin.syntax.all._
 
-import net.alasc.math.Perm
+import ComparisonOp._
 
-class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[HData[M, V]] {
+class HDataRead extends FormatRead[HData] {
 
-  type VCons = LinearConstraint[V, Rational]
-  type HPoly = HPolyhedronM[M, V, Rational]
+  type VCons = LinearConstraint[Rational]
+  type HPoly = HPolytopeM[Rational]
 
-  object Parsers extends ParsersBase with PandaDataParsers[V] with NamedExprParsers {
-    implicit def alg = HDataRead.this.alg
+  object Parsers extends ParsersBase with PandaDataParsers with NamedExprParsers {
+
     /* A Panda file can be either named or unnamed.
      * 
      * Only files with variable names can have symmetry information.
@@ -31,21 +31,21 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
      */
 
     def vecEquality: Parser[VCons] = rep(rational) ^^ { seq =>
-      LinearEquality(VecBuilder[V, Rational].build(seq.init:_*), -seq.last)
+      LinearEquality(vec(seq.init:_*), -seq.last)
     }
 
     def vecEquality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => LinearEquality(VecBuilder[V, Rational].build(lhs: _*), -minusRhs)
+        case lhs ~ minusRhs => LinearEquality(vec(lhs: _*), -minusRhs)
       }
 
     def vecInequality: Parser[VCons] = rep(rational) ^^ { seq =>
-      LinearInequalityLE(VecBuilder[V, Rational].build(seq.init:_*), -seq.last)
+      LinearInequality(vec(seq.init:_*), LE, -seq.last)
     }
 
     def vecInequality(dim: Int): Parser[VCons] =
       (repN(dim, rational) ~ rational) ^^ {
-        case lhs ~ minusRhs => LinearInequalityLE(VecBuilder[V, Rational].build(lhs: _*), -minusRhs)
+        case lhs ~ minusRhs => LinearInequality(vec(lhs: _*), LE, -minusRhs)
       }
 
     def equalitiesHeading = "Equations:"
@@ -62,9 +62,11 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
         rep(lineEndings ~> vecEquality(first.lhs.length)) ^^ { rest =>
           require(first.op == EQ)
           require(rest.forall(_.op == EQ))
-          val mAeq = MatBuilder[M, Rational].fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
-          val vbeq = VecBuilder[V, Rational].build(first.rhs +: rest.map(_.rhs): _*)
-          (HPolyhedronM.fromEqualities(mAeq, vbeq), None)
+          val mAeq = IMat.tabulate(rest.size + 1, first.lhs.length) { (r, c) =>
+            if (r == 0) first.lhs(c) else rest(r - 1).lhs(c)
+          }
+          val vbeq = vec(first.rhs +: rest.map(_.rhs): _*)
+          (HPolytopeM.fromEqualities(mAeq, vbeq), None)
         }
       }
 
@@ -73,25 +75,27 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
         rep(lineEndings ~> vecInequality(first.lhs.length)) ^^ { rest =>
           require(first.op == LE)
           require(rest.forall(_.op == LE))
-          val mA = MatBuilder[M, Rational].fromRows(first.lhs.length, first.lhs +: rest.map(_.lhs): _*)
-          val vb = VecBuilder[V, Rational].build(first.rhs +: rest.map(_.rhs): _*)
-          (HPolyhedronM.fromInequalities(mA, vb), None)
+          val mA = IMat.tabulate(rest.size + 1, first.lhs.length) { (r, c) =>
+            if (r == 0) first.lhs(c) else rest(r - 1).lhs(c)
+          }
+          val vb = vec(first.rhs +: rest.map(_.rhs): _*)
+          (HPolytopeM.fromInequalities(mA, vb), None)
         }
       }
 
     def hUnnamedHeader: Parser[Header] = unnamedHeader ^^ { dim =>
-      (HPolyhedronM.empty[M, V, Rational](dim), None)
+      (HPolytopeM.empty(dim), None)
     }
 
     def hNamedHeader: Parser[Header] = namedHeader ^^ { seq =>
-      (HPolyhedronM.empty(seq.size), Some(seq))
+      (HPolytopeM.empty(seq.size), Some(seq))
     }
 
     def hHeader: Parser[Header] = hNamedHeader | hUnnamedHeader | firstEqualitiesSection | firstInequalitiesSection
 
     // Support for named expressions
 
-    def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("=" ^^^ EQ) | (">=" ^^^ GE)
+    def operator: Parser[ComparisonOp] = ("<=" ^^^ LE) | ("=" ^^^ EQ) | (">=" ^^^ GE)
 
     def namedConstraint(names: Seq[String]): Parser[VCons] = expr ~ operator ~ expr into {
       case lhs ~ op ~ rhs =>
@@ -99,7 +103,7 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
         val newRhs = rhs.getOrElse("", Rational.zero) + lhs.getOrElse("", Rational.zero)
         newLhs.keys.find(!names.contains(_)) match {
           case Some(key) => failure(s"Variable $key is not present in names")
-          case None => success(LinearConstraint(VecBuilder[V, Rational].tabulate(names.size)(k => newLhs.getOrElse(names(k), Rational.zero)), op, newRhs))
+          case None => success(LinearConstraint(IVec.tabulate(names.size)(k => newLhs.getOrElse(names(k), Rational.zero)), op, newRhs))
         }
     }
 
@@ -119,28 +123,29 @@ class HDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRe
 
     def portaConstraints(dim: Int, namesOption: Option[Seq[String]]): Parser[Seq[VCons]] = (portaConstraintsHeading ~ lineEndings) ~> repsep(inequalityConstraint(dim, namesOption), lineEndings)
 
-    def constraintsPolyhedron(dim: Int, namesOption: Option[Seq[String]]): Parser[HPoly] = (equalityConstraints(dim, namesOption) | inequalityConstraints(dim, namesOption) | portaConstraints(dim, namesOption)) ^^ { seq =>
-      HPolyhedronM.fromLinearConstraints(dim, seq)
+    def constraintsPolytope(dim: Int, namesOption: Option[Seq[String]]): Parser[HPoly] = (equalityConstraints(dim, namesOption) | inequalityConstraints(dim, namesOption) | portaConstraints(dim, namesOption)) ^^ { seq =>
+      HPolytopeM.fromLinearConstraints(dim, seq)
     }
 
-    type Section = Either[Maps[M, V], HPoly]
+    type Section = Either[Maps, HPoly]
 
     def constraintsSection(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] =
-      constraintsPolyhedron(dim, namesOption) ^^ { poly => Right(poly) }
+      constraintsPolytope(dim, namesOption) ^^ { poly => Right(poly) }
 
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = constraintsSection(dim, namesOption) | mapsSection(namesOption)
 
     def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps[M, V], HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, hpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
-      val hpoly = HPolyhedronM.intersection((HPolyhedronM.empty[M, V, Rational](dim) +: hpolys): _*)
+      val hpoly = HPolytopeM.intersection((HPolytopeM.empty[M, V, Rational](dim) +: hpolys): _*)
       (maps, hpoly)
     }
 
     def data = phrase((hHeader <~ sectionEnd) into {
       case (hpoly, namesOption) => sections(hpoly.nX, namesOption) ^^ {
-        case (maps, newHpoly) => HData(HPolyhedronM.intersection(hpoly, newHpoly), namesOption, maps)
+        case (maps, newHpoly) => HData(HPolytopeM.intersection(hpoly, newHpoly), namesOption, maps)
       }
     })
   }
+
 }

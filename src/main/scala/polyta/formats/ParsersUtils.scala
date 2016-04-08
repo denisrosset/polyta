@@ -5,6 +5,7 @@ package formats
 import scala.util.parsing.combinator._
 
 trait ParsersUtils extends Parsers {
+
   def reportException[T](value: => T): Parser[T] = scala.util.Try(value) match {
     case scala.util.Success(t) => success(t)
     case scala.util.Failure(ex) => failure(ex.toString)
@@ -21,4 +22,5 @@ trait ParsersUtils extends Parsers {
 
   def oneOptionOutOf[T](aOption: Option[T], bOption: Option[T], failureMessage: String = "An element is defined twice"): Parser[Option[T]] =
     optionMerge[T](aOption, bOption, (a, b) => failure(failureMessage))
+
 }

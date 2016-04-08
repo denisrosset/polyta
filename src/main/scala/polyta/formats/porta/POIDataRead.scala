@@ -16,47 +16,44 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.immutable.dense._
+import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
+import scalin.syntax.all._
 
-trait POIDataRead[M, V] extends FormatRead[POIData[M, V]] { self =>
-  implicit def alg: AlgMVF[M, V, Rational]
+final class POIDataRead extends FormatRead[POIData] { self =>
 
-  type VPoly = VPolyhedronM[M, V, Rational]
+  object Parsers extends ParsersBase with PortaDataParsers {
 
-  object Parsers extends ParsersBase with PortaDataParsers[V] {
-    implicit def alg = POIDataRead.this.alg
-
-    def matrix(nCols: Int): Parser[M] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>
-      MatBuilder[M, Rational].tabulate(rows.size, nCols)( (r, c) => rows(r)(c))
+    def matrix(nCols: Int): Parser[IMat[Rational]] = repsep(opt(lineNumber) ~> rowVector(nCols), lineEndings) ^^ { rows =>
+      IMat.tabulate(rows.size, nCols)( (r, c) => rows(r)(c))
     }
 
-    def coneSection(d: Int): Parser[VPoly] =
+    def coneSection(d: Int): Parser[VPolytopeM[Rational]] =
       (("CONE_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolyhedronM.fromRays[M, V, Rational](m.t)
+        VPolytopeM.fromRays[Rational](m.t) // TODO: use polytope type without symmetry
       }
 
-    def convSection(d: Int): Parser[VPoly] =
+    def convSection(d: Int): Parser[VPolytopeM[Rational]] =
       (("CONV_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolyhedronM.fromVertices[M, V, Rational](m.t)
+        VPolytopeM.fromVertices[Rational](m.t) // TODO: use polytope type without symmetry
       }
 
-    def polyhedronSection(d: Int): Parser[VPoly] = coneSection(d) | convSection(d)
+    def polytopeSection(d: Int): Parser[VPolytopeM[Rational]] = coneSection(d) | convSection(d)
 
-    def polyhedron(d: Int): Parser[VPoly] = rep(polyhedronSection(d) <~ lineEndings) ^^ { seq =>
+    def polytope(d: Int): Parser[VPolytopeM[Rational]] = rep(polytopeSection(d) <~ lineEndings) ^^ { seq =>
       (seq.head /: seq.tail) {
         (p1, p2) =>
-        VPolyhedronM.apply[M, V, Rational](
-          horzcat(p1.mV, p2.mV),
-          horzcat(p1.mR, p2.mR)
+        VPolytopeM(
+          colMat(p1.mV, p2.mV).flatten,
+          colMat(p1.mR, p2.mR).flatten
         )
       }
     }
 
-    def data: Parser[POIData[M, V]] = (dimSection <~ lineEndings) into { d =>
-      polyhedron(d) <~ end ^^ { polyhedron => POIData(polyhedron) }
+    def data: Parser[POIData] = (dimSection <~ lineEndings) into { d =>
+      polytope(d) <~ end ^^ { polytope => POIData(polytope) }
     }
+
   }
+
 }

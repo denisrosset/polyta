@@ -9,13 +9,7 @@ import org.scalacheck._
 
 import spire.math.Rational
 
-import qalg.algebra._
-import qalg.math._
-
 class SympolRead extends FunSuite {
-  import Matrix.packs._
-  implicit val pack = PackFI[Rational]
-  import pack._
 
   val path = "/com/faacets/polyta/formats/sympol/"
   val resources = ResourceListing.list(getClass, "." + path)
@@ -29,25 +23,25 @@ class SympolRead extends FunSuite {
   }
 
   test("All .ine files can be parsed") {
-    val formatRead = IneData.FormatRead[V]
+    import IneData.FormatRead
     ineFilenames.foreach { filename =>
-      val res = formatRead.parse(getReader(filename))
+      val res = FormatRead.parse(getReader(filename))
       res.get
     }
   }
 
   test("All .ext files can be parsed") {
-    val formatRead = ExtData.FormatRead[V]
+    import ExtData.FormatRead
     extFilenames.foreach { filename =>
-      val res = formatRead.parse(getReader(filename))
+      val res = FormatRead.parse(getReader(filename))
       res.get
     }    
   }
 
   test("All .auto files can be parsed") {
-    val formatRead = SymmetryInfo.FormatRead
+    import SymmetryInfo.FormatRead
     autoFilenames.foreach { filename =>
-      val res = formatRead.parse(getReader(filename))
+      val res = FormatRead.parse(getReader(filename))
       res.get
     }
   }

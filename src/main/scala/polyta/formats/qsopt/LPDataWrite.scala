@@ -16,11 +16,10 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import SolverStatus._
+import Direction._
 
-class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends FormatWrite[LPData[V]] {
+class LPDataWrite extends FormatWrite[LPData] {
 
   def ident = "    "
 
@@ -31,7 +30,7 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
     out.write("\n")
   }
 
-  def writeObjective(objective: LPObjective[V], variableNames: Seq[String], out: Writer): Unit  = {
+  def writeObjective(objective: LPObjective, variableNames: Seq[String], out: Writer): Unit  = {
     val firstLine = objective.direction match {
       case Max => out.write("Maximize\n")
       case Min => out.write("Minimize\n")
@@ -39,15 +38,15 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
     out.write(ident)
     out.write(objective.name)
     out.write(":")
-    Format.writeVector[V, Rational](objective.f, variableNames, out)
+    Format.writeVector[Rational](objective.f, variableNames, out)
     out.write("\n")
   }
 
-  def writeConstraint(name: String, constraint: LinearConstraint[V, Rational], variableNames: Seq[String], out: Writer): Unit = {
+  def writeConstraint(name: String, constraint: LinearConstraint[Rational], variableNames: Seq[String], out: Writer): Unit = {
     out.write(ident)
     out.write(name)
     out.write(":")
-    Format.writeVector[V, Rational](constraint.lhs, variableNames, out)
+    Format.writeVector[Rational](constraint.lhs, variableNames, out)
     out.write(" ")
     out.write(constraint.op.toString)
     out.write(" ")
@@ -55,7 +54,7 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
     out.write("\n")
   }
 
-  def writeConstraints(constraints: Seq[LPConstraint[V]], variableNames: Seq[String], out: Writer): Unit = {
+  def writeConstraints(constraints: Seq[LPConstraint], variableNames: Seq[String], out: Writer): Unit = {
     out.write("Subject\n")
     constraints.foreach { c =>
       writeConstraint(c.name, c.constraint, variableNames, out)
@@ -76,11 +75,12 @@ class LPDataWrite[V](implicit val pack: PackField.ForV[V, Rational]) extends For
 
   def writeEnd(out: Writer) = out.write("End\n")
 
-  def write(data: LPData[V], out: Writer): Unit = {
+  def write(data: LPData, out: Writer): Unit = {
     writeProblem(data.problemName, out)
     writeObjective(data.objective, data.variableNames, out)
     writeConstraints(data.constraints, data.variableNames, out)
     writeIntegerVariables(data.integerVariables, data.variableNames, out)
     writeEnd(out)
   }
+
 }

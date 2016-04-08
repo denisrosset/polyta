@@ -120,4 +120,5 @@ object Format {
     val constant = constantOpt.getOrElseFast(Field[A].zero)
     writeTerm(constant, "", first, out, withSpaces, skipZero = !first)
   }
+
 }

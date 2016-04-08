@@ -5,33 +5,32 @@ package sympol
 
 import spire.math.Rational
 
-import qalg.algebra._
-import qalg.algos._
-
-import net.alasc.math.Perm
+import net.alasc.perms.Perm
 import net.alasc.syntax.all._
 
-case class IneData[V](
-  polytope: HPolytope[V, Rational],
+case class IneData(
+  polytope: HPolytopeM[Rational], // TODO: use polytope without symmetry info
   equalityRows: Set[Int],
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object IneData {
-  def fromPolytope[V](polytope: HPolytope[V, Rational]): IneData[V] = {
+
+  def fromPolytope(polytope: HPolytopeM[Rational]): IneData = {
     val equalityRows = (polytope.facets.size until (polytope.facets.size + polytope.equalities.size)).toSet
     IneData(polytope, equalityRows)
   }
 
-  def fromSymPolytope[V, G](polytope: HPolytopeCombSym[_, V, Rational, G]): IneData[V] = {
+  def fromSymPolytope(polytope: HPolytopeM[Rational]): IneData = {
     val equalityRows = (polytope.facets.size until (polytope.facets.size + polytope.equalities.size)).toSet
     val generators = polytope.symGroup.generators.toSeq
-    implicit def action = polytope.facetIndexAction
     val permutations = generators.map(_.to[Perm])
     val order = polytope.symGroup.order
     val symInfo = SymmetryInfo(false, Some(order), permutations, Seq.empty[Int])
     IneData(polytope, equalityRows, Some(symInfo))
   }
 
-  implicit def FormatRead[V](implicit pack: PackField.ForV[V, Rational]): FormatRead[IneData[V]] = new IneDataRead[V]
-  implicit def FormatWrite[V](implicit pack: PackField.ForV[V, Rational]): FormatWrite[IneData[V]] = new IneDataWrite[V]
+  implicit val FormatRead: FormatRead[IneData] = new IneDataRead
+
+  implicit val FormatWrite: FormatWrite[IneData] = new IneDataWrite
+
 }

@@ -9,12 +9,7 @@ import org.scalacheck._
 
 import spire.math.Rational
 
-import qalg.algebra._
-import qalg.math._
-
 class PortaRead extends FunSuite {
-  implicit val pack = DenseM.rationalImmutableAlg
-  import pack._
 
   val path = "/com/faacets/polyta/formats/porta/"
   val resources = ResourceListing.list(getClass, "." + path)
@@ -27,18 +22,18 @@ class PortaRead extends FunSuite {
   }
 
   test("All .poi files can be parsed") {
-    val formatRead = POIData.FormatRead[M, V]
+    import POIData.FormatRead
     poiFiles.foreach { filename =>
       val reader = getReader(filename)
-      formatRead.parse(reader).get
+      FormatRead.parse(reader).get
     }
   }
 
   test("All .ieq files can be parsed") {
-    val formatRead = IEQData.FormatRead[M, V]
+    import IEQData.FormatRead
     ieqFiles.foreach { filename =>
       val reader = getReader(filename)
-      formatRead.parse(reader).get
+      FormatRead.parse(reader).get
     }
   }
 }

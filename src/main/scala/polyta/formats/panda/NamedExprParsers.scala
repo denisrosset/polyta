@@ -9,13 +9,9 @@ import spire.math.Rational
 import spire.std.map._
 import spire.syntax.field._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import net.alasc.perms.Perm
 
-import net.alasc.math.Perm
-
-trait NamedExprParsers extends PandaDataParsersBase {
+trait NamedExprParsers extends PandaDataParsers with RationalParsers {
 
   def onlyVariable: Parser[(String, Rational)] = variable ^^ { str => (str, Rational.one) }
 
@@ -43,4 +39,5 @@ trait NamedExprParsers extends PandaDataParsersBase {
       case (map, (v, r)) => Map(v -> r) + map
     }
   }
+
 }

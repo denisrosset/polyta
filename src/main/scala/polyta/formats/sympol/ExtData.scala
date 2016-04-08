@@ -5,24 +5,22 @@ package sympol
 
 import spire.math.Rational
 
-import net.alasc.math.Perm
+import net.alasc.perms.Perm
 import net.alasc.syntax.all._
 
-import qalg.algebra._
-import qalg.algos._
-
-case class ExtData[V](
-  polytope: VPolytope[V, Rational],
+case class ExtData(
+  polytope: VPolytopeM[Rational], // TODO: use polytope without symmetry info
   rayRows: Set[Int],
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object ExtData {
-  def fromPolytope[V](polytope: VPolytope[V, Rational]): ExtData[V] = {
+  def fromPolytope(polytope: VPolytopeM[Rational]): ExtData = {
     val rayCols = (polytope.vertices.size until (polytope.vertices.size + polytope.rays.size)).toSet
     ExtData(polytope, rayCols)
   }
 
-  def fromSymPolytope[V, G](polytope: VPolytopeCombSym[_, V, Rational, G]): ExtData[V] = {
+  /*
+  def fromSymPolytope(polytope: VPolytopeM[Rational]): ExtData = { // TODO: support rays
     require(polytope.rays.isEmpty)
     val generators = polytope.symGroup.generators.toSeq
     implicit def action = polytope.vertexIndexAction
@@ -30,8 +28,8 @@ object ExtData {
     val order = polytope.symGroup.order
     val symInfo = SymmetryInfo(false, Some(order), permutations, Seq.empty[Int])
     ExtData(polytope, Set.empty[Int], Some(symInfo))
-  }
+  }*/
 
-  implicit def FormatRead[V](implicit pack: PackField.ForV[V, Rational]): FormatRead[ExtData[V]] = new ExtDataRead[V]
-  implicit def FormatWrite[V](implicit pack: PackField.ForV[V, Rational]): FormatWrite[ExtData[V]] = new ExtDataWrite[V]
+  implicit val FormatRead: FormatRead[ExtData] = new ExtDataRead
+  implicit val FormatWrite: FormatWrite[ExtData] = new ExtDataWrite
 }

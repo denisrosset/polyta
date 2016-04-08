@@ -16,14 +16,12 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
-import solvers._
+import SolverStatus._
 
 class SolDataRead extends FormatRead[SolData] {
+
   object Parsers extends ParsersBase with AgnosticLineEndingParsers with RationalParsers {
+
     override val skipWhitespace = true
     override val whiteSpace = """([ \t])+""".r
 
@@ -54,5 +52,7 @@ class SolDataRead extends FormatRead[SolData] {
       }
       case status => success(SolData(status))
     }
+
   }
+
 }

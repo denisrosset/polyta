@@ -30,8 +30,6 @@ final class SingleFacet[V, @sp(Double, Long) A](val inequality: LinearInequality
   */
 trait HPolytope[A] extends Polytope[A] { lhs =>
 
-  type G
-
   /** Facet type for this polytope type. */
   type Facet <: HPolytope.Facet.ForG[A, G] { type F = Facet }
 
@@ -42,20 +40,20 @@ trait HPolytope[A] extends Polytope[A] { lhs =>
   def facets: Seq[Facet]
 
   /** All facet representatives. */
-  def allFacets: Seq[Facet] = facets.flatMap(_.representatives)
+  def allFacets: Iterable[Facet]
 
   /** Equality constraints. */
-  def equalities: Seq[Equality]
+  def equalities: Iterable[Equality]
 
   override def toString = (facets.map(_.toString) ++ equalities.map(_.toString)).mkString("\n")
 
   /** Action of the symmetry group on facets. */
   implicit def action: Action[Facet, G]
 
-  def symmetriesDiscarded: HPolytope[A] = {
+/*  def symmetriesDiscarded: HPolytope[A] = {
     val allInequalities: Seq[LinearInequality[A]] = allFacets.map(_.inequality)
     HPolytope(dim, allInequalities, equalities)
-  }
+  }*/
 
 //  def rayOn(facets: Iterable[Facet], satisfying: Facet)
 /*  def vertexOn(onFacets: Seq[Facet]): V = {
@@ -92,21 +90,6 @@ object HPolytope {
 
   object Facet {
     type ForG[A, G0] = Facet[A] { type G = G0 }
-  }
-
-  def apply[A](mA: Mat[A], vb: Vec[A], mAeq: Mat[A], vbeq: Vec[A])(implicit A: LinAlg[A]): HPolytopeCombSym[A] = HPolytopeCombSym(mA, vb, mAeq, vbeq, Grp.trivial[Perm])
-
-  def apply[A](dim: Int, facets: Seq[LinearInequality[A]], equalities: Seq[LinearEquality[A]])(implicit A: LinAlg[A]): HPolytopeCombSym[A] = {
-    import A.{fieldA, IMat, IVec}
-    import ComparisonOp._
-
-    val mA = IMat.tabulate(facets.size, dim) { (r, c) =>
-      if (facets(r).op == LE) facets(r).lhs(c) else -facets(r).lhs(c)
-    }
-    val vb = IVec.tabulate(facets.size)( i => if (facets(i).op == LE) facets(i).rhs else -facets(i).rhs )
-    val mAeq = IMat.tabulate(equalities.size, dim)( (r, c) => equalities(r).lhs(c) )
-    val vbeq = IVec.tabulate(equalities.size)( i => equalities(i).rhs )
-    apply(mA, vb, mAeq, vbeq)
   }
 
 }

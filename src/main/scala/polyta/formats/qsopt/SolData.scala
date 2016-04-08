@@ -16,12 +16,6 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
-import solvers._
-
 case class SolData(
   status: SolverStatus[String],
   optimalValue: Option[Rational] = None,
@@ -31,5 +25,7 @@ case class SolData(
   slack: Map[String, Rational] = Map.empty[String, Rational])
 
 object SolData {
+
   implicit object FormatRead extends SolDataRead
+
 }

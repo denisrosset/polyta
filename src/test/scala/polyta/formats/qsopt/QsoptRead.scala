@@ -9,13 +9,7 @@ import org.scalacheck._
 
 import spire.math.Rational
 
-import qalg.algebra._
-import qalg.math._
-
 class QsoptRead extends FunSuite {
-  import Matrix.packs._
-  implicit val pack = PackFI[Rational]
-  import pack._
 
   val path = "/com/faacets/polyta/formats/qsopt/"
   val resources = ResourceListing.list(getClass, "." + path)
@@ -33,4 +27,5 @@ class QsoptRead extends FunSuite {
       res.get
     }
   }
+
 }

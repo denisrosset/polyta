@@ -16,21 +16,22 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import scalin.{Mat, Vec}
 
-// case classes are not specialized yet, due to a bug
-case class LPObjective[V](name: String, direction: Direction, f: V)
-case class LPConstraint[V](name: String, constraint: LinearConstraint[V, Rational])
-case class LPData[V](
+case class LPObjective(name: String, direction: Direction, f: Vec[Rational])
+
+case class LPConstraint(name: String, constraint: LinearConstraint[Rational])
+
+case class LPData(
   val problemName: String,
   val variableNames: Seq[String],
-  val objective: LPObjective[V],
-  val constraints: Seq[LPConstraint[V]],
+  val objective: LPObjective,
+  val constraints: Seq[LPConstraint],
   val integerVariables: Set[Int]
 )
 
 object LPData {
-  implicit def FormatWrite[V](implicit pack: PackField.ForV[V, Rational]): FormatWrite[LPData[V]] = new LPDataWrite[V]
+
+  implicit val FormatWrite: FormatWrite[LPData] = new LPDataWrite
+
 }

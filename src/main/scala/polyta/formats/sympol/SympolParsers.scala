@@ -10,12 +10,12 @@ import spire.math.Rational
 import spire.syntax.action._
 import spire.syntax.group._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
-
-import net.alasc.math.{Cycle, Cycles, Perm}
+import net.alasc.perms.{Cycle, Cycles, Perm}
 import net.alasc.syntax.all._
+
+import scalin.Vec
+import scalin.immutable.dense._
+import scalin.syntax.all._
 
 trait SympolParsers extends RationalParsers with AgnosticLineEndingParsers with ParsersUtils {
 
@@ -53,10 +53,6 @@ trait SympolParsers extends RationalParsers with AgnosticLineEndingParsers with 
     ("permutation group" ~ lineEnding) ~> orderAndComment(upToSymmetry) ~ generators ~ base ^^ {
       case o ~ g ~ b => SymmetryInfo(upToSymmetry, o, g, b)
     }
-}
-
-trait SympolParsersV[V] extends SympolParsers {
-  implicit def pack: PackField.ForV[V, Rational]
 
   def upToSymLE: Parser[Boolean] =
     opt("* UP TO SYMMETRY" ~ lineEnding) ^^ {
@@ -75,7 +71,8 @@ trait SympolParsersV[V] extends SympolParsers {
       case m ~ d => (m, d)
     }
 
-  def rowVector(nC: Int): Parser[V] = repN(nC, rational) ^^ { cols => VecBuild[V, Rational].build(cols: _*) }
+  def rowVector(nC: Int): Parser[Vec[Rational]] = repN(nC, rational) ^^ { cols => vec(cols: _*) }
 
   def HVHeader = "V-representation" | "H-representation"
+
 }

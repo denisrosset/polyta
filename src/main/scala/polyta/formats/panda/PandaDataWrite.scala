@@ -8,12 +8,8 @@ import java.io.{Reader, Writer}
 import spire.math.Rational
 import spire.syntax.action._
 
-import qalg.algebra._
-import qalg.algos._
-
-import net.alasc.math.Perm
-
 trait PandaDataWrite extends Any {
+
   def writeDim(dim: Int, out: Writer): Unit = {
     out.write("DIM=")
     out.write(dim.toString)
@@ -26,12 +22,13 @@ trait PandaDataWrite extends Any {
     out.write("\n")
   }
 
-  def writeMaps[M, V](maps: Seq[AffineTransform[M, V, Rational]], names: Seq[String], out: Writer)(implicit alg: AlgMVF[M, V, Rational]): Unit = {
-    val afw = new AffineTransformWrite[M, V](names)
+  def writeMaps(maps: Seq[AffineTransform[Rational]], names: Seq[String], out: Writer): Unit = {
     out.write("Maps:\n")
+    val afp = new AffineTransformWrite(names)
     maps.foreach { affineTransform =>
-      afw.write(affineTransform, out)
+      afp.write(affineTransform, out)
       out.write("\n")
     }
   }
+
 }

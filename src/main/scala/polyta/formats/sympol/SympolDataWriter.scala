@@ -19,20 +19,14 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
-
-import net.alasc.math._
+import net.alasc.perms.{Cycles, Perm}
 import net.alasc.std.seq._
 import net.alasc.syntax.all._
 
 trait SympolDataWrite extends Any {
 
   def writePermutation1(perm: Perm, out: Writer): Unit = {
-    val cycles = (perm + 1).to[Cycles]
-    val elements = cycles.seq.map(_.seq.mkString(" "))
+    val elements = perm.to[Cycles].seq.map(_.seq.map(_ + 1).mkString(" "))
     out.write(elements.mkString(","))
   }
 

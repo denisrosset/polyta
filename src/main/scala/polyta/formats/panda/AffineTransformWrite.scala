@@ -16,17 +16,12 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.Vec
+import scalin.immutable.dense._
 
-import net.alasc.math._
-import net.alasc.syntax.all._
+class AffineTransformWrite(val variableNames: Seq[String]) extends FormatWrite[AffineTransform[Rational]] {
 
-class AffineTransformWrite[M, V](val variableNames: Seq[String])(implicit val alg: AlgMVF[M, V, Rational]) extends FormatWrite[AffineTransform[M, V, Rational]] {
-
-  def writeImage(v: V, constant: Rational, out: Writer): Unit = {
+  def writeImage(v: Vec[Rational], constant: Rational, out: Writer): Unit = {
     Format.writeVector(v, variableNames, out, constantOpt = Opt(constant), withSpaces = false)
     if (constant != 0) {
       if (constant > 0)
@@ -35,12 +30,13 @@ class AffineTransformWrite[M, V](val variableNames: Seq[String])(implicit val al
     }
   }
 
-  def write(data: AffineTransform[M, V, Rational], out: Writer): Unit = {
+  def write(data: AffineTransform[Rational], out: Writer): Unit = {
     var space = ""
-    cforRange(0 until data.nX) { r =>
+    cforRange(0 until data.dim) { r =>
       out.write(space)
       writeImage(data.mA(r, ::), data.vb(r), out)
       space = " "
     }
   }
+
 }

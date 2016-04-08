@@ -18,6 +18,18 @@ sealed trait LinearConstraint[A] {
   def rhs: A
 }
 
+object LinearConstraint {
+
+  def apply[A](lhs: Vec[A], op: ComparisonOp, rhs: A) = op match {
+    case EQ => LinearEquality[A](lhs, rhs)
+    case iop: InequalityOp => LinearInequality[A](lhs, iop, rhs)
+  }
+
+  def unapply[A](lc: LinearConstraint[A]): Option[(Vec[A], ComparisonOp, A)] =
+    Some((lc.lhs, lc.op, lc.rhs))
+
+}
+
 case class LinearEquality[A](lhs: Vec[A], rhs: A) extends LinearConstraint[A] {
   def op = EQ
 }

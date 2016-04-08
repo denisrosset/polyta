@@ -17,15 +17,16 @@ import spire.syntax.cfor._
 import spire.util._
 
 import scalin.{Mat, Vec}
+import scalin.immutable.dense._
+import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
 
-trait PortaDataParsers[V] extends RationalParsers with AgnosticLineEndingParsers {
-  implicit def Q: LinAlg[Rational]
+trait PortaDataParsers extends RationalParsers with AgnosticLineEndingParsers {
 
   override val whiteSpace = """([ \t])+""".r
 
   def dimSection: Parser[Int] = ("DIM" ~ "=") ~> positiveInt
 
-  def rowVector(d: Int): Parser[Vec[Rational]] = repN(d, rational) ^^ { Q.IVec.fromSeq(_) }
+  def rowVector(d: Int): Parser[Vec[Rational]] = repN(d, rational) ^^ { seq => IVec.tabulate(seq.size)(seq(_)) }
 
   def lineNumber = "(" ~ nonNegativeInt ~ ")"
 

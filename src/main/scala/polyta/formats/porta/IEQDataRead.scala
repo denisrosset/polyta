@@ -16,84 +16,78 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.immutable.dense._
+import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
+import scalin.syntax.all._
 
-final class IEQDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatRead[IEQData[M, V]] {
+import ComparisonOp._
 
-  object Parsers extends ParsersBase with PortaDataParsers[V] with ParsersUtils {
-    implicit def alg = IEQDataRead.this.alg
+final class IEQDataRead extends FormatRead[IEQData] {
+
+  object Parsers extends ParsersBase with PortaDataParsers with ParsersUtils {
 
     def variable: Parser[Int] = ("x" ~> positiveInt).map(_ - 1)
 
-    def symbolicVector(d: Int): Parser[V] =
+    def symbolicVector(d: Int): Parser[IVec[Rational]] =
       rationalCoefficientSignOptional ~ variable ~ rep(signedRationalCoefficient ~ variable) ^^ {
         case coeff0 ~ xInd0 ~ seq =>
           val varMap: Map[Int, Rational] = (Map(xInd0 -> coeff0) /: seq) {
             case (m, (coeff ~ xInd)) => m + (xInd -> (m.getOrElse(xInd, Rational.zero) + coeff))
           }
-          VecBuilder[V, Rational].tabulate(d)( k => varMap.getOrElse(k, Rational.zero) )
+          IVec.tabulate(d)( k => varMap.getOrElse(k, Rational.zero) )
       }
 
-    def operator: Parser[ComparisonOperator] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
+    def operator: Parser[ComparisonOp] = ("<=" ^^^ LE) | ("==" ^^^ EQ) | (">=" ^^^ GE)
 
-    def constraint(d: Int): Parser[LinearConstraint[V, Rational]] =
+    def constraint(d: Int): Parser[LinearConstraint[Rational]] =
       opt(lineNumber) ~> (symbolicVector(d) ~ operator ~ rational) ^^ {
         case lhs ~ op ~ rhs => LinearConstraint(lhs, op, rhs)
       }
 
-    def constraintSection(d: Int): Parser[IEQData[M, V]] =
+    def constraintSection(d: Int): Parser[IEQData] =
       (("INEQUALITIES_SECTION" ~ lineEndings) ~> repsep(constraint(d), lineEndings)) ^^ {
         constraints =>
         val eqs = constraints.collect {
-          case lc: LinearEquality[V, Rational] => lc
+          case lc: LinearEquality[Rational] => lc
         }
         val ineqs = constraints.collect {
-          case lc: LinearInequality[V, Rational] => lc
+          case lc: LinearInequality[Rational] => lc
         }
-        val ineqRows = ineqs.map {
-          case LinearInequalityLE(vec, _) => vec
-          case LinearInequalityGE(vec, _) => -vec
-        }
-        val mA = MatBuilder[M, Rational].fromRows(d, ineqRows: _*)
-        val vb = VecBuilder[V, Rational].build(ineqs.map {
-          case LinearInequalityLE(_, r) => r
-          case LinearInequalityGE(_, r) => -r
-        }: _*)
-        val eqRows = eqs.map(_.lhs)
-        val mAeq = MatBuilder[M, Rational].fromRows(d, eqRows: _*)
-        val vbeq = VecBuilder[V, Rational].build(eqs.map(_.rhs): _*)
-        IEQData(polyhedron = HPolyhedronM(mA, vb, mAeq, vbeq))
+        val mA = IMat.tabulate(ineqs.size, d)( (r, c) =>
+          if (ineqs(r).op == LE) ineqs(r).lhs(c) else -ineqs(r).lhs(c)
+        )
+        val vb = IVec.tabulate(ineqs.size)( i => if (ineqs(i).op == LE) ineqs(i).rhs else -ineqs(i).rhs )
+        val mAeq = IMat.tabulate(eqs.size, d)( (r, c) => eqs(r).lhs(c) )
+        val vbeq = IVec.tabulate(eqs.size)( i => eqs(i).rhs )
+        IEQData(polytope = HPolytopeM(mA, vb, mAeq, vbeq))
       }
 
-    def validSection(d: Int): Parser[IEQData[M, V]] =
+    def validSection(d: Int): Parser[IEQData] =
       (("VALID" ~ lineEndings) ~> rowVector(d)) ^^ {
-        v => IEQData.empty[M, V](d).copy(validPoint = Some(v))
+        v => IEQData.empty(d).copy(validPoint = Some(v))
       }
 
-    def lowerBoundSection(d: Int): Parser[IEQData[M, V]] =
+    def lowerBoundSection(d: Int): Parser[IEQData] =
       (("LOWER_BOUNDS" ~ lineEndings) ~> rowVector(d)) ^^ {
-        lb => IEQData.empty[M, V](d).copy(lowerBounds = Some(lb))
+        lb => IEQData.empty(d).copy(lowerBounds = Some(lb))
       }
 
-    def upperBoundSection(d: Int): Parser[IEQData[M, V]] =
+    def upperBoundSection(d: Int): Parser[IEQData] =
       (("UPPER_BOUNDS" ~ lineEndings) ~> rowVector(d)) ^^ {
-        ub => IEQData.empty[M, V](d).copy(upperBounds = Some(ub))
+        ub => IEQData.empty(d).copy(upperBounds = Some(ub))
       }
 
-    def eliminationOrderSection(d: Int): Parser[IEQData[M, V]] =
+    def eliminationOrderSection(d: Int): Parser[IEQData] =
       (("ELIMINATION_ORDER" ~ lineEndings) ~> rep(nonNegativeInt)) into { orderSeq =>
         if (orderSeq.size == d) {
           val eliminationOrder = orderSeq.zipWithIndex.filterNot(_._1 == 0).sortBy(_._1).map(_._2)
-          success(IEQData.empty[M, V](d).copy(eliminationOrder = Some(eliminationOrder)))
+          success(IEQData.empty(d).copy(eliminationOrder = Some(eliminationOrder)))
         } else failure(s"ELIMINATION_ORDER should have $d elements, but has ${orderSeq.size}")
       }
 
-    def section(d: Int): Parser[IEQData[M, V]] = constraintSection(d) | validSection(d) | lowerBoundSection(d) | upperBoundSection(d) | eliminationOrderSection(d)
+    def section(d: Int): Parser[IEQData] = constraintSection(d) | validSection(d) | lowerBoundSection(d) | upperBoundSection(d) | eliminationOrderSection(d)
 
-    def sections(d: Int): Parser[IEQData[M, V]] = rep1(section(d) <~ lineEndings) into { secs =>
+    def sections(d: Int): Parser[IEQData] = rep1(section(d) <~ lineEndings) into { secs =>
       (success(secs.head) /: secs.tail) {
         case (result, section) => result.flatMap { prevSection =>
           for {
@@ -101,12 +95,13 @@ final class IEQDataRead[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends 
             nextEliminationOrder <- oneOptionOutOf(prevSection.eliminationOrder, section.eliminationOrder)
             nextLowerBounds <- oneOptionOutOf(prevSection.lowerBounds, section.lowerBounds)
             nextUpperBounds <- oneOptionOutOf(prevSection.upperBounds, section.upperBounds)
-            nextPolyhedron = HPolyhedronM.intersection(prevSection.polyhedron, section.polyhedron)
-          } yield IEQData[M, V](nextPolyhedron, nextValidPoint, nextEliminationOrder, nextLowerBounds, nextUpperBounds)
+            nextPolytope = intersection(prevSection.polytope, section.polytope)
+          } yield IEQData(nextPolytope, nextValidPoint, nextEliminationOrder, nextLowerBounds, nextUpperBounds)
         }
       }
     }
 
-    def data: Parser[IEQData[M, V]] = (dimSection <~ lineEndings) into { d => sections(d) <~ end }
+    def data: Parser[IEQData] = (dimSection <~ lineEndings) into { d => sections(d) <~ end }
   }
+
 }

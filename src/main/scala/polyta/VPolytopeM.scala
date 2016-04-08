@@ -12,7 +12,9 @@ import spire.syntax.order._
 import spire.syntax.vectorSpace._
 import spire.util._
 
+import scalin.immutable.dense._
 import scalin.immutable.{Mat, Vec}
+import scalin.syntax.all._
 
 import net.alasc.algebra._
 import net.alasc.finite._
@@ -21,40 +23,42 @@ import net.alasc.prep.PGrp.default._
 import net.alasc.perms._
 import net.alasc.util._
 
-import VPolytope.PermPermPRepBuilder
+import PermPerm._
 
 /** V-representation polytope with (possible) combinatorial symmetry on its vertices.
   * 
-  * @param allVertexPoints            Matrix whose rows are vertices of the polytope
-  * @param allRayPoints               Matrix whose rows are rays of the polytope
+  * @param mV                         Matrix whose rows are vertices of the polytope
+  * @param mR                         Matrix whose rows are rays of the polytope
   * @param symGroup                   Symmetry group of the polytope
   * @param vertexOrbitRepresentatives Indices of the representative vertices under symmetry
   * @param rayOrbitRepresentatives    Indices of the representative rays under symmetry
   */
-final class VPolytopeCombSym[A](
-  val allVertexPoints: Mat[A],
-  val allRayPoints: Mat[A],
+final class VPolytopeM[A](
+  val mV: Mat[A],
+  val mR: Mat[A],
   val symGroup: Grp[(Perm, Perm)]
 )(
   implicit val A: LinAlg[A]
 ) extends VPolytope[A] {
 
+  require(mV.nCols == mR.nCols)
+
   type G = (Perm, Perm)
 
-  def representation = PermPermPRepBuilder.PermPermPRep(allVertexPoints.nRows, allRayPoints.nRows)
+  def dim = mV.nCols
 
-  def dim = allVertexPoints.nCols
+  def nTotalVertices = mV.nRows
+  def nTotalRays = mR.nRows
 
-  def nTotalVertices = allVertexPoints.nRows
-  def nTotalRays = allRayPoints.nRows
+  def representation = PermPermPRepBuilder.PermPermPRep(nTotalVertices, nTotalRays)
 
   def vertices = vertexOrbitRepresentatives.view.map(new Vertex(_))
 
   def rays = rayOrbitRepresentatives.view.map(new Ray(_))
 
-  override def allVertices = (0 until allVertexPoints.nRows).view.map(new Vertex(_))
+  override def allVertices = (0 until nTotalVertices).view.map(new Vertex(_))
 
-  override def allRays = (0 until allRayPoints.nRows).view.map(new Ray(_))
+  override def allRays = (0 until nTotalRays).view.map(new Ray(_))
 
   val vertexOrbitRepresentatives: Seq[Int] = {
     val vertexOrbits = Orbits.orbits(nTotalVertices, symGroup.generators.map(_._1), Perm.permutation)
@@ -69,7 +73,7 @@ final class VPolytopeCombSym[A](
   def vertexIndexSet(facet: HPolytope.Facet[A]): Set[Int] = {
     import A.{IVec, orderA}
     val ineq = facet.inequality
-    val res = allVertexPoints * ineq.lhs // vertices are sorted as rows
+    val res = mV * ineq.lhs // vertices are sorted as rows
     (0 until res.length).toSet.filter(i => res(i) === ineq.rhs)
   }
 
@@ -82,7 +86,7 @@ final class VPolytopeCombSym[A](
   final class Vertex(val index: Int) extends Element with VPolytope.Vertex[A] {
     import A.IVec
     type E = Vertex
-    def point: Vec[A] = allVertexPoints(index, ::)
+    def point: Vec[A] = mV(index, ::)
     def representatives: Iterable[Vertex] = {
       val orbit = Orbits.orbit(index, symGroup.generators.map(_._1), Perm.permutation)
       orbit.map( new Vertex(_) )
@@ -93,7 +97,7 @@ final class VPolytopeCombSym[A](
   final class Ray(val index: Int) extends Element with VPolytope.Ray[A] {
     import A.IVec
     type E = Ray
-    def point: Vec[A] = allRayPoints(index, ::)
+    def point: Vec[A] = mR(index, ::)
     def representatives: Iterable[Ray] = {
       val orbit = Orbits.orbit(index, symGroup.generators.map(_._2), Perm.permutation)
       orbit.map( new Ray(_) )
@@ -124,9 +128,40 @@ final class VPolytopeCombSym[A](
 
 }
 
-object VPolytopeCombSym {
+object VPolytopeM {
 
-  def apply[A](allVertexPoints: Mat[A], allRayPoints: Mat[A], symGroup: Grp[(Perm, Perm)] = Grp.trivial[(Perm, Perm)])(implicit A: LinAlg[A]): VPolytopeCombSym[A] =
-    new VPolytopeCombSym(allVertexPoints, allRayPoints, symGroup)
+  def apply[A](dim: Int, vertexPoints: Seq[Vec[A]], rayPoints: Seq[Vec[A]])(implicit A: LinAlg[A]): VPolytopeM[A] = {
+    import A.{fieldA, IMat, IVec}
+    val vertexM = IMat.tabulate(vertexPoints.size, dim)( (r, c) => vertexPoints(r)(c) )
+    val rayM = IMat.tabulate(rayPoints.size, dim)( (r, c) => rayPoints(r)(c) )
+    apply(vertexM, rayM)
+  }
+
+  def apply[A](allVertexPoints: Mat[A], allRayPoints: Mat[A], symGroup: Grp[(Perm, Perm)] = Grp.trivial[(Perm, Perm)])(implicit A: LinAlg[A]): VPolytopeM[A] =
+    new VPolytopeM(allVertexPoints, allRayPoints, symGroup)
+
+  def fromRays[A](allRayPoints: Mat[A], symGroup: Grp[Perm] = Grp.trivial[Perm])(implicit A: LinAlg[A]): VPolytopeM[A] = {
+    import A.IMat
+    val newGrp = Grp.fromGeneratorsAndOrder(symGroup.generators.map((Perm.id: Perm, _)), symGroup.order) // TODO: remove :Perm cast after new Alasc release
+    new VPolytopeM(zeros[A](0, allRayPoints.nCols), allRayPoints, newGrp)
+  }
+
+  def fromVertices[A](allVertexPoints: Mat[A], symGroup: Grp[Perm] = Grp.trivial[Perm])(implicit A: LinAlg[A]): VPolytopeM[A] = {
+    import A.IMat
+    val newGrp = Grp.fromGeneratorsAndOrder(symGroup.generators.map((_, Perm.id: Perm)), symGroup.order)
+    new VPolytopeM(allVertexPoints, zeros[A](0, allVertexPoints.nCols), newGrp)
+  }
+
+  object WithoutSym {
+
+    def union[A](lhs: VPolytopeM[A], rhs: VPolytopeM[A])(implicit A: LinAlg[A]): VPolytopeM[A] = {
+      import scalin.syntax.all._
+      import A.{IVec, IMat}
+      val mV = colMat[A](lhs.mV, rhs.mV).flatten
+      val mR = colMat[A](lhs.mR, rhs.mR).flatten
+      VPolytopeM(mV, mR)
+    }
+
+  }
 
 }

@@ -16,12 +16,10 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.{Mat, Vec}
+import scalin.immutable.dense._
 
-final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends FormatWrite[IEQData[M, V]] {
+final class IEQDataWrite extends FormatWrite[IEQData] {
 
   def writeDim(d: Int, out: Writer): Unit = {
     out.write("DIM = ")
@@ -29,21 +27,21 @@ final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends
     out.write("\n\n")
   }
 
-  def writeValid(valid: V, out: Writer): Unit = {
+  def writeValid(valid: Vec[Rational], out: Writer): Unit = {
     out.write("VALID\n")
-    Format.writeVectorSep[V, Rational](valid, " ", out)
+    Format.writeVectorSep[Rational](valid, " ", out)
     out.write("\n")
   }
 
-  def writeLowerBounds(lowerBounds: V, out: Writer): Unit = {
+  def writeLowerBounds(lowerBounds: Vec[Rational], out: Writer): Unit = {
     out.write("LOWER_BOUNDS\n")
-    Format.writeVectorSep[V, Rational](lowerBounds, " ", out)
+    Format.writeVectorSep[Rational](lowerBounds, " ", out)
     out.write("\n")
   }
 
-  def writeUpperBounds(upperBounds: V, out: Writer): Unit = {
+  def writeUpperBounds(upperBounds: Vec[Rational], out: Writer): Unit = {
     out.write("UPPER_BOUNDS\n")
-    Format.writeVectorSep[V, Rational](upperBounds, " ", out)
+    Format.writeVectorSep[Rational](upperBounds, " ", out)
     out.write("\n")
   }
 
@@ -59,19 +57,20 @@ final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends
     out.write("\n")
   }
 
-  def writePolyhedron(dim: Int, poly: HPolyhedronM[M, V, Rational], out: Writer): Unit = {
+  def writePolytope(dim: Int, poly: HPolytopeM[Rational], out: Writer): Unit = {
+
     out.write("INEQUALITIES_SECTION\n")
     val names = Format.x1toN(dim)
 
     poly.facets.indices.foreach { r =>
-        Format.writeVector[V, Rational](poly.mA(r, ::), names, out)
+        Format.writeVector[Rational](poly.mA(r, ::), names, out)
       out.write(" <= ")
       out.write(poly.vb(r).toString)
       out.write("\n")
     }
 
     poly.equalities.indices.foreach { r =>
-      Format.writeVector[V, Rational](poly.mAeq(r, ::), names, out)
+      Format.writeVector[Rational](poly.mAeq(r, ::), names, out)
       out.write(" == ")
       out.write(poly.vbeq(r).toString)
       out.write("\n")
@@ -83,14 +82,14 @@ final class IEQDataWrite[M, V](implicit val alg: AlgMVF[M, V, Rational]) extends
   def writeEnd(out: Writer): Unit =
     out.write("END\n")
 
-  def write(data: IEQData[M, V], out: Writer): Unit = {
-    val dim = data.polyhedron.nX
+  def write(data: IEQData, out: Writer): Unit = {
+    val dim = data.polytope.dim
     writeDim(dim, out)
     data.validPoint.foreach { writeValid(_, out) }
     data.lowerBounds.foreach { writeLowerBounds(_, out) }
     data.upperBounds.foreach { writeUpperBounds(_, out) }
     data.eliminationOrder.foreach { writeEliminationOrder(dim, _, out) }
-    writePolyhedron(dim, data.polyhedron, out)
+    writePolytope(dim, data.polytope, out)
     writeEnd(out)
   }
 }

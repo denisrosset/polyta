@@ -7,9 +7,7 @@ import spire.algebra._
 import spire.math.Rational
 import spire.syntax.group._
 
-import qalg.algebra._
-
-import net.alasc.math.Perm
+import net.alasc.perms.Perm
 import net.alasc.syntax.all._
 
 case class SymmetryInfo(

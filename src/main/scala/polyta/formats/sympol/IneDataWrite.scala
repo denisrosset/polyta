@@ -16,22 +16,19 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.math._
-import qalg.syntax.all._
+import scalin.{Mat, Vec}
+import scalin.immutable.dense._
 
-import net.alasc.math._
 import net.alasc.syntax.all._
 
-class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite[IneData[V]] with SympolDataWrite {
+class IneDataWrite extends FormatWrite[IneData] with SympolDataWrite {
 
   def writeHeader(upToSymmetry: Boolean, out: Writer): Unit = {
     out.write("H-representation\n")
     if (upToSymmetry) out.write("* UP TO SYMMETRY\n")
   }
 
-  def writePolytope(poly: HPolytope[V, Rational], equalityRows: Set[Int], out: Writer): Unit = {
+  def writePolytope(poly: HPolytopeM[Rational], equalityRows: Set[Int], out: Writer): Unit = {
     val n = poly.equalities.size + poly.allFacets.size
     require(equalityRows.size == poly.equalities.size)
     if (equalityRows.nonEmpty) {
@@ -44,7 +41,7 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
     out.write("begin\n")
     out.write(n.toString)
     out.write(" ")
-    out.write((poly.nX + 1).toString)
+    out.write((poly.dim + 1).toString)
     out.write(" rational\n")
     var ineqR = 0
     var eqR = 0
@@ -52,13 +49,13 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
       if (equalityRows.contains(r)) {
         out.write(poly.equalities(eqR).rhs.toString)
         out.write(" ")
-        Format.writeVectorSep[V, Rational](-poly.equalities(eqR).lhs, " ", out)
+        Format.writeVectorSep[Rational](-poly.equalities(eqR).lhs, " ", out)
         eqR += 1
       } else {
         val ineqGE = poly.allFacets(ineqR).inequality.toGE
         out.write((-ineqGE.rhs).toString)
         out.write(" ")
-        Format.writeVectorSep[V, Rational](ineqGE.lhs, " ", out)
+        Format.writeVectorSep[Rational](ineqGE.lhs, " ", out)
         ineqR += 1
       }
       out.write("\n")
@@ -66,9 +63,10 @@ class IneDataWrite[V](implicit val V: VecField[V, Rational]) extends FormatWrite
     out.write("end\n")
   }
 
-  def write(data: IneData[V], out: Writer): Unit = {
+  def write(data: IneData, out: Writer): Unit = {
     writeHeader(data.symmetryInfo.fold(false)(_.upToSymmetryWRTO), out)
     writePolytope(data.polytope, data.equalityRows, out)
     data.symmetryInfo.foreach { writeSymmetryInfo(_, out) }
   }
+
 }
