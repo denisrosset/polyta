@@ -20,6 +20,7 @@ import net.alasc.prep.PGrp.default._
 import net.alasc.perms.Perm
 
 import scalin.immutable.{Mat, Vec}
+import scalin.syntax.all._
 
 import PermPerm._
 
@@ -73,31 +74,22 @@ trait VPolytope[A] extends Polytope[A] { lhs =>
     VPolytopeM(dim, allVertexPoints, allRayPoints)
   }
 
-/*  def equalities: Seq[LinearEquality[V, A]] = {
+  def equalities: Seq[LinearEquality[A]] = {
+    import A.{IMat, IVec, fieldA}
     val headV = vertices.head.point
     val otherV = vertices.tail.map(_.point)
-    val basis = otherV.map(_ - headV).orthogonalComplement(nX)
-    basis.map( vec => LinearEquality(vec, vec.dot(headV)) )
-  }*/
+    val basis = IMat.tabulate(otherV.size, dim) {
+      (r, c) => otherV(r)(c) - headV(c)
+    }.orthogonalized
+    val full = (basis vertcat eye(dim)).orthogonalized
 
-  /*
-  /** TODO: what happens with rays ? */
-  def facetOn(onVertices: Seq[Vertex], satisfying: Vertex): LinearInequality[V, A] = {
-    implicit def A: Field[A] = pack.A
-    val zeroH = onVertices.head.point
-    val zeroT = onVertices.tail.map(_.point)
-    val zeroVertices = zeroT.map(_ - zeroH)
-    val nonZeroVertex = satisfying.point - zeroH
-    val lhs = nonZeroVertex.orthogonalized(zeroVertices: _*)
-    val rhs = lhs.dot(zeroH)
-    if (lhs.dot(nonZeroVertex) < rhs)
-      LinearInequality(lhs, LE,  rhs)
-    else
-      LinearInequality(-lhs, LE, -rhs)
+    (basis.nRows until full.nRows).map { r =>
+      val row = full(r, ::)
+
+      LinearEquality(row, row.dot(headV))
+    }
   }
 
-
-*/
 }
 
 

@@ -10,7 +10,7 @@ import net.alasc.finite.Grp
 /** Polytope. */
 trait Polytope[A] extends ConvexSet[A] with Attributable { lhs =>
 
-  implicit def A: LinAlg[A]
+  implicit val A: LinAlg[A]
 
   /** Type of the symmetry group elements. */
   type G

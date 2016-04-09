@@ -18,13 +18,6 @@ import net.alasc.std.unit._
 
 import scalin.immutable.{Mat, Vec}
 
-/*
-final class SingleFacet[V, @sp(Double, Long) A](val inequality: LinearInequality[V, A]) extends FacetBase[V, A] {
-  type F = SingleFacet[V, A]
-  def representatives = Iterable(this)
-}
- */
-
 /** Polytope, i.e. possibly intersection of half-spaces, a set described
   * by inequality and equality constraints.
   */
@@ -55,22 +48,19 @@ trait HPolytope[A] extends Polytope[A] { lhs =>
     HPolytope(dim, allInequalities, equalities)
   }*/
 
-//  def rayOn(facets: Iterable[Facet], satisfying: Facet)
-/*  def vertexOn(onFacets: Seq[Facet]): V = {
-    type M = pack.M
-    val M = pack.M
+  def vertexOn(onFacets: Seq[Facet]): Vec[A] = {
+    import A.{IVec, IMat, fieldA, orderA}
     val ineqSatisfied: Seq[(V, A)] = onFacets.map { facet =>
       val ineq = facet.inequality
       (ineq.lhs, ineq.rhs)
     }
-    val eqSatisfied: Seq[(V, A)] = equalities.map( eq => (eq.lhs, eq.rhs) )
+    val eqSatisfied: Seq[(Vec[A], A)] = equalities.map( eq => (eq.lhs, eq.rhs) )
     val satisfied = ineqSatisfied ++ eqSatisfied
     val newA: M = M.fromRows(nX, M.defaultOptions)(satisfied.map(_._1): _*)
     val newb: V = VecBuild[V, A].build(satisfied.map(_._2): _*)
     pack.MLU.lu(newA).solveV(newb)
   }
 
-  */
 }
 
 object HPolytope {

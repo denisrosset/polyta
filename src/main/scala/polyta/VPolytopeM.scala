@@ -76,6 +76,24 @@ final class VPolytopeM[A](
     (0 until res.length).toSet.filter(i => res(i) === ineq.rhs)
   }
 
+  /** TODO: what happens with rays ? */
+  def facetOnVertices(onVertices: Seq[Vertex], satisfying: Vertex): LinearInequality[A] = {
+    import A.{fieldA, orderA}
+    import A.{IMat, IVec}
+    val zeroH = onVertices.head.point
+    val zeroT = onVertices.tail.map(_.point)
+    val nonZeroVertex = satisfying.point - zeroH
+    val ortho = IMat.tabulate(zeroT.size + 1, dim) {
+      (r, c) => if (r < zeroT.size) zeroT(r)(c) - zeroH(c) else nonZeroVertex(c)
+    }.orthogonalized
+    val lhs = ortho(ortho.nRows - 1, ::)
+    val rhs = lhs.dot(zeroH)
+    if (lhs.dot(nonZeroVertex) < rhs)
+      LinearInequality(lhs, ComparisonOp.LE,  rhs)
+    else
+      LinearInequality(-lhs, ComparisonOp.LE, -rhs)
+  }
+
   sealed trait Element extends VPolytope.Element[A] {
 
     type G = (Perm, Perm)
