@@ -1,6 +1,7 @@
 package com.faacets
 package polyta
 package solvers
+package reference
 
 import scala.annotation.tailrec
 import scala.{specialized => sp}
@@ -16,7 +17,6 @@ sealed trait SimplexResult
 case object SimplexUnbounded extends SimplexResult
 case object SimplexOptimal extends SimplexResult
 case object SimplexError extends SimplexResult
-
 
 /** Taken from Sedgewick, Algorithms, 4th Edition code.
   * Given an M-by-N matrix A, an M-length vector b, and an
@@ -76,7 +76,7 @@ class Simplex[@sp(Double) T:Field:Order:ClassTag](val A: Array[Array[T]], val b:
     p
   }
 
-  private def pivot(p: Int, q: Int) {
+  private def pivot(p: Int, q: Int): Unit = {
     cforRange(0 to M) { i =>
       cforRange(0 to M + N) { j =>
         if (i != p && j != q) a(i)(j) -= a(p)(j) * a(i)(q) / a(p)(q)

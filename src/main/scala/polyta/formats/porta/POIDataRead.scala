@@ -30,12 +30,12 @@ final class POIDataRead extends FormatRead[POIData] { self =>
 
     def coneSection(d: Int): Parser[VPolytopeM[Rational]] =
       (("CONE_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolytopeM.fromRays[Rational](m.t) // TODO: use polytope type without symmetry
+        VPolytopeM.fromRays[Rational](m)
       }
 
     def convSection(d: Int): Parser[VPolytopeM[Rational]] =
       (("CONV_SECTION" ~ lineEndings) ~> matrix(d)).map { m =>
-        VPolytopeM.fromVertices[Rational](m.t) // TODO: use polytope type without symmetry
+        VPolytopeM.fromVertices[Rational](m)
       }
 
     def polytopeSection(d: Int): Parser[VPolytopeM[Rational]] = coneSection(d) | convSection(d)

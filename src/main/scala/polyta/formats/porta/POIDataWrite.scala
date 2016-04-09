@@ -29,8 +29,8 @@ final class POIDataWrite extends FormatWrite[POIData] {
 
   def writeConv(vertices: Mat[Rational], out: Writer): Unit = {
     out.write("CONV_SECTION\n")
-    cforRange(0 until vertices.nCols) { c =>
-      Format.writeVectorSep[Rational](vertices(::, c), " ", out)
+    cforRange(0 until vertices.nRows) { r =>
+      Format.writeVectorSep[Rational](vertices(r, ::), " ", out)
       out.write("\n")
     }
     out.write("\n")
@@ -38,8 +38,8 @@ final class POIDataWrite extends FormatWrite[POIData] {
 
   def writeCone(rays: Mat[Rational], out: Writer): Unit = {
     out.write("CONE_SECTION\n")
-    cforRange(0 until rays.nCols) { c =>
-      Format.writeVectorSep[Rational](rays(::, c), " ", out)
+    cforRange(0 until rays.nRows) { r =>
+      Format.writeVectorSep[Rational](rays(r, ::), " ", out)
       out.write("\n")
     }
     out.write("\n")

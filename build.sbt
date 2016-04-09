@@ -7,7 +7,7 @@ val fastParseVersion = "0.3.7"
 val metalVersion = "0.11.0.5-SNAPSHOT"
 val scalaCheckVersion = "1.12.4"
 val scalaTestVersion = "3.0.0-M7"
-val scalinVersion = "0.11.0.4"
+val scalinVersion = "0.11.0.5-SNAPSHOT"
 val shapelessVersion = "2.2.5"
 val spireVersion = "0.11.0"
 
