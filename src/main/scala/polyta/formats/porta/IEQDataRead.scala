@@ -95,7 +95,7 @@ final class IEQDataRead extends FormatRead[IEQData] {
             nextEliminationOrder <- oneOptionOutOf(prevSection.eliminationOrder, section.eliminationOrder)
             nextLowerBounds <- oneOptionOutOf(prevSection.lowerBounds, section.lowerBounds)
             nextUpperBounds <- oneOptionOutOf(prevSection.upperBounds, section.upperBounds)
-            nextPolytope = intersection(prevSection.polytope, section.polytope)
+            nextPolytope = HPolytopeM.WithoutSym.intersection(prevSection.polytope, section.polytope)
           } yield IEQData(nextPolytope, nextValidPoint, nextEliminationOrder, nextLowerBounds, nextUpperBounds)
         }
       }

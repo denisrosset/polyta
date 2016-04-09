@@ -16,7 +16,6 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import net.alasc.math._
 import net.alasc.syntax.all._
 
 import scalin.{Mat, Vec}

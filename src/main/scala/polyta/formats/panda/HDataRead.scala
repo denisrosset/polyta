@@ -134,16 +134,16 @@ class HDataRead extends FormatRead[HData] {
 
     def section(dim: Int, namesOption: Option[Seq[String]]): Parser[Section] = constraintsSection(dim, namesOption) | mapsSection(namesOption)
 
-    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps[M, V], HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
+    def sections(dim: Int, namesOption: Option[Seq[String]]): Parser[(Maps, HPoly)] = rep(section(dim, namesOption) <~ sectionEnd) ^^ { eithers =>
       val (mapsSeq, hpolys) = util.PartitionEither(eithers)
       val maps = mapsSeq.flatten
-      val hpoly = HPolytopeM.intersection((HPolytopeM.empty[M, V, Rational](dim) +: hpolys): _*)
+      val hpoly = hpolys.foldLeft(HPolytopeM.empty[Rational](dim)) { (x, y) => HPolytopeM.WithoutSym.intersection(x, y) }
       (maps, hpoly)
     }
 
     def data = phrase((hHeader <~ sectionEnd) into {
-      case (hpoly, namesOption) => sections(hpoly.nX, namesOption) ^^ {
-        case (maps, newHpoly) => HData(HPolytopeM.intersection(hpoly, newHpoly), namesOption, maps)
+      case (hpoly, namesOption) => sections(hpoly.dim, namesOption) ^^ {
+        case (maps, newHpoly) => HData(HPolytopeM.WithoutSym.intersection(hpoly, newHpoly), namesOption, maps)
       }
     })
   }

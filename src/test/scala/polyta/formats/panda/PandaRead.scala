@@ -9,12 +9,7 @@ import org.scalacheck._
 
 import spire.math.Rational
 
-import qalg.algebra._
-import qalg.math._
-
 class PandaRead extends FunSuite {
-  implicit val pack = DenseM.rationalImmutableAlg
-  import pack._
 
   val paths = Seq("/com/faacets/polyta/formats/panda/panda_format/",
     "/com/faacets/polyta/formats/panda/porta_format/")
@@ -32,14 +27,14 @@ class PandaRead extends FunSuite {
   }
 
   test("All .h files can be parsed") {
-    val formatRead = HData.FormatRead[M, V]
+    val formatRead = HData.FormatRead
     hFilenames.foreach { filename =>
       formatRead.parse(getReader(filename)).get
     }
   }
 
   test("All .v files can be parsed") {
-    val formatRead = VData.FormatRead[M, V]
+    val formatRead = VData.FormatRead
     vFilenames.foreach { filename =>
       formatRead.parse(getReader(filename)).get
     }

@@ -108,15 +108,27 @@ object HPolytopeM {
     apply(mA, vb, mAeq, vbeq, symGroup)
   }
 
+  def fromLinearConstraints[A](dim: Int, constraints: Seq[LinearConstraint[A]])(implicit A: LinAlg[A]): HPolytopeM[A] = {
+    val ineqs = constraints.collect { case ineq: LinearInequality[A] => ineq }
+    val eqs = constraints.collect { case eq: LinearEquality[A] => eq }
+    apply[A](dim, ineqs, eqs)
+  }
+
+  def fromEqualities[A](mAeq: Mat[A], beq: Vec[A])(implicit A: LinAlg[A]): HPolytopeM[A] =
+    apply(A.IMat.zeros(0, mAeq.nCols), A.IVec.zeros(0), mAeq, beq)
+
+  def fromInequalities[A](mA: Mat[A], b: Vec[A], symGroup: Grp[Perm] = Grp.trivial[Perm])(implicit A: LinAlg[A]): HPolytopeM[A] =
+    apply(mA, b, A.IMat.zeros(0, mA.nCols), A.IVec.zeros(0), symGroup)
+
   object WithoutSym {
 
     def intersection[A](lhs: HPolytopeM[A], rhs: HPolytopeM[A])(implicit A: LinAlg[A]): HPolytopeM[A] = {
       import scalin.syntax.all._
       import A.{IVec, IMat}
-      val mA = colMat[A](lhs.mA, rhs.mA).flatten
-      val vb = vec[A](lhs.vb, rhs.vb).flatten
-      val mAeq = colMat[A](lhs.mAeq, rhs.mAeq).flatten
-      val vbeq = vec[A](lhs.vbeq, rhs.vbeq).flatten
+      val mA = lhs.mA.vertcat(rhs.mA)
+      val vb = lhs.vb.cat(rhs.vb)
+      val mAeq = lhs.mAeq.vertcat(rhs.mAeq)
+      val vbeq = lhs.vbeq.cat(rhs.vbeq)
       HPolytopeM(mA, vb, mAeq, vbeq)
     }
 

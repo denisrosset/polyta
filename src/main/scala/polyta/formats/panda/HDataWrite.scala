@@ -61,7 +61,7 @@ class HDataWrite extends FormatWrite[HData] with PandaDataWrite {
   def write(data: HData, out: Writer): Unit = {
     writeDim(data.polytope.dim, out)
     data.names.foreach { seq => writeNames(seq, out) }
-    writePolyhedron(data.polytope, data.names, out)
+    writePolytope(data.polytope, data.names, out)
     if (data.maps.nonEmpty) writeMaps(data.maps, data.names.get, out)
   }
 

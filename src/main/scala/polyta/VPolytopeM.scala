@@ -12,7 +12,6 @@ import spire.syntax.order._
 import spire.syntax.vectorSpace._
 import spire.util._
 
-import scalin.immutable.dense._
 import scalin.immutable.{Mat, Vec}
 import scalin.syntax.all._
 
@@ -140,6 +139,9 @@ object VPolytopeM {
   def apply[A](allVertexPoints: Mat[A], allRayPoints: Mat[A], symGroup: Grp[(Perm, Perm)] = Grp.trivial[(Perm, Perm)])(implicit A: LinAlg[A]): VPolytopeM[A] =
     new VPolytopeM(allVertexPoints, allRayPoints, symGroup)
 
+  def empty[A](dim: Int)(implicit A: LinAlg[A]): VPolytopeM[A] =
+    apply(dim, Seq.empty, Seq.empty)
+  
   def fromRays[A](allRayPoints: Mat[A], symGroup: Grp[Perm] = Grp.trivial[Perm])(implicit A: LinAlg[A]): VPolytopeM[A] = {
     import A.IMat
     val newGrp = Grp.fromGeneratorsAndOrder(symGroup.generators.map((Perm.id: Perm, _)), symGroup.order) // TODO: remove :Perm cast after new Alasc release
@@ -157,8 +159,8 @@ object VPolytopeM {
     def union[A](lhs: VPolytopeM[A], rhs: VPolytopeM[A])(implicit A: LinAlg[A]): VPolytopeM[A] = {
       import scalin.syntax.all._
       import A.{IVec, IMat}
-      val mV = colMat[A](lhs.mV, rhs.mV).flatten
-      val mR = colMat[A](lhs.mR, rhs.mR).flatten
+      val mV = lhs.mV.vertcat(rhs.mV)
+      val mR = lhs.mR.vertcat(rhs.mR)
       VPolytopeM(mV, mR)
     }
 

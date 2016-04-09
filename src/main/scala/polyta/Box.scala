@@ -12,19 +12,16 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import scalin.{Mat, Vec}
 
-case class Box[V, @sp(Double, Long) A](lowerBounds: Bounds[V], upperBounds: Bounds[V])(implicit val pack: PackField.ForV[V, A]) extends LinearConvexSet[V, A] {
+case class Box[A](lowerBounds: Bounds[A], upperBounds: Bounds[A]) extends ConvexSet[A] {
   require(lowerBounds.v.length == upperBounds.v.length)
-  def nX: Int = lowerBounds.v.length
+  def dim: Int = lowerBounds.v.length
 }
 
 object Box {
-  def unbounded[V, @sp(Double, Long) A](nX: Int)(implicit pack: PackField.ForV[V, A]): Box[V, A] =
-    Box[V, A](Bounds.unbounded[V](nX), Bounds.unbounded[V](nX))
-  // special case for Double vector, TODO: why ?
-  def apply[V](lb: V, ub: V)(implicit pack: PackField.ForV[V, Double]): Box[V, Double] =
-    Box[V, Double](Bounds(lb), Bounds(ub))
+
+  def unbounded[A](dim: Int)(implicit A: LinAlg[A]): Box[A] =
+    Box[A](Bounds.unbounded[A](dim), Bounds.unbounded[A](dim))
+
 }
