@@ -1,7 +1,6 @@
 package com.faacets
 package polyta
 package solvers
-package porta
 
 import java.io.{File, PrintWriter, BufferedReader, InputStreamReader, FileReader}
 import org.scalatest.FunSuite
