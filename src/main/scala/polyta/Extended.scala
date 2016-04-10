@@ -2,7 +2,6 @@ package com.faacets
 package polyta
 
 import spire.algebra.Order
-import spire.math.Rational
 import spire.util.Opt
 
 /** Extended scalar value that could be +/- infinity. */

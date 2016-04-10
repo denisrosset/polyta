@@ -3,10 +3,9 @@ package polyta
 package formats
 package panda
 
-import java.io.{Reader, Writer}
+import java.io.Writer
 
 import spire.math.Rational
-import spire.syntax.action._
 
 trait PandaDataWrite extends Any {
 

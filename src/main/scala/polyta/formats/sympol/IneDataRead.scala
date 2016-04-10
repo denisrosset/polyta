@@ -3,12 +3,7 @@ package polyta
 package formats
 package sympol
 
-import scala.language.implicitConversions
-
-import scala.util.parsing.combinator._
-
 import spire.math.Rational
-import spire.syntax.field._
 
 import scalin.immutable.dense._
 

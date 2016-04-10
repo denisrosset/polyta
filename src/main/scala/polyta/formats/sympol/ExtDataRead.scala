@@ -3,13 +3,10 @@ package polyta
 package formats
 package sympol
 
-import scala.util.parsing.combinator._
-
 import spire.math.Rational
-import spire.syntax.field._
 
 import scalin.immutable.dense._
-import scalin.immutable.{Mat => IMat, Vec => IVec}
+import scalin.immutable.{Vec => IVec}
 import scalin.syntax.all._
 
 class ExtDataRead extends FormatRead[ExtData] {

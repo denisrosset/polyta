@@ -2,16 +2,11 @@ package com.faacets
 package polyta
 package formats
 
-import scala.{specialized => sp}
-
 import scala.util.parsing.combinator._
 
 import spire.algebra._
 import spire.math.Rational
-import spire.syntax.order._
 import spire.syntax.vectorSpace._
-import spire.syntax.cfor._
-import spire.util._
 
 trait RationalParsers extends RegexParsers {
 

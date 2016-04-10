@@ -3,8 +3,6 @@ package polyta
 package formats
 package panda
 
-import scala.util.parsing.combinator._
-
 import spire.math.Rational
 import spire.std.map._
 import spire.syntax.field._

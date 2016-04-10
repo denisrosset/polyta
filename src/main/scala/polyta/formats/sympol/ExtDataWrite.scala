@@ -3,22 +3,11 @@ package polyta
 package formats
 package sympol
 
-import java.io.{Reader, Writer}
+import java.io.Writer
 
-import scala.{specialized => sp}
 
-import scala.collection.{BitSet, SortedSet}
-
-import spire.algebra._
 import spire.math.Rational
-import spire.syntax.order._
-import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
-import spire.util._
-
-import scalin.{Mat, Vec}
-
-import net.alasc.syntax.all._
 
 class ExtDataWrite extends FormatWrite[ExtData] with SympolDataWrite {
 

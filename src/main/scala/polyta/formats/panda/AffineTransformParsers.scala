@@ -3,14 +3,10 @@ package polyta
 package formats
 package panda
 
-import scala.util.parsing.combinator._
-
 import spire.math.Rational
 
-import scalin.{Mat, Vec}
-import scalin.immutable.dense._
+import scalin.immutable.Vec
 import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
-import scalin.syntax.all._
 
 object AffineTransformParsers extends NamedExprParsers {
 

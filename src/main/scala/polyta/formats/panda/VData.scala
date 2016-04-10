@@ -3,8 +3,6 @@ package polyta
 package formats
 package panda
 
-import scala.util.parsing.combinator._
-
 import spire.math.Rational
 
 case class VData(

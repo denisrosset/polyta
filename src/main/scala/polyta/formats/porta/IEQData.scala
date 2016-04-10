@@ -5,7 +5,7 @@ package porta
 
 import spire.math.Rational
 
-import scalin.{Mat, Vec}
+import scalin.Vec
 
 case class IEQData(
   polytope: HPolytopeM[Rational],

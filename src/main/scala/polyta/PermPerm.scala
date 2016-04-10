@@ -1,25 +1,15 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
 import scala.reflect.classTag
 
 import spire.algebra._
 import spire.algebra.lattice.{Lattice, BoundedJoinSemilattice}
-import spire.math.Rational
-import spire.std.tuples._
-import spire.syntax.action._
-import spire.syntax.order._
-import spire.syntax.innerProductSpace._
-import spire.util._
 
 import net.alasc.algebra._
 import net.alasc.finite._
 import net.alasc.prep._
-import net.alasc.prep.PGrp.default._
 import net.alasc.perms.Perm
-
-import scalin.immutable.{Mat, Vec}
 
 object PermPerm {
 

@@ -3,23 +3,9 @@ package polyta
 package formats
 package panda
 
-import java.io.{Reader, Writer}
-
-import scala.{specialized => sp}
-
-import scala.collection.{BitSet, SortedSet}
-
-import scala.util.parsing.combinator._
-
-import spire.algebra._
 import spire.math.Rational
-import spire.syntax.order._
-import spire.syntax.vectorSpace._
-import spire.syntax.cfor._
-import spire.util._
 
-import scalin.{Mat, Vec}
-import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
+import scalin.immutable.Vec
 import scalin.immutable.dense._
 import scalin.syntax.all._
 

@@ -5,9 +5,6 @@ package sympol
 
 import spire.math.Rational
 
-import net.alasc.perms.Perm
-import net.alasc.syntax.all._
-
 case class ExtData(
   polytope: VPolytopeM[Rational], // TODO: use polytope without symmetry info
   rayRows: Set[Int],

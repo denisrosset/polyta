@@ -3,10 +3,8 @@ package polyta
 package formats
 package panda
 
-import scala.util.parsing.combinator._
-
-import scalin.{Mat, Vec}
-import scalin.immutable.{DenseMat => IMat, DenseVec => IVec}
+import scalin.Vec
+import scalin.immutable.{DenseMat => IMat}
 import scalin.immutable.dense._
 import scalin.syntax.all._
 

@@ -2,21 +2,12 @@ package com.faacets
 package polyta
 
 import spire.algebra._
-import spire.math.Rational
-import spire.syntax.cfor._
 import spire.syntax.action._
-import spire.syntax.vectorSpace._
-import spire.util._
 
-import scalin.{Mat, Vec}
-import scalin.syntax.all._
-
-import net.alasc.algebra._
 import net.alasc.prep._
 import net.alasc.prep.PGrp.default._
 import net.alasc.perms.Perm
 import net.alasc.finite.Grp
-import net.alasc.std.unit._
 
 /** Polytope in the V representation, obtained from the conversion of a polytope in the
   * H representation.

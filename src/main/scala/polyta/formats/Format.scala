@@ -6,16 +6,13 @@ import java.io.Writer
 
 import scala.{specialized => sp}
 
-import scala.collection.BitSet
-
 import spire.algebra._
-import spire.math.Rational
 import spire.syntax.order._
 import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import scalin.{Vec, Mat}
+import scalin.Vec
 
 object Format {
   /** Writes an affine expression represented as a map of variable names to

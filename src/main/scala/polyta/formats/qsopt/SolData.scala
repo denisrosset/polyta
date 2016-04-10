@@ -3,18 +3,7 @@ package polyta
 package formats
 package qsopt
 
-import scala.{specialized => sp}
-
-import scala.util.parsing.combinator._
-
-import scala.collection.BitSet
-
-import spire.algebra._
 import spire.math.Rational
-import spire.syntax.order._
-import spire.syntax.vectorSpace._
-import spire.syntax.cfor._
-import spire.util._
 
 case class SolData(
   status: SolverStatus[String],

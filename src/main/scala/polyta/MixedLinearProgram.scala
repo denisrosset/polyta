@@ -3,12 +3,6 @@ package polyta
 
 import scala.collection.BitSet
 
-import spire.algebra.Eq
-import spire.math.Rational
-import spire.syntax.vectorSpace._
-import spire.util._
-
-import scalin.Vec
 
 trait MixedLinearProgram[A] extends ConvexProgram[A] {
 

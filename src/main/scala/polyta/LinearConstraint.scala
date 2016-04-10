@@ -1,9 +1,6 @@
 package com.faacets
 package polyta
 
-import spire.algebra.Ring
-import spire.syntax.field._
-
 import scalin.immutable.Vec
 
 import ComparisonOp.{LE, EQ, GE}

@@ -1,27 +1,17 @@
 package com.faacets
 package polyta
 
-import scala.language.implicitConversions
-import scala.language.experimental.macros
-
-import scala.{specialized => sp}
-
 import scala.collection.mutable.ArrayBuffer
 
 import spire.algebra._
-import spire.math.Rational
 import spire.std.map._
 import spire.syntax.vectorSpace._
-import spire.util._
-
-import scalin.immutable.{Mat, Vec}
-import scalin.syntax.all._
 
 import Direction._
 
 class LinearProgramBuilder[A](implicit val A: LinAlg[A]) { self =>
 
-  import A.{fieldA, orderA}
+  import A.fieldA
 
   val varNames = ArrayBuffer.empty[String]
 

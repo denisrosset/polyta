@@ -1,26 +1,18 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-
 import spire.algebra._
-import spire.math.Rational
 import spire.std.tuples._
-import spire.syntax.cfor._
-import spire.syntax.action._
 import spire.syntax.order._
 import spire.syntax.vectorSpace._
-import spire.util._
 
 import scalin.immutable.{Mat, Vec}
 import scalin.syntax.all._
 
-import net.alasc.algebra._
 import net.alasc.finite._
 import net.alasc.prep._
 import net.alasc.prep.PGrp.default._
 import net.alasc.perms._
-import net.alasc.util._
 
 import PermPerm._
 
@@ -148,7 +140,7 @@ final class VPolytopeM[A](
 object VPolytopeM {
 
   def apply[A](dim: Int, vertexPoints: Seq[Vec[A]], rayPoints: Seq[Vec[A]])(implicit A: LinAlg[A]): VPolytopeM[A] = {
-    import A.{fieldA, IMat, IVec}
+    import A.IMat
     val vertexM = IMat.tabulate(vertexPoints.size, dim)( (r, c) => vertexPoints(r)(c) )
     val rayM = IMat.tabulate(rayPoints.size, dim)( (r, c) => rayPoints(r)(c) )
     apply(vertexM, rayM)
@@ -175,8 +167,7 @@ object VPolytopeM {
   object WithoutSym {
 
     def union[A](lhs: VPolytopeM[A], rhs: VPolytopeM[A])(implicit A: LinAlg[A]): VPolytopeM[A] = {
-      import scalin.syntax.all._
-      import A.{IVec, IMat}
+      import A.IMat
       val mV = lhs.mV.vertcat(rhs.mV)
       val mR = lhs.mR.vertcat(rhs.mR)
       VPolytopeM(mV, mR)

@@ -5,7 +5,6 @@ package formats
 import java.io.{Reader, Writer}
 
 import scala.util.parsing.combinator.RegexParsers
-import scala.{specialized => sp}
 
 trait Converter[From, To] {
   def convert(from: From): To

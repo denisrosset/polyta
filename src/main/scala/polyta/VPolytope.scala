@@ -1,40 +1,13 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-import scala.reflect.classTag
-
 import spire.algebra._
-import spire.algebra.lattice.{Lattice, BoundedJoinSemilattice}
-import spire.math.Rational
-import spire.std.tuples._
-import spire.syntax.action._
-import spire.syntax.order._
 import spire.syntax.innerProductSpace._
-import spire.util._
 
-import net.alasc.algebra._
 import net.alasc.finite._
-import net.alasc.prep._
-import net.alasc.prep.PGrp.default._
-import net.alasc.perms.Perm
 
-import scalin.immutable.{Mat, Vec}
+import scalin.immutable.Vec
 import scalin.syntax.all._
-
-import PermPerm._
-
-/*
-final class SingleVertex[V](val point: V) extends VertexBase[V] {
-  type VX = SingleVertex[V]
-  def representatives = Iterable(this)
-}
-
-final class SingleRay[V](val point: V) extends RayBase[V] {
-  type R = SingleRay[V]
-  def representatives = Iterable(this)
-}
- */
 
 /** Polytope described by extremal vertices. */
 

@@ -1,24 +1,16 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-
 import spire.algebra._
-import spire.math.Rational
-import spire.syntax.cfor._
-import spire.syntax.action._
 import spire.syntax.order._
-import spire.syntax.vectorSpace._
-import spire.util._
+import spire.syntax.field._
 
 import scalin.immutable.{Mat, Vec}
 
-import net.alasc.algebra._
 import net.alasc.finite._
 import net.alasc.prep._
 import net.alasc.prep.PGrp.default._
 import net.alasc.perms._
-import net.alasc.util._
 
 /** Polytope with optional combinatorial symmetry. The facets are described using `mA` and `vb`, such that
   * `mA * x <= vb`, and all facet representatives are present in `mA`, `vb`. The symmetry group
@@ -123,7 +115,6 @@ object HPolytopeM {
   object WithoutSym {
 
     def intersection[A](lhs: HPolytopeM[A], rhs: HPolytopeM[A])(implicit A: LinAlg[A]): HPolytopeM[A] = {
-      import scalin.syntax.all._
       import A.{IVec, IMat}
       val mA = lhs.mA.vertcat(rhs.mA)
       val vb = lhs.vb.cat(rhs.vb)

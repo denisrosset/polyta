@@ -3,24 +3,9 @@ package polyta
 package formats
 package sympol
 
-import java.io.{Reader, Writer}
+import java.io.Writer
 
-import scala.{specialized => sp}
-
-import scala.collection.{BitSet, SortedSet}
-
-import spire.algebra._
-import spire.algebra.partial._
-import spire.math.Rational
-import spire.syntax.group._
-import spire.syntax.order._
-import spire.syntax.action._
-import spire.syntax.vectorSpace._
-import spire.syntax.cfor._
-import spire.util._
-
-import net.alasc.perms.{Cycles, Perm}
-import net.alasc.std.seq._
+import net.alasc.perms.{Perm, Cycles}
 import net.alasc.syntax.all._
 
 trait SympolDataWrite extends Any {

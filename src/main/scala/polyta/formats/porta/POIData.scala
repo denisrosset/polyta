@@ -5,8 +5,6 @@ package porta
 
 import spire.math.Rational
 
-import scalin.{Mat, Vec}
-
 case class POIData(polytope: VPolytopeM[Rational])
 
 object POIData {

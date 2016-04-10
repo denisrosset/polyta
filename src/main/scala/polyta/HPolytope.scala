@@ -1,23 +1,11 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-
 import spire.algebra._
-import spire.math.Rational
-import spire.syntax.cfor._
-import spire.syntax.action._
-import spire.syntax.vectorSpace._
-import spire.util._
 
-import net.alasc.algebra._
 import net.alasc.finite.Grp
-import net.alasc.prep.PGrp.default._
-import net.alasc.perms.Perm
-import net.alasc.std.unit._
 
-import scalin.immutable.{Mat, Vec}
-import scalin.syntax.all._
+import scalin.immutable.Vec
 
 /** Polytope, i.e. possibly intersection of half-spaces, a set described
   * by inequality and equality constraints.
@@ -50,7 +38,7 @@ trait HPolytope[A] extends Polytope[A] { lhs =>
   }*/
 
   def vertexOn(onFacets: Seq[Facet]): Vec[A] = {
-    import A.{IVec, IMat, fieldA, orderA}
+    import A.{IVec, IMat}
     val ineqSatisfied: Seq[(Vec[A], A)] = onFacets.map { facet =>
       val ineq = facet.inequality
       (ineq.lhs, ineq.rhs)

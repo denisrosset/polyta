@@ -1,12 +1,7 @@
 package com.faacets
 package polyta
 
-import scala.{specialized => sp}
-
 import spire.algebra._
-import spire.syntax.action._
-
-import net.alasc.algebra._
 
 object Orbits {
 

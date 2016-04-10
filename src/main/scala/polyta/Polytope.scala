@@ -1,9 +1,6 @@
 package com.faacets
 package polyta
 
-import spire.algebra.Order
-import spire.syntax.cfor._
-
 import net.alasc.attributes._
 import net.alasc.finite.Grp
 
