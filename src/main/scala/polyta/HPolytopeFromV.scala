@@ -25,7 +25,7 @@ import PermPerm._
   * in the H representation. For each family of facets, a single representative is
   * present. 
   */
-final class HPolytopeFromV[A](val vPolytope: VPolytopeM[A], val facetVertexIndices: Seq[Set[Int]])(implicit val A: LinAlg[A]) extends HPolytope[A] {
+final class HPolytopeFromV[A](val vPolytope: VPolytopeM[A], val facetVertexIndices: Seq[Set[Int]], val equalities: Seq[LinearEquality[A]])(implicit val A: LinAlg[A]) extends HPolytope[A] {
 
   require(vPolytope.rays.isEmpty)
 
@@ -36,8 +36,6 @@ final class HPolytopeFromV[A](val vPolytope: VPolytopeM[A], val facetVertexIndic
   def facets = facetVertexIndices.map(new Facet(_))
 
   def allFacets = facets.flatMap(_.representatives)
-
-  def equalities = vPolytope.equalities
 
   def symGroup = vPolytope.symGroup
 

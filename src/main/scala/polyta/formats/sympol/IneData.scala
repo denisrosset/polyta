@@ -15,7 +15,7 @@ case class IneData(
 
 object IneData {
 
-  def fromPolytope(polytope: HPolytopeM[Rational]): IneData = {
+  def fromNonSymPolytope(polytope: HPolytopeM[Rational]): IneData = {
     val equalityRows = (polytope.facets.size until (polytope.facets.size + polytope.equalities.size)).toSet
     IneData(polytope, equalityRows)
   }

@@ -51,9 +51,9 @@ object PermPerm {
     }
 
     def build(generators: Iterable[(Perm, Perm)]): PermPermPRep = {
-      val size1 = generators.foldLeft(-1) { (mx, pair) => spire.math.min(pair._1.supportMax.getOrElse(-1), mx) }
-      val size2 = generators.foldLeft(-1) { (mx, pair) => spire.math.min(pair._2.supportMax.getOrElse(-1), mx) }
-      PermPermPRep(size1, size2)
+      val size1 = generators.foldLeft(-1) { (mx, pair) => spire.math.max(pair._1.supportMax.getOrElse(-1), mx) }
+      val size2 = generators.foldLeft(-1) { (mx, pair) => spire.math.max(pair._2.supportMax.getOrElse(-1), mx) }
+      PermPermPRep(size1 + 1, size2 + 1)
     }
 
     object lattice extends Lattice[PermPermPRep] with BoundedJoinSemilattice[PermPermPRep] {
