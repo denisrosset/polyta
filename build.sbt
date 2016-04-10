@@ -15,8 +15,6 @@ name := "Polyta"
 
 organization := "com.faacets"
 
-version := "0.11.0.1-SNAPSHOT"
-
 scalaVersion := "2.11.8"
 
 resolvers ++= Seq(
@@ -75,6 +73,7 @@ lazy val commonScalacOptions = Seq(
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",
+  "-Ywarn-unused-import",
   "-Ywarn-value-discard",
   "-Xfuture"
 )
