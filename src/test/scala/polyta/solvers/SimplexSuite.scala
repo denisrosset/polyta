@@ -15,6 +15,7 @@ import spire.syntax.all._
 import spire.std.any._
 
 class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertions with Matchers {
+
   def norm2[T:Field](a: Array[T]): T = (Field[T].zero /: a) { case (acc, c) => acc + c*c }
 
   def testOptimal[T:Field:Order:ClassTag](A: Array[Array[T]], b: Array[T], c: Array[T],
@@ -46,6 +47,7 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val tol = 1.0e-10
     testOptimal[Double](A, b, c, expectedValue, expectedX, expectedY, epsilon, tol)
   }
+
   test("Test 1, rational") {
     val A: Array[Array[Rational]] = Array(Array(-1, 1, 0), Array(1, 4, 0), Array(2, 1, 0), Array(3, -4, 0), Array(0, 0, 1))
     val c: Array[Rational] = Array(1, 1, 1)
@@ -57,6 +59,7 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val tol = Rational.zero
     testOptimal[Rational](A, b, c, expectedValue, expectedX, expectedY, epsilon, tol)
   }
+
   test("Test 2, double") {
     val A: Array[Array[Double]] = Array(Array(5.0, 15.0), Array(4.0, 4.0), Array(35.0, 20.0))
     val b: Array[Double] = Array(480.0, 160.0, 1190.0)
@@ -68,6 +71,7 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val tol = 1.0e-10
     testOptimal[Double](A, b, c, expectedValue, expectedX, expectedY, epsilon, tol)
   }
+
   test("Test 2, rational") {
     val A: Array[Array[Rational]] = Array(Array(5, 15), Array(4, 4), Array(35, 20))
     val b: Array[Rational] = Array(480, 160, 1190)
@@ -79,6 +83,7 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val tol = Rational.zero
     testOptimal[Rational](A, b, c, expectedValue, expectedX, expectedY, epsilon, tol)
   }
+
   test("Test 3, double") {
     val A: Array[Array[Double]] = Array(Array(-2.0, -9.0, 1.0, 9.0), Array(1.0, 1.0, -1.0, -2.0))
     val b: Array[Double] = Array(3.0, 2.0)
@@ -86,6 +91,7 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val epsilon = 1.0e-10
     testUnbounded[Double](A, b, c, epsilon)
   }
+
   test("Test 4, double") {
     val A: Array[Array[Double]] = Array(Array(0.5, -5.5, -2.5, 9.0), Array(0.5, -1.5, -0.5, 1.0), Array(1.0, 0.0, 0.0, 0.0))
     val b: Array[Double] = Array(0.0, 0.0, 1.0)
@@ -97,4 +103,5 @@ class SimplexSedgewickAlgorithmsSuite extends FunSuite with NonImplicitAssertion
     val expectedY = Array(0.0, 18.0, 1.0)
     testOptimal[Double](A, b, c, expectedValue, expectedX, expectedY, epsilon, tol)
   }
+  
 }
