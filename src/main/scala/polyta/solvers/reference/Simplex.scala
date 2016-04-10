@@ -6,10 +6,8 @@ package reference
 import scala.annotation.tailrec
 import scala.{specialized => sp}
 import scala.reflect.ClassTag
-import scala.util.Random
 
 import spire.algebra._
-import spire.math._
 import spire.syntax.all._
 import spire.std.any._
 

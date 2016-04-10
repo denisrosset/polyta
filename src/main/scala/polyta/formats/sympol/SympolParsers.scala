@@ -3,14 +3,10 @@ package polyta
 package formats
 package sympol
 
-import scala.util.parsing.combinator._
-
 import spire.algebra._
 import spire.math.Rational
-import spire.syntax.action._
-import spire.syntax.group._
 
-import net.alasc.perms.{Cycle, Cycles, Perm}
+import net.alasc.perms.{Cycle, Perm}
 import net.alasc.syntax.all._
 
 import scalin.Vec

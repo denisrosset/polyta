@@ -4,7 +4,6 @@ package formats
 package sympol
 
 import spire.algebra._
-import spire.math.Rational
 import spire.syntax.group._
 
 import net.alasc.perms.Perm

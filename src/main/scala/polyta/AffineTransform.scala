@@ -1,8 +1,6 @@
 package com.faacets
 package polyta
 
-import spire.syntax.cfor._
-
 import scalin.immutable.{Mat, Vec}
 
 case class AffineTransform[A](mA: Mat[A], vb: Vec[A]) extends Dimensional {

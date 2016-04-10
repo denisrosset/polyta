@@ -3,18 +3,12 @@ package polyta
 package formats
 package sympol
 
-import scala.util.parsing.combinator._
-
 import spire.algebra.Group
-import spire.math.Rational
-import spire.std.bigInt._
-import spire.syntax.group._
 import spire.syntax.eq._
-import spire.syntax.field._
 
 import net.alasc.finite.Grp
 import net.alasc.prep.PGrp.default._
-import net.alasc.perms.{Cycle, Cycles, Perm}
+import net.alasc.perms.{Cycle, Perm}
 import net.alasc.syntax.all._
 
 class SymmetryInfoRead extends FormatRead[SymmetryInfo] {

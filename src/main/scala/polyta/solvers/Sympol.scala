@@ -5,23 +5,14 @@ package solvers
 import Predef.{any2stringadd => _,_}
 
 
-import scala.{specialized => sp}
 import java.io.{File, PrintWriter, StringReader}
 
-import spire.algebra.Order
 import spire.math.Rational
 import spire.std.tuples._
-import spire.syntax.group._
-import spire.util.Opt
 
-import net.alasc.algebra._
 import net.alasc.finite.Grp
 import net.alasc.prep.PGrp.default._
 import net.alasc.perms.Perm
-import net.alasc.std.any._
-
-import scalin.immutable.{Mat, Vec}
-import scalin.immutable.dense._
 
 import formats._
 import formats.sympol._

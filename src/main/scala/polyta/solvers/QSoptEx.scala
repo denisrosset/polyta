@@ -2,26 +2,16 @@ package com.faacets
 package polyta
 package solvers
 
-import Predef.{any2stringadd => _,_}
-
-import scala.{specialized => sp}
 import java.io.{File, PrintWriter, FileReader}
 
-import spire.algebra.Order
 import spire.math.Rational
-import spire.std.tuples._
-import spire.syntax.group._
-import spire.util.Opt
-
-import net.alasc.algebra._
-import net.alasc.std.any._
 
 import formats._
 import formats.qsopt._
 
 import sys.process._
 
-import scalin.{Mat, Vec}
+import scalin.Vec
 import scalin.immutable.dense._
 import scalin.syntax.all._
 
