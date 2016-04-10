@@ -9,14 +9,16 @@ import spire.syntax.group._
 import net.alasc.perms.Perm
 import net.alasc.syntax.all._
 
+/** Information about the symmetries of a polytope
+  * 
+  * @param upToSymmetryWRTO Up to symmetry, with respect to the original inequalities/vertices.
+  * @param generators       Generators for permutations with respect to the original 
+  *                         ordering of vertices/rays or (in)equalities, either in the
+  *                         current polyhedron, or the dual description.
+  */
 case class SymmetryInfo(
-  /** Up to symmetry, with respect to the original inequalities/vertices. */
   upToSymmetryWRTO: Boolean,
   order: Option[BigInt],
-  /** Generators for permutations with respect to the original 
-    * ordering of vertices/rays or (in)equalities, either in the
-    * current polyhedron, or the dual description.
-    */
   generators: Seq[Perm],
   base: Seq[Int]) {
 
@@ -36,6 +38,7 @@ case class SymmetryInfo(
         (permVI, permER)
       }
     }
+  
 }
 
 object SymmetryInfo {

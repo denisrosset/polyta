@@ -15,7 +15,7 @@ trait Polytope[A] extends ConvexSet[A] with Attributable { lhs =>
   /** (Partial) symmetry group of the polytope. */
   def symGroup: Grp[G]
 
-  /** Generate the full description of the polytope, without taking symmetries in account. */
+// TODO  /** Generate the full description of the polytope, without taking symmetries in account. */
 //  def symmetriesDiscarded: Polytope[A]
 
 }

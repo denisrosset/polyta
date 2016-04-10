@@ -1,13 +1,13 @@
 // inspired by Spire build.sbt file
 
 val attributesVersion = "0.11.0.1"
-val alascVersion = "0.11.0.3-SNAPSHOT"
+val alascVersion = "0.11.0.3"
 val disciplineVersion = "0.4"
 val fastParseVersion = "0.3.7"
-val metalVersion = "0.11.0.5-SNAPSHOT"
+val parserCombinatorsVersion = "1.0.4"
 val scalaCheckVersion = "1.12.4"
 val scalaTestVersion = "3.0.0-M7"
-val scalinVersion = "0.11.0.5-SNAPSHOT"
+val scalinVersion = "0.11.0.5"
 val shapelessVersion = "2.2.5"
 val spireVersion = "0.11.0"
 
@@ -19,9 +19,7 @@ scalaVersion := "2.11.8"
 
 resolvers ++= Seq(
   "bintray/non" at "http://dl.bintray.com/non/maven",
-  "bintray/denisrosset/net.alasc" at "https://dl.bintray.com/denisrosset/net.alasc",
-  "bintray/denisrosset/metal" at "https://dl.bintray.com/denisrosset/metal",
-  "bintray/denisrosset/scalin" at "https://dl.bintray.com/denisrosset/scalin",
+  "bintray/denisrosset/maven" at "https://dl.bintray.com/denisrosset/maven",
   Resolver.sonatypeRepo("snapshots"),
   Resolver.sonatypeRepo("releases")
 )
@@ -36,7 +34,7 @@ libraryDependencies ++= Seq(
   "net.alasc" %% "alasc-scalin" % alascVersion,
   "net.alasc" %% "scalin-core" % scalinVersion,
   "com.lihaoyi" %% "fastparse" % fastParseVersion,
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+  "org.scala-lang.modules" %% "scala-parser-combinators" % parserCombinatorsVersion
 )
 
 scalacOptions ++= commonScalacOptions.diff(Seq(
