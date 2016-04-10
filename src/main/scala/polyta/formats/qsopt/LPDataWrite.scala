@@ -16,8 +16,9 @@ import spire.syntax.vectorSpace._
 import spire.syntax.cfor._
 import spire.util._
 
-import SolverStatus._
+import ComparisonOp._
 import Direction._
+import SolverStatus._
 
 class LPDataWrite extends FormatWrite[LPData] {
 
@@ -48,7 +49,11 @@ class LPDataWrite extends FormatWrite[LPData] {
     out.write(":")
     Format.writeVector[Rational](constraint.lhs, variableNames, out)
     out.write(" ")
-    out.write(constraint.op.toString)
+    constraint.op match {
+      case EQ => out.write("=")
+      case LE => out.write("<=")
+      case GE => out.write(">=")
+    }
     out.write(" ")
     out.write(constraint.rhs.toString)
     out.write("\n")

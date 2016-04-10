@@ -1,6 +1,7 @@
 package com.faacets
 package polyta
 package solvers
+package reference
 
 import org.scalatest.{FunSuite, NonImplicitAssertions, Matchers}
 

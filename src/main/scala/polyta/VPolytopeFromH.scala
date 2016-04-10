@@ -12,6 +12,8 @@ import scalin.{Mat, Vec}
 import scalin.syntax.all._
 
 import net.alasc.algebra._
+import net.alasc.prep._
+import net.alasc.prep.PGrp.default._
 import net.alasc.perms.Perm
 import net.alasc.finite.Grp
 import net.alasc.std.unit._
@@ -26,7 +28,7 @@ import net.alasc.std.unit._
   *                           in the V representation. For each family of vertices, a single representative is
   *                           present.
   */
-class VPolytopeFromH[A](val hPolytope: HPolytopeM[A], val vertexFacetIndices: Seq[Set[Int]]) extends VPolytope[A] {
+class VPolytopeFromH[A](val hPolytope: HPolytopeM[A], val vertexFacetIndices: Seq[Set[Int]])(implicit val A: LinAlg[A]) extends VPolytope[A] {
   
   type G = Perm
 
@@ -36,20 +38,22 @@ class VPolytopeFromH[A](val hPolytope: HPolytopeM[A], val vertexFacetIndices: Se
   def rays = Seq.empty
   def symGroup = hPolytope.symGroup
 
-  trait Element extends VPolytope.Element[A]
+  trait Element extends VPolytope.Element[A] {
+    type G = Perm
+  }
 
   type Ray = Nothing
 
   final class Vertex(val facetIndices: Set[Int]) extends Element with VPolytope.Vertex[A] {
     type E = Vertex
     def point = hPolytope.vertexOn(facetIndices.toSeq.map(hPolytope.allFacets(_)))
-    def symSubgroup: Grp[G] = symGroup.setwiseStabilizer(facetIndices, hPolytope.representation)
+    def symSubgroup: Grp[G] = symGroup.setwiseStabilizer(facetIndices)
     def representatives = new Iterable[Vertex] {
       val subgrp = symSubgroup
       override def size = (hPolytope.symGroup.order / subgrp.order).toInt
       def iterator = {
-        val cosets = subgrp \ hPolytope.symGroup
-        cosets.iterator.map { coset => new Vertex(facetIndices.map(hPolytope.facetIndexAction.actr(_, coset.g))) }
+        val cosets = hPolytope.symGroup.rightCosetsBy(subgrp.asSubgroupOf(hPolytope.symGroup).get)
+        cosets.iterator.map { coset => new Vertex(facetIndices.map(_ <|+| coset.g)) }
       }
     }
   }
@@ -64,9 +68,10 @@ class VPolytopeFromH[A](val hPolytope: HPolytopeM[A], val vertexFacetIndices: Se
       case _ => e
     }
   }
+
   object vertexAction extends Action[Vertex, G] {
-    def actr(v: Vertex, g: G): Vertex = new Vertex(v.facetIndices.map(hPolytope.facetIndexAction.actr(_, g)))
-    def actl(g: G, v: Vertex): Vertex = new Vertex(v.facetIndices.map(hPolytope.facetIndexAction.actl(g, _)))
+    def actr(v: Vertex, g: G): Vertex = new Vertex(v.facetIndices.map(_ <|+| g))
+    def actl(g: G, v: Vertex): Vertex = new Vertex(v.facetIndices.map(g |+|> _))
   }
 
   object rayAction extends Action[Ray, G] {

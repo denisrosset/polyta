@@ -17,6 +17,7 @@ import net.alasc.perms.Perm
 import net.alasc.std.unit._
 
 import scalin.immutable.{Mat, Vec}
+import scalin.syntax.all._
 
 /** Polytope, i.e. possibly intersection of half-spaces, a set described
   * by inequality and equality constraints.
@@ -50,15 +51,15 @@ trait HPolytope[A] extends Polytope[A] { lhs =>
 
   def vertexOn(onFacets: Seq[Facet]): Vec[A] = {
     import A.{IVec, IMat, fieldA, orderA}
-    val ineqSatisfied: Seq[(V, A)] = onFacets.map { facet =>
+    val ineqSatisfied: Seq[(Vec[A], A)] = onFacets.map { facet =>
       val ineq = facet.inequality
       (ineq.lhs, ineq.rhs)
     }
-    val eqSatisfied: Seq[(Vec[A], A)] = equalities.map( eq => (eq.lhs, eq.rhs) )
-    val satisfied = ineqSatisfied ++ eqSatisfied
-    val newA: M = M.fromRows(nX, M.defaultOptions)(satisfied.map(_._1): _*)
-    val newb: V = VecBuild[V, A].build(satisfied.map(_._2): _*)
-    pack.MLU.lu(newA).solveV(newb)
+    val eqSatisfied: Iterable[(Vec[A], A)] = equalities.map( eq => (eq.lhs, eq.rhs) )
+    val satisfied = (ineqSatisfied ++ eqSatisfied).toSeq
+    val newA = IMat.tabulate(satisfied.size, dim) { (r, c) => satisfied(r)._1(c) }
+    val newb = IVec.tabulate(satisfied.size)( i => satisfied(i)._2 )
+    newA.luDecomposition.solve(newb).to[IVec]
   }
 
 }

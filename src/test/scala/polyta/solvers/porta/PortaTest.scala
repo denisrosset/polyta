@@ -69,7 +69,6 @@ class PortaConversion extends FunSuite {
 
 
   def testPOI(filename: String): Unit = {
-    println(filename)
     val formatRead = POIData.FormatRead
     val reader = getReader(filename)
     val poi = formatRead.parse(reader).get

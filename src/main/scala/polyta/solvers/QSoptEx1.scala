@@ -25,11 +25,14 @@ import scalin.{Mat, Vec}
 import scalin.immutable.dense._
 import scalin.syntax.all._
 
-case class LinearSolution(status: SolverStatus[String], fval: Rational, xopt: Vec[Rational])
+case class LinearSolution(status: SolverStatus[String], optimalValue: Rational, optimalSolution: Vec[Rational])
 
-object QsoptEx {
+object QSoptEx {
 
-  def solve(hPolytope: HPolytopeM[Rational], direction: Direction, f: Vec[Rational], integerVariables: Set[Int]): LinearSolution = {
+  def solve(lp: LinearProgram[Rational]): LinearSolution =
+    solve(lp.feasibleSet, lp.direction, lp.objective, Set.empty[Int])
+
+  def solve(hPolytope: HPolytope[Rational], direction: Direction, f: Vec[Rational], integerVariables: Set[Int]): LinearSolution = {
     val input = File.createTempFile("solvelp", ".lp")
     val output = File.createTempFile("solvelp", ".sol")
     val writer = new PrintWriter(input)
@@ -39,7 +42,7 @@ object QsoptEx {
     val lpData = LPData("linearProblem",
       variableNames,
       LPObjective("obj", direction, f),
-      ineqs ++ eqs,
+      (ineqs ++ eqs).toSeq,
       integerVariables)
     FormatWrite[LPData].write(lpData, writer)
     writer.close

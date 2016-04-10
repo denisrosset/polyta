@@ -14,14 +14,14 @@ import spire.std.map._
 import spire.syntax.vectorSpace._
 import spire.util._
 
-import qalg.algebra._
-import qalg.algos._
-import qalg.syntax.all._
+import scalin.immutable.{Mat, Vec}
+import scalin.syntax.all._
 
-trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
-  implicit def M: MatVecInField[M, V, A]
-  implicit def V: VecInField[V, A] = M.V
-  implicit def A: Field[A] = M.scalar
+import Direction._
+
+class LinearProgramBuilder[A](implicit val A: LinAlg[A]) { self =>
+
+  import A.{fieldA, orderA}
 
   val varNames = ArrayBuffer.empty[String]
 
@@ -29,7 +29,7 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
     def apply(name: String): LinExpr = {
       varNames += name
       val index = varNames.size - 1
-      LinExpr(Map(index -> A.one), A.zero)
+      LinExpr(Map(index -> Ring[A].one), Ring[A].zero)
     }
   }
 
@@ -46,9 +46,9 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
     def <=(rhs: A): Constraint = Constraint(coeffs, LE, rhs - scalar)
     def >=(rhs: A): Constraint = Constraint(coeffs, GE, rhs - scalar)
     def :=(rhs: A): Constraint = Constraint(coeffs, EQ, rhs - scalar)
-    def <=(rhs: LinExpr): Constraint = (this - rhs) <= A.zero
-    def >=(rhs: LinExpr): Constraint = (this - rhs) >= A.zero
-    def :=(rhs: LinExpr): Constraint = (this - rhs) := A.zero
+    def <=(rhs: LinExpr): Constraint = (this - rhs) <= Ring[A].zero
+    def >=(rhs: LinExpr): Constraint = (this - rhs) >= Ring[A].zero
+    def :=(rhs: LinExpr): Constraint = (this - rhs) := Ring[A].zero
   }
 
   object LinExpr {
@@ -56,9 +56,9 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
   }
 
   implicit val LinExprAlgebra: VectorSpace[LinExpr, A] = new VectorSpace[LinExpr, A] {
-    def scalar = A
-    implicit val MVS: VectorSpace[Map[Int, A], A] = MapVectorSpace[Int, A](A)
-    def zero: LinExpr = LinExpr(Map.empty[Int, A], A.zero)
+    def scalar = fieldA
+    implicit val MVS: VectorSpace[Map[Int, A], A] = MapVectorSpace[Int, A](fieldA)
+    def zero: LinExpr = LinExpr(Map.empty[Int, A], Ring[A].zero)
     def plus(x: LinExpr, y: LinExpr): LinExpr = LinExpr(MVS.plus(x.coeffs, y.coeffs), x.scalar + y.scalar)
     override def minus(x: LinExpr, y: LinExpr): LinExpr = LinExpr(MVS.minus(x.coeffs, y.coeffs), x.scalar - y.scalar)
     def negate(x: LinExpr): LinExpr = LinExpr(MVS.negate(x.coeffs), -x.scalar)
@@ -76,37 +76,23 @@ trait LinearProgramBuilder[M, V, @sp(Double) A] { self =>
   def minimize(function: LinExpr): Unit = {
     objective = Some((Min, function))
   }
-  def result: LinearProgram[M, V, A] = {
-    val nX = varNames.size
+  def result: LinearProgram[A] = {
+    val dim = varNames.size
     val (eqs, ineqs) = constraints.partition(_.constraintType == EQ)
-    val vb = V.fromFunV(new FunV[A] {
-      def len = ineqs.size
-      def f(k: Int): A =
-        if (ineqs(k).constraintType == LE) ineqs(k).rhs else -ineqs(k).rhs
-    })
-    val mA = M.fromFunM(new FunM[A] {
-      def nR = ineqs.size
-      def nC = nX
-      def f(r: Int, c: Int): A =
-        if (ineqs(r).constraintType == LE)
-          ineqs(r).lhs.getOrElse(c, A.zero)
-        else
-          -ineqs(r).lhs.getOrElse(c, A.zero)
-    })
-    val vbeq = V.fromFunV(new FunV[A] {
-      def len = eqs.size
-      def f(k: Int): A = eqs(k).rhs
-    })
-    val mAeq = M.fromFunM(new FunM[A] {
-      def nR = eqs.size
-      def nC = nX
-      def f(r: Int, c: Int): A = eqs(r).lhs.getOrElse(c, A.zero)
-    })
+    val vb = A.IVec.tabulate(ineqs.size) { k =>
+      if (ineqs(k).constraintType == LE) ineqs(k).rhs else -ineqs(k).rhs
+    }
+    val mA = A.IMat.tabulate(ineqs.size, dim) { (r, c) =>
+      if (ineqs(r).constraintType == LE)
+        ineqs(r).lhs.getOrElse(c, Ring[A].zero)
+      else
+        -ineqs(r).lhs.getOrElse(c, Ring[A].zero)
+    }
+    val vbeq = A.IVec.tabulate(eqs.size)( eqs(_).rhs )
+    val mAeq = A.IMat.tabulate(eqs.size, dim) { (r, c) => eqs(r).lhs.getOrElse(c, Ring[A].zero) }
     val Some((dir, objLin)) = objective
-    val vobj = V.fromFunV(new FunV[A] {
-      def len = nX
-      def f(k: Int): A = objLin.coeffs.getOrElse(k, A.zero)
-    })
-    LinearProgram(dir, vobj, HPolyhedron(mA, vb, mAeq, vbeq), Box.unbounded[M, V, A](nX))
+    val vobj = A.IVec.tabulate(dim)( k => objLin.coeffs.getOrElse(k, Ring[A].zero) )
+    LinearProgram(dir, vobj, HPolytopeM(mA, vb, mAeq, vbeq), Box.unbounded[A](dim))
   }
+
 }
