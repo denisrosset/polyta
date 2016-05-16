@@ -1,13 +1,14 @@
 // inspired by Spire build.sbt file
 
+
 val attributesVersion = "0.11.0.1"
-val alascVersion = "0.11.0.3"
+val alascVersion = "0.11.0.4-SNAPSHOT"
 val disciplineVersion = "0.4"
 val fastParseVersion = "0.3.7"
 val parserCombinatorsVersion = "1.0.4"
 val scalaCheckVersion = "1.12.4"
 val scalaTestVersion = "3.0.0-M7"
-val scalinVersion = "0.11.0.5"
+val scalinVersion = "0.11.0.8-SNAPSHOT"
 val shapelessVersion = "2.2.5"
 val spireVersion = "0.11.0"
 
@@ -31,7 +32,6 @@ libraryDependencies ++= Seq(
   "org.spire-math" %% "spire" % spireVersion,
   "net.alasc" %% "attributes" % attributesVersion,
   "net.alasc" %% "alasc-core" % alascVersion,
-  "net.alasc" %% "alasc-scalin" % alascVersion,
   "net.alasc" %% "scalin-core" % scalinVersion,
   "com.lihaoyi" %% "fastparse" % fastParseVersion,
   "org.scala-lang.modules" %% "scala-parser-combinators" % parserCombinatorsVersion
