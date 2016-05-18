@@ -5,8 +5,6 @@ package solvers
 import Predef.{any2stringadd => _, _}
 import java.io.{File, PrintWriter, StringReader}
 
-import scala.None
-
 import spire.math.Rational
 import spire.std.tuples._
 
@@ -14,10 +12,7 @@ import net.alasc.finite.Grp
 import net.alasc.perms.Perm
 import formats._
 import formats.sympol._
-import sys.process._
 
-import com.faacets.polyta.Symmetry.{Combinatorial, Without}
-import com.faacets.polyta.VPolytope.Aux
 import com.faacets.polyta.process.{Computation, Runner}
 
 
@@ -45,7 +40,7 @@ object Sympol {
         "sympol --automorphisms-only -i " + inputFile.get.getAbsolutePath
     }
 
-    def apply(vPoly: VPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): VPolytope.Aux[Rational, Combinatorial] = {
+    def apply(vPoly: VPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): VPolytope.Aux[Rational, Symmetry.Combinatorial] = {
       import net.alasc.perms.default._
       assert(vPoly.mR.nRows == 0)
       val extData = ExtData.fromNonSymPolytope(vPoly)
@@ -66,7 +61,7 @@ object Sympol {
         "sympol --automorphisms-only -i " + inputFile.get.getAbsolutePath
     }
 
-    def apply(hPoly: HPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): HPolytope.Aux[Rational, Combinatorial] = {
+    def apply(hPoly: HPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): HPolytope.Aux[Rational, Symmetry.Combinatorial] = {
       import net.alasc.perms.default._
       val ineData = IneData.fromNonSymPolytope(hPoly)
       val (symmetryInfo, _) = Runner.throwing(Template, ineData)
