@@ -1,4 +1,5 @@
-package com.faacets.polyta.solvers
+package com.faacets.polyta
+package solvers
 
 import java.io.{File, FileReader, PrintWriter}
 
@@ -6,7 +7,11 @@ import scala.sys.process._
 
 import spire.math.Rational
 
-import com.faacets.polyta.SolverStatus
+import com.faacets.polyta.ComparisonOp.LE
+import com.faacets.polyta.formats.{Format, FormatRead, FormatWrite}
+import com.faacets.polyta.formats.qsopt.{LPConstraint, LPData, LPObjective, SolData}
+import com.faacets.polyta.formats.sympol.{ExtData, SymmetryInfo}
+import com.faacets.polyta.process.{Computation, Runner}
 import scalin.Vec
 import scalin.immutable.dense._
 import scalin.syntax.all._
@@ -14,38 +19,37 @@ import scalin.syntax.all._
 case class LinearSolution(status: SolverStatus[String], optimalValue: Rational, optimalSolution: Vec[Rational])
 
 object QSoptEx {
-/*
-  def solve(lp: LinearProgram[Rational]): LinearSolution =
-    solve(lp.feasibleSet, lp.direction, lp.objective, Set.empty[Int])
 
-  def solve(hPolytope: HPolytope[Rational], direction: Direction, f: Vec[Rational], integerVariables: Set[Int]): LinearSolution = {
-    val input = File.createTempFile("solvelp", ".lp")
-    val output = File.createTempFile("solvelp", ".sol")
-    val writer = new PrintWriter(input)
-    val ineqs = hPolytope.allFacets.zipWithIndex.map { case (facet, i) => LPConstraint("ineq" + (i + 1).toString, facet.inequality) }
-    val eqs = hPolytope.equalities.zipWithIndex.map { case (equality, i) => LPConstraint("eq" + (i + 1).toString, equality) }
-    val variableNames = Format.x1toN(hPolytope.dim)
-    val lpData = LPData("linearProblem",
-      variableNames,
-      LPObjective("obj", direction, f),
-      (ineqs ++ eqs).toSeq,
-      integerVariables)
-    FormatWrite[LPData].write(lpData, writer)
-    writer.close
-    val out = new StringBuilder
-    val err = new StringBuilder
+  trait Files[Input, Output] extends Computation[Input, Output] {
 
-    val logger = ProcessLogger(
-      (o: String) => out.append(o),
-      (e: String) => err.append(e))
+    type InputFile = Some[File]
+    type OutputFile = Some[File]
 
-    ("esolver -O " + output.getAbsolutePath + " -L " + input.getAbsolutePath) ! logger
+    def inputExtension: String
 
-    val reader = new FileReader(output)
-    val data = FormatRead[SolData].parse(reader).get
-    reader.close
-    LinearSolution(data.status, data.optimalValue.getOrElse(0),
-      vec(variableNames.map(data.variables.getOrElse(_, Rational.zero)):_*))
-  }*/
+    def outputAddedExtension: String
+
+    def newInputFile(): InputFile = Some(File.createTempFile("qsoptex", inputExtension))
+
+    def newOutputFile(inputFile: InputFile): OutputFile =
+      Some(new File(inputFile.get.getAbsolutePath + outputAddedExtension))
+
+  }
+
+ object Template extends Files[LPData, SolData] {
+   def inputExtension = ".lp"
+   def outputAddedExtension = ".sol"
+   def inputFormat: FormatWrite[LPData] = LPData.formatWrite
+   def outputFormat: FormatRead[SolData] = SolData.formatRead
+   def commandLine(inputFile: Some[File], outputFile: Some[File]): String =
+     "esolver -O " + outputFile.get.getAbsolutePath + " -L " + inputFile.get.getAbsolutePath
+ }
+
+  def solve(hPolytope: HPolytope[Rational], direction: Direction = Direction.Min, f: Vec[Rational], integerVariables: Set[Int] = Set.empty[Int]): LinearSolution = {
+    val lpData = LPData.fromPolytope(hPolytope, direction, f, integerVariables)
+    val (solData, _) = Runner.throwing(Template, lpData)
+    LinearSolution(solData.status, solData.optimalValue.getOrElse(0),
+      vec(lpData.variableNames.map(solData.variables.getOrElse(_, Rational.zero)):_*))
+  }
 
 }

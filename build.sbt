@@ -5,7 +5,6 @@ val attributesVersion = "0.11.0.1"
 val alascVersion = "0.11.0.4-SNAPSHOT"
 val disciplineVersion = "0.4"
 val fastParseVersion = "0.3.7"
-val parserCombinatorsVersion = "1.0.4"
 val scalaCheckVersion = "1.12.4"
 val scalaTestVersion = "3.0.0-M7"
 val scalinVersion = "0.11.0.8-SNAPSHOT"
@@ -33,8 +32,7 @@ libraryDependencies ++= Seq(
   "net.alasc" %% "attributes" % attributesVersion,
   "net.alasc" %% "alasc-core" % alascVersion,
   "net.alasc" %% "scalin-core" % scalinVersion,
-  "com.lihaoyi" %% "fastparse" % fastParseVersion,
-  "org.scala-lang.modules" %% "scala-parser-combinators" % parserCombinatorsVersion
+  "com.lihaoyi" %% "fastparse" % fastParseVersion
 )
 
 scalacOptions ++= commonScalacOptions.diff(Seq(
@@ -44,6 +42,7 @@ scalacOptions ++= commonScalacOptions.diff(Seq(
   "-Ywarn-numeric-widen",
   "-Ywarn-value-discard"
 ))
+
 /*initialCommands in console := """
 import com.faacets._; import qalg._; import polyta._
 import spire.math.Rational; import qalg.math._

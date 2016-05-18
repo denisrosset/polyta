@@ -63,6 +63,14 @@ object Runner {
               case failure@Parsed.Failure(_, _, _) => throw new Exception(log.toString + failure.toString)
             }
           case _: None.type =>
+            /* or
+                val out = new StringBuilder
+                val err = new StringBuilder
+
+                val logger = ProcessLogger( (o: String) => out.append(o), (e: String) => err.append(e))
+                 "cmdline" ! logger
+
+             */
             val stdout = computation.commandLine(inputFile, outputFile).!!
             computation.outputFormat.data.parse(stdout) match {
               case Parsed.Success(output, _) => (output, "")
