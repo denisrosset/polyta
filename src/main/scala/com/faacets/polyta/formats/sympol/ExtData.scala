@@ -11,6 +11,7 @@ case class ExtData(
   symmetryInfo: Option[SymmetryInfo] = None)
 
 object ExtData {
+
   def fromNonSymPolytope(polytope: VPolytope[Rational]): ExtData = {
     val rayCols = (polytope.mV.nRows until (polytope.mV.nRows + polytope.mR.nRows)).toSet
     ExtData(polytope, rayCols)

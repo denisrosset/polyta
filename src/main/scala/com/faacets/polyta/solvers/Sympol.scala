@@ -2,51 +2,80 @@ package com.faacets
 package polyta
 package solvers
 
-import Predef.{any2stringadd => _,_}
-
-
+import Predef.{any2stringadd => _, _}
 import java.io.{File, PrintWriter, StringReader}
+
+import scala.None
 
 import spire.math.Rational
 import spire.std.tuples._
 
 import net.alasc.finite.Grp
 import net.alasc.perms.Perm
-
 import formats._
 import formats.sympol._
-
 import sys.process._
+
+import com.faacets.polyta.Symmetry.{Combinatorial, Without}
+import com.faacets.polyta.VPolytope.Aux
+import com.faacets.polyta.process.{Computation, Runner}
 
 
 object Sympol {
-/*
-  def findSymmetriesV(vPolytope: VPolytopeM[Rational]): VPolytopeM[Rational] = {
-    assert(vPolytope.rays.isEmpty)
-    val input = File.createTempFile("sym", ".ine")
-    val writer = new PrintWriter(input)
-    val extData = ExtData.fromNonSymPolytope(vPolytope)
-    FormatWrite[ExtData].write(extData, writer)
-    writer.close
-    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
-    val reader = new StringReader(output)
-    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
-    val permutations = symmetryInfo.decodeGenerators(extData.rayRows).map(_._1)
-    VPolytopeM(vPolytope.mV, vPolytope.mR, Grp(permutations.map((_, Perm.id: Perm)): _*)) // TODO: remove :Perm when Alasc updated
+
+  trait Files[Input, Output] extends Computation[Input, Output] {
+
+    type InputFile = Some[File]
+    type OutputFile = None.type
+
+    def inputExtension: String
+    def newInputFile(): InputFile = Some(File.createTempFile("sympol", inputExtension))
+
+    def newOutputFile(inputFile: Some[File]) = None
+
   }
 
-  def findSymmetriesH(hPolytope: HPolytopeM[Rational]): HPolytopeM[Rational] = {
-    val input = File.createTempFile("conv", ".ine")
-    val writer = new PrintWriter(input)
-    val ineData = IneData.fromNonSymPolytope(hPolytope)
-    FormatWrite[IneData].write(ineData, writer)
-    writer.close
-    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
-    val reader = new StringReader(output)
-    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
-    val permutations = symmetryInfo.decodeGenerators(ineData.equalityRows).map(_._1)
-    HPolytopeM(hPolytope.mA, hPolytope.vb, hPolytope.mAeq, hPolytope.vbeq, Grp(permutations: _*))
-  }*/
+  implicit object FindSymmetriesV extends VPolytope.SymmetryConversion[Rational, Symmetry.Without.type, Symmetry.Combinatorial] {
+
+    object Template extends Files[ExtData, SymmetryInfo] {
+      def inputExtension = ".ext"
+      def inputFormat: FormatWrite[ExtData] = ExtData.formatWrite
+      def outputFormat: FormatRead[SymmetryInfo] = SymmetryInfo.formatRead
+      def commandLine(inputFile: Some[File], outputFile: None.type): String =
+        "sympol --automorphisms-only -i " + inputFile.get.getAbsolutePath
+    }
+
+    def apply(vPoly: VPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): VPolytope.Aux[Rational, Combinatorial] = {
+      import net.alasc.perms.default._
+      assert(vPoly.mR.nRows == 0)
+      val extData = ExtData.fromNonSymPolytope(vPoly)
+      val (symmetryInfo, _) = Runner.throwing(Template, extData)
+      val permutations = symmetryInfo.decodeGenerators(extData.rayRows).map(_._1)
+      VPolytope(vPoly.mV, vPoly.mR, Symmetry.Combinatorial(Grp(permutations: _*)))
+    }
+
+  }
+
+  implicit object FindSymmetriesH extends HPolytope.SymmetryConversion[Rational, Symmetry.Without.type, Symmetry.Combinatorial] {
+
+    object Template extends Files[IneData, SymmetryInfo] {
+      def inputExtension = ".ine"
+      def inputFormat: FormatWrite[IneData] = IneData.formatWrite
+      def outputFormat: FormatRead[SymmetryInfo] = SymmetryInfo.formatRead
+      def commandLine(inputFile: Some[File], outputFile: None.type): String =
+        "sympol --automorphisms-only -i " + inputFile.get.getAbsolutePath
+    }
+
+    def apply(hPoly: HPolytope.Aux[Rational, Symmetry.Without.type])(implicit A: LinAlg[Rational]): HPolytope.Aux[Rational, Combinatorial] = {
+      import net.alasc.perms.default._
+      val ineData = IneData.fromNonSymPolytope(hPoly)
+      val (symmetryInfo, _) = Runner.throwing(Template, ineData)
+      val permutations = symmetryInfo.decodeGenerators(ineData.equalityRows).map(_._1)
+      HPolytope(hPoly.mA, hPoly.vb, hPoly.mAeq, hPoly.vbeq, Symmetry.Combinatorial(Grp(permutations: _*)))
+    }
+
+  }
+
   /*
   /* Observations:
    * 

@@ -15,7 +15,7 @@ import scalin.syntax.all._
 import formats._
 import formats.porta._
 
-object PortaConversion {
+object PortaTest {
 
   implicit class RichVec[A](val vec: Vec[A]) extends AnyVal {
 
@@ -28,9 +28,9 @@ object PortaConversion {
 
 }
 
-class PortaConversion extends FunSuite {
+class PortaTest extends FunSuite {
 
-  import PortaConversion._
+  import PortaTest._
 
   val path = "/com/faacets/polyta/solvers/porta/"
   val resources = ResourceListing.list(getClass, "." + path)

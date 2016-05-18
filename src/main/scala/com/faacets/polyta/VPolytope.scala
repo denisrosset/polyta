@@ -65,7 +65,8 @@ trait VPolytope[A] { lhs =>
 object VPolytope {
 
   implicit def convertSymmetry[A, S <: Symmetry, S1 <: Symmetry]
-    (lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A], C: VPolytope.SymmetryConversion[S, S1]): VPolytope.Aux[A, S1] =
+    (lhs: VPolytope.Aux[A, S])
+    (implicit A: LinAlg[A], C: VPolytope.SymmetryConversion[A, S, S1]): VPolytope.Aux[A, S1] =
       C(lhs)
 
   type Aux[A, S0 <: Symmetry] = VPolytope[A] { type S = S0 }
@@ -92,18 +93,18 @@ object VPolytope {
 
   }
 
-  trait SymmetryConversion[S <: Symmetry, S1 <: Symmetry] {
+  trait SymmetryConversion[A, S <: Symmetry, S1 <: Symmetry] {
 
-    def apply[A](lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, S1]
+    def apply(lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, S1]
 
   }
 
   object SymmetryConversion {
 
-    implicit def anyToWithout[S <: Symmetry]: SymmetryConversion[S, Symmetry.Without.type] =
-      new SymmetryConversion[S, Symmetry.Without.type] {
+    implicit def anyToWithout[A, S <: Symmetry]: SymmetryConversion[A, S, Symmetry.Without.type] =
+      new SymmetryConversion[A, S, Symmetry.Without.type] {
 
-        def apply[A](lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] =
+        def apply(lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] =
           new VPolytope[A] {
             type S = Symmetry.Without.type
             def symmetry = Symmetry.Without

@@ -55,8 +55,7 @@ trait HPolytope[A] {
 
 object HPolytope {
 
-  implicit def convertSymmetry[A, S <: Symmetry, S1 <: Symmetry]
-  (lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A], C: HPolytope.SymmetryConversion[S, S1]): HPolytope.Aux[A, S1] =
+  implicit def convertSymmetry[A, S <: Symmetry, S1 <: Symmetry](lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A], C: HPolytope.SymmetryConversion[A, S, S1]): HPolytope.Aux[A, S1] =
     C(lhs)
 
 
@@ -86,18 +85,18 @@ object HPolytope {
 
   }
 
-  trait SymmetryConversion[S <: Symmetry, S1 <: Symmetry] {
+  trait SymmetryConversion[A, S <: Symmetry, S1 <: Symmetry] {
 
-    def apply[A](lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A]): HPolytope.Aux[A, S1]
+    def apply(lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A]): HPolytope.Aux[A, S1]
 
   }
 
   object SymmetryConversion {
 
-    implicit def anyToWithout[S <: Symmetry]: SymmetryConversion[S, Symmetry.Without.type] =
-      new SymmetryConversion[S, Symmetry.Without.type] {
+    implicit def anyToWithout[A, S <: Symmetry]: SymmetryConversion[A, S, Symmetry.Without.type] =
+      new SymmetryConversion[A, S, Symmetry.Without.type] {
 
-        def apply[A](lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A]): HPolytope.Aux[A, Symmetry.Without.type] = new {
+        def apply(lhs: HPolytope.Aux[A, S])(implicit A: LinAlg[A]): HPolytope.Aux[A, Symmetry.Without.type] = new {
           val mA = lhs.mA
           val vb = lhs.vb
           val mAeq = lhs.mAeq

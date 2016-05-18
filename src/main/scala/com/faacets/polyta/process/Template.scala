@@ -48,21 +48,28 @@ object Runner {
     val inputFile = computation.newInputFile()
     val outputFile = computation.newOutputFile(inputFile)
     inputFile match {
-      case Some(inf) => outputFile match {
-        case Some(outf) =>
-          val log = new StringBuilder
-          val writer = new PrintWriter(inf)
-          computation.inputFormat.write(input, writer)
-          writer.close()
-          val stdout = computation.commandLine(inputFile, outputFile).!!
-          log ++= stdout
-          val outputContent = Source.fromFile(outf, "UTF-8").mkString
-          computation.outputFormat.data.parse(outputContent) match {
-            case Parsed.Success(output, _) => (output, log.toString)
-            case failure@Parsed.Failure(_, _, _) => throw new Exception(log.toString + failure.toString)
-          }
-        case _: None.type => ???
-      }
+      case Some(inf) =>
+        val log = new StringBuilder
+        val writer = new PrintWriter(inf)
+        computation.inputFormat.write(input, writer)
+        writer.close()
+        outputFile match {
+          case Some(outf) =>
+            val stdout = computation.commandLine(inputFile, outputFile).!!
+            log ++= stdout
+            val outputContent = Source.fromFile(outf, "UTF-8").mkString
+            computation.outputFormat.data.parse(outputContent) match {
+              case Parsed.Success(output, _) => (output, log.toString)
+              case failure@Parsed.Failure(_, _, _) => throw new Exception(log.toString + failure.toString)
+            }
+          case _: None.type =>
+            val stdout = computation.commandLine(inputFile, outputFile).!!
+            computation.outputFormat.data.parse(stdout) match {
+              case Parsed.Success(output, _) => (output, "")
+              case failure@Parsed.Failure(_, _, _) => throw new Exception(log.toString + failure.toString)
+            }
+
+        }
       case _: None.type => ???
     }
   }
