@@ -16,8 +16,8 @@ case class IEQData(
 
 object IEQData {
   
-  implicit val FormatRead: FormatRead[IEQData] = new IEQDataRead
+  implicit val formatRead: FormatRead[IEQData] = new IEQDataRead
 
-  implicit val FormatWrite: FormatWrite[IEQData] = new IEQDataWrite
+  implicit val formatWrite: FormatWrite[IEQData] = new IEQDataWrite
 
 }

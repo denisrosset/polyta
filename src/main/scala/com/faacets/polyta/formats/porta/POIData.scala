@@ -9,8 +9,8 @@ case class POIData(polytope: VPolytope[Rational])
 
 object POIData {
 
-  implicit val FormatRead: FormatRead[POIData] = new POIDataRead
+  implicit val formatRead: FormatRead[POIData] = new POIDataRead
 
-  implicit val FormatWrite: FormatWrite[POIData] = new POIDataWrite
+  implicit val formatWrite: FormatWrite[POIData] = new POIDataWrite
 
 }

@@ -15,8 +15,6 @@ import scalin.syntax.all._
 import formats._
 import formats.porta._
 
-import Porta.DefaultOptions
-
 object PortaConversion {
 
   implicit class RichVec[A](val vec: Vec[A]) extends AnyVal {
@@ -63,7 +61,7 @@ class PortaConversion extends FunSuite {
 
 
   def testPOI(filename: String): Unit = {
-    val formatRead = POIData.FormatRead
+    val formatRead = POIData.formatRead
     val content = getContent(filename)
     val poi = formatRead.data.parse(content).get.value
     val vpoly1 = poi.polytope

@@ -20,7 +20,33 @@ import sys.process._
 
 
 object Sympol {
+/*
+  def findSymmetriesV(vPolytope: VPolytopeM[Rational]): VPolytopeM[Rational] = {
+    assert(vPolytope.rays.isEmpty)
+    val input = File.createTempFile("sym", ".ine")
+    val writer = new PrintWriter(input)
+    val extData = ExtData.fromNonSymPolytope(vPolytope)
+    FormatWrite[ExtData].write(extData, writer)
+    writer.close
+    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
+    val reader = new StringReader(output)
+    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
+    val permutations = symmetryInfo.decodeGenerators(extData.rayRows).map(_._1)
+    VPolytopeM(vPolytope.mV, vPolytope.mR, Grp(permutations.map((_, Perm.id: Perm)): _*)) // TODO: remove :Perm when Alasc updated
+  }
 
+  def findSymmetriesH(hPolytope: HPolytopeM[Rational]): HPolytopeM[Rational] = {
+    val input = File.createTempFile("conv", ".ine")
+    val writer = new PrintWriter(input)
+    val ineData = IneData.fromNonSymPolytope(hPolytope)
+    FormatWrite[IneData].write(ineData, writer)
+    writer.close
+    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
+    val reader = new StringReader(output)
+    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
+    val permutations = symmetryInfo.decodeGenerators(ineData.equalityRows).map(_._1)
+    HPolytopeM(hPolytope.mA, hPolytope.vb, hPolytope.mAeq, hPolytope.vbeq, Grp(permutations: _*))
+  }*/
   /*
   /* Observations:
    * 
@@ -87,31 +113,6 @@ object Sympol {
       new HPolytopeFromV(vPolytope, indexSets, data.polytope.equalities.toIndexedSeq)
   }
 
-  def findSymmetriesV(vPolytope: VPolytopeM[Rational]): VPolytopeM[Rational] = {
-    assert(vPolytope.rays.isEmpty)
-    val input = File.createTempFile("sym", ".ine")
-    val writer = new PrintWriter(input)
-    val extData = ExtData.fromNonSymPolytope(vPolytope)
-    FormatWrite[ExtData].write(extData, writer)
-    writer.close
-    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
-    val reader = new StringReader(output)
-    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
-    val permutations = symmetryInfo.decodeGenerators(extData.rayRows).map(_._1)
-    VPolytopeM(vPolytope.mV, vPolytope.mR, Grp(permutations.map((_, Perm.id: Perm)): _*)) // TODO: remove :Perm when Alasc updated
-  }
-
-  def findSymmetriesH(hPolytope: HPolytopeM[Rational]): HPolytopeM[Rational] = {
-    val input = File.createTempFile("conv", ".ine")
-    val writer = new PrintWriter(input)
-    val ineData = IneData.fromNonSymPolytope(hPolytope)
-    FormatWrite[IneData].write(ineData, writer)
-    writer.close
-    val output = ("sympol --automorphisms-only -i " + input.getAbsolutePath).!!
-    val reader = new StringReader(output)
-    val symmetryInfo = FormatRead[SymmetryInfo].parse(reader).get
-    val permutations = symmetryInfo.decodeGenerators(ineData.equalityRows).map(_._1)
-    HPolytopeM(hPolytope.mA, hPolytope.vb, hPolytope.mAeq, hPolytope.vbeq, Grp(permutations: _*))
-  }*/
+  */
 
 }

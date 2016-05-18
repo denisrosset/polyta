@@ -18,18 +18,18 @@ class PortaRead extends FunSuite {
   }
 
   test("All .poi files can be parsed") {
-    import POIData.FormatRead
+    import POIData.formatRead
     poiFiles.foreach { filename =>
       val reader = getContent(filename)
-      FormatRead.data.parse(reader).get
+      formatRead.data.parse(reader).get
     }
   }
 
   test("All .ieq files can be parsed") {
-    import IEQData.FormatRead
+    import IEQData.formatRead
     ieqFiles.foreach { filename =>
       val reader = getContent(filename)
-      FormatRead.data.parse(reader).get
+      formatRead.data.parse(reader).get
     }
   }
 }
