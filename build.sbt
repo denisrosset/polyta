@@ -1,7 +1,7 @@
 // inspired by Spire build.sbt file
 
 
-val attributesVersion = "0.11.0.1"
+val attributesVersion = "0.11.0.2"
 val alascVersion = "0.11.0.4-SNAPSHOT"
 val disciplineVersion = "0.4"
 val fastParseVersion = "0.3.7"
