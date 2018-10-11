@@ -45,7 +45,7 @@ object Porta {
     val inputData = IEQData(hPolytope, validPoint)
     val io = for {
       inputFile <- runner.createFile("porta", ".ieq", inputData.fileContents)
-      outputFile <- runner.getFileVariant(inputFile, "", ".ieq")
+      outputFile <- runner.getFileVariant(inputFile, "", ".poi")
       processOutput <- runner.run("traf", options.arg(runner), inputFile)("")
       result <- runner.readFile(outputFile)
       parsed <- IO { POIData.parser.parse(result).get }
