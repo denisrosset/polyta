@@ -23,7 +23,7 @@ scmInfo := Some(ScmInfo(url("https://github.com/denisrosset/polyta"), "scm:git:g
 
 homepage := Some(url("http://github.com/denisrosset/polyta"))
 
-licenses += ("GPL-V3", url("https://opensource.org/licenses/GPL-3.0"))
+licenses += ("GPL-3.0", url("https://opensource.org/licenses/GPL-3.0"))
 
 publishArtifact in Test := false
 
