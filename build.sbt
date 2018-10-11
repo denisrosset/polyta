@@ -1,21 +1,23 @@
 // inspired by Spire build.sbt file
 
-
-val attributesVersion = "0.11.0.2"
-val alascVersion = "0.11.0.4-SNAPSHOT"
-val disciplineVersion = "0.4"
-val fastParseVersion = "0.3.7"
-val scalaCheckVersion = "1.12.4"
-val scalaTestVersion = "3.0.0-M7"
-val scalinVersion = "0.11.0.8-SNAPSHOT"
-val shapelessVersion = "2.2.5"
-val spireVersion = "0.11.0"
+val alascVersion = "0.16.0.0"
+val attributesVersion = "0.30"
+val catsVersion = "1.1.0"
+val catsEffectVersion = "1.0.0"
+val disciplineVersion = "0.8"
+val fastParseVersion = "1.0.0"
+val proxVersion = "0.2.1"
+val scalaCheckVersion = "1.13.5"
+val scalaTestVersion = "3.0.5"
+val scalinVersion = "0.16.0.0"
+val shapelessVersion = "2.3.3"
+val spireVersion = "0.16.0"
 
 name := "Polyta"
 
 organization := "com.faacets"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.6"
 
 resolvers ++= Seq(
   "bintray/non" at "http://dl.bintray.com/non/maven",
@@ -25,14 +27,16 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.bitbucket.inkytonik.dsinfo" %% "dsinfo" % "0.4.0",
+  "org.typelevel" %% "cats-core" % catsVersion,
+  "org.typelevel" %% "cats-effect" % catsEffectVersion,
   "org.scalacheck" %% "scalacheck" % scalaCheckVersion % "test",
   "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-  "org.spire-math" %% "spire" % spireVersion,
+  "org.typelevel" %% "spire" % spireVersion,
   "net.alasc" %% "attributes" % attributesVersion,
   "net.alasc" %% "alasc-core" % alascVersion,
   "net.alasc" %% "scalin-core" % scalinVersion,
-  "com.lihaoyi" %% "fastparse" % fastParseVersion
+  "com.lihaoyi" %% "fastparse" % fastParseVersion,
+  "io.github.vigoo" %% "prox" % proxVersion
 )
 
 scalacOptions ++= commonScalacOptions.diff(Seq(
@@ -66,7 +70,6 @@ lazy val commonScalacOptions = Seq(
   "-unchecked",
   "-Xfatal-warnings",
   "-Xlint",
-  "-Yinline-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",

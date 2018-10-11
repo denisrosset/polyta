@@ -1,21 +1,5 @@
 package com.faacets.polyta
 
-import scala.collection.BitSet
+import scalin.immutable.Vec
 
-/*
-trait MixedLinearProgram[A] extends ConvexProgram[A] {
-
-  override def toString = s"LinearProgram($direction, $objective, $feasibleSet, $bounds)"
-
-  def feasibleSet: HPolytope[A]
-
-  def bounds: Box[A]
-
-  def integerVariables: BitSet
-
-  def dim = feasibleSet.dim
-
-  require(dim == bounds.dim)
-
-}
-*/
+case class MixedLinearProgram[A](direction: Direction, objective: Vec[A], feasibleSet: HPolytope[A], integerVariables: Set[Int])

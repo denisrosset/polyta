@@ -1,42 +1,33 @@
 package com.faacets
 package polyta
 
-import scalin.immutable.{Mat, Vec}
-import scalin.syntax.all._
-
-import spire.syntax.order._
-import spire.syntax.field._
+import spire.algebra.CRing
+import scalin.immutable.Mat
+import scalin.immutable.dense._
 
 /** V-representation polytope, such that any point can be written as:
   *
   * x^T = y^T mV + z^T mR, where y, z >= 0 and sum_i y_i = 1.
   */
-trait VPolytope[A] { lhs =>
-
-  /** Matrix whose rows are vertices of the polytope. */
-  def mV: Mat[A]
-
-  /** Matrix whose rows are rays of the polytope. */
-  def mR: Mat[A]
+case class VPolytope[A](
+                         /** Matrix whose rows are vertices of the polytope. */
+                         mV: Mat[A],
+                         /** Matrix whose rows are rays of the polytope. */
+                         mR: Mat[A]
+                       ) { lhs =>
 
   require(mV.nCols == mR.nCols)
 
-  type S <: Symmetry
-
-  def symmetry: S
-
   def dim = mV.nCols
 
-  def union(rhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A], U: VPolytope.Union[S]): VPolytope.Aux[A, S] =
-    U[A](lhs, rhs)
+  def union(rhs: VPolytope[A]): VPolytope[A] = VPolytope(mV.horzcat(rhs.mV), mR.horzcat(rhs.mR))
 
-  def facetOnVertices(onVertices: Set[Int], satisfying: Int)(implicit A: LinAlg[A]): LinearInequality[A] = {
-    import A.{fieldA, orderA}
-    import A.{IMat, IVec}
+  /*
+  def facetOnVertices(onVertices: Set[Int], satisfying: Int)(implicit A: Field[A], PA: Pivot[A]): (Vec[A], A) = {
     val seq = onVertices.toSeq
     val zeroH = mV(seq.head, ::)
     val nonZeroVertex = mV(satisfying, ::) - zeroH
-    val ortho = tabulate(onVertices.size, dim) {
+    val ortho = Mat.tabulate(onVertices.size, dim) {
       (r, c) => if (r < onVertices.size - 1) mV(seq(r), c) - zeroH(c) else nonZeroVertex(c)
     }.orthogonalized
     val lhs = ortho(ortho.nRows - 1, ::)
@@ -46,7 +37,6 @@ trait VPolytope[A] { lhs =>
     else
       LinearInequality(-lhs, ComparisonOp.LE, -rhs)
   }
-
 
   def affineSpan(implicit A: LinAlg[A]): HPolytope.Aux[A, Symmetry.Without.type] = {
     require(mR.nRows == 0)
@@ -59,87 +49,30 @@ trait VPolytope[A] { lhs =>
     val vbeq = mAeq * mV(0, ::)
     HPolytope.fromEqualities(mAeq, vbeq)
   }
-
+*/
 }
 
 object VPolytope {
 
-  implicit def convertSymmetry[A, S <: Symmetry, S1 <: Symmetry]
-    (lhs: VPolytope.Aux[A, S])
-    (implicit A: LinAlg[A], C: VPolytope.SymmetryConversion[A, S, S1]): VPolytope.Aux[A, S1] =
-      C(lhs)
-
-  type Aux[A, S0 <: Symmetry] = VPolytope[A] { type S = S0 }
-
-  trait Union[S <: Symmetry] {
-
-    def apply[A](lhs: VPolytope.Aux[A, S], rhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, S]
-
+  def empty[A](dim: Int)(implicit A: CRing[A]): VPolytope[A] = {
+    val mV = Mat.zeros[A](0, dim)
+    val mR = Mat.zeros[A](0, dim)
+    VPolytope[A](mV, mR)
   }
 
-  object Union {
-
-    implicit object withoutSymmetry extends Union[Symmetry.Without.type] {
-
-      def apply[A](lhs: VPolytope.Aux[A, Symmetry.Without.type], rhs: VPolytope.Aux[A, Symmetry.Without.type])
-                  (implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] = {
-        import A.{IMat, IVec}
-        val mV1 = lhs.mV vertcat rhs.mV
-        val mR1 = lhs.mR vertcat rhs.mR
-        VPolytope(mV1, mR1)
-
-      }
-    }
-
+  def apply[A](mV: Mat[A])(implicit A: CRing[A]): VPolytope[A] = {
+    val d = mV.nCols
+    val mR = Mat.zeros[A](0, d)
+    VPolytope[A](mV, mR)
   }
 
-  trait SymmetryConversion[A, S <: Symmetry, S1 <: Symmetry] {
+  def fromVertices[A](allVertexPoints: Mat[A])(implicit A: CRing[A]): VPolytope[A] =
+    VPolytope(allVertexPoints)
 
-    def apply(lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, S1]
-
-  }
-
-  object SymmetryConversion {
-
-    implicit def anyToWithout[A, S <: Symmetry]: SymmetryConversion[A, S, Symmetry.Without.type] =
-      new SymmetryConversion[A, S, Symmetry.Without.type] {
-
-        def apply(lhs: VPolytope.Aux[A, S])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] =
-          new VPolytope[A] {
-            type S = Symmetry.Without.type
-            def symmetry = Symmetry.Without
-            val mV = lhs.mV
-            val mR = lhs.mR
-          }
-      }
-
-  }
-
-  def apply[A, S0 <: Symmetry](mV0: Mat[A], mR0: Mat[A], symmetry0: S0)
-                              (implicit A: LinAlg[A]): VPolytope.Aux[A, S0] =
-    new VPolytope[A] {
-      type S = S0
-      def symmetry = symmetry0
-      def mV = mV0
-      def mR = mR0
-    }
-
-  def apply[A](mV: Mat[A], mR: Mat[A])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] =
-    apply(mV, mR, Symmetry.Without)
-
-  def fromRays[A](allRayPoints: Mat[A])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] = {
-    import A.IMat
-    apply(zeros[A](0, allRayPoints.nCols), allRayPoints)
-  }
-
-  def fromVertices[A](allVertexPoints: Mat[A])(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] = {
-    import A.IMat
-    apply(allVertexPoints, zeros[A](0, allVertexPoints.nCols))
-  }
-
-  def empty[A](dim: Int)(implicit A: LinAlg[A]): VPolytope.Aux[A, Symmetry.Without.type] = {
-    import A.IMat
-    apply(zeros[A](0, dim), zeros[A](0, dim))
+  def fromRays[A](allRayPoints: Mat[A])(implicit A: CRing[A]): VPolytope[A] = {
+    val d = allRayPoints.nCols
+    val mV = Mat.zeros[A](0, d)
+    VPolytope[A](mV, allRayPoints)
   }
 
 }

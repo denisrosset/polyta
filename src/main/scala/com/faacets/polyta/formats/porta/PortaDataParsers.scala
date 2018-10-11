@@ -9,30 +9,16 @@ import scalin.immutable.Vec
 
 import scalin.immutable.dense._
 
-import scalin.syntax.build.tabulate
+import StandardParsers._
+import White._
+import fastparse.noApi._
 
-import fastparse.WhitespaceApi
-
-object Porta {
-
-  val White = WhitespaceApi.Wrapper{
-    import fastparse.all._
-    NoTrace(CharsWhile(" \t".contains(_)).?)
-  }
-
-}
-
-trait PortaDataParsers extends RationalParsers with AgnosticLineEndingParsers {
-
-  import fastparse.noApi._
-
-  implicit def parserApi[T, V](p0: T)(implicit c: T => fastparse.all.P[V]): WhitespaceApi[V] =
-    Porta.White.parserApi(p0)(c)
+object PortaDataParsers {
 
   val dimSection: P[Int] = P( "DIM" ~ "=" ~ positiveInt )
 
   def rowVector(d: Int): P[Vec[Rational]] = rational.rep(min=d, max=d)
-      .map(seq => tabulate(d)(seq(_)) )
+      .map(seq => Vec.tabulate(d)(seq(_)) )
 
   val lineNumberForget: P[Unit] = P( "(" ~ nonNegativeInt ~ ")" ).map( x => () )
 

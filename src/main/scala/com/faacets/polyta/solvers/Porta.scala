@@ -2,94 +2,55 @@ package com.faacets
 package polyta
 package solvers
 
-import java.io.{File, PrintWriter}
-
+import cats.effect.IO
 import spire.math.Rational
-
-import formats._
 import formats.porta._
-import sys.process._
-
-import com.faacets.polyta.process.{Computation, Runner}
+import fastparse.noApi.Parsed
 import scalin.immutable.Vec
+
+import process.{DefaultProcessRunner => runner}
 
 object Porta {
 
-  trait Files[Input, Output] extends Computation[Input, Output] {
-
-    type InputFile = Some[File]
-    type OutputFile = Some[File]
-
-    def inputExtension: String
-
-    def outputAddedExtension: String
-
-    def newInputFile(): InputFile = Some(File.createTempFile("porta", inputExtension))
-
-    def newOutputFile(inputFile: InputFile): OutputFile =
-      Some(new File(inputFile.get.getAbsolutePath + outputAddedExtension))
-
-    def optionString: String
-
-    def commandLine(inputFile: InputFile, outputFile: OutputFile): String = {
-      val inputPath = inputFile.get.getAbsolutePath
-      val outputPath = outputFile.get.getAbsolutePath
-      require(outputPath == inputPath + outputAddedExtension)
-      "traf " + optionString + " " + inputPath
-    }
-
-  }
-
-  trait Options { self: Files[_, _] =>
-
-    def minimalHeuristic: Boolean
-    def chernikovRule: Boolean
-    def specialArithmetic: Boolean
-
-    def optionString: String = {
+  case class Options(minimalHeuristic: Boolean, chernikovRule: Boolean, specialArithmetic: Boolean) {
+    def arg[F[_]](r: process.ProcessRunner[F]): r.Arg = {
       val chain =
         ((if (minimalHeuristic) "o" else "") +
           (if (chernikovRule) "" else "c") +
           (if (specialArithmetic) "l" else "")
           )
-      if (chain.nonEmpty) "-" + chain else ""
+      if (chain.nonEmpty) r.Arg.OfString("-" + chain) else r.Arg.Empty
     }
-
   }
 
-  case class HToV(minimalHeuristic: Boolean = true, chernikovRule: Boolean = true, specialArithmetic: Boolean = false)
-    extends Files[IEQData, POIData] with Options {
-
-    def inputFormat = IEQData.formatWrite
-
-    def outputFormat = POIData.formatRead
-
-    def inputExtension = ".ieq"
-
-    def outputAddedExtension = ".poi"
-
+  object Options {
+    val fastUnsafe = Options(true, true, false)
   }
 
-  def toHPolytope(vPolytope: VPolytope[Rational]): HPolytope[Rational] = {
-    val (ieqData, _) = Runner.throwing(VToH(), POIData(vPolytope))
-    ieqData.polytope
+  type EitherPF[X] = Either[Parsed.Failure, X]
+
+  def toHPolytope(vPolytope: VPolytope[Rational], options: Options = Options.fastUnsafe): HPolytope[Rational] = {
+    val inputData = POIData(vPolytope)
+    val io = for {
+      inputFile <- runner.createFile("porta", ".poi", inputData.fileContents)
+      outputFile <- runner.getFileVariant(inputFile, "", ".ieq")
+      processOutput <- runner.run("traf", options.arg(runner), inputFile)("")
+      result <- runner.readFile(outputFile)
+      parsed <- IO { IEQData.parser.parse(result).get }
+    } yield parsed.value.polytope
+    io.unsafeRunSync()
   }
 
-  case class VToH(minimalHeuristic: Boolean = true, chernikovRule: Boolean = true, specialArithmetic: Boolean = false)
-    extends Files[POIData, IEQData] with Options {
-
-    def inputFormat = POIData.formatWrite
-
-    def outputFormat = IEQData.formatRead
-
-    def inputExtension = ".poi"
-
-    def outputAddedExtension = ".ieq"
-  }
-
-  def toVPolytope(hPolytope: HPolytope[Rational], validPoint: Vec[Rational]): VPolytope[Rational] = {
-    val (poiData, _) = Runner.throwing(HToV(), IEQData(hPolytope, validPoint = validPoint))
-    poiData.polytope
+  def toVPolytope(hPolytope: HPolytope[Rational], validPoint: Vec[Rational], options: Options = Options.fastUnsafe): VPolytope[Rational] = {
+    val inputData = IEQData(hPolytope, validPoint)
+    val io = for {
+      inputFile <- runner.createFile("porta", ".ieq", inputData.fileContents)
+      outputFile <- runner.getFileVariant(inputFile, "", ".ieq")
+      processOutput <- runner.run("traf", options.arg(runner), inputFile)("")
+      result <- runner.readFile(outputFile)
+      parsed <- IO { POIData.parser.parse(result).get }
+    } yield parsed.value.polytope
+    io.unsafeRunSync()
   }
 
 }

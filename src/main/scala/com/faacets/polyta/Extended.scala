@@ -71,7 +71,6 @@ object Extended {
     def finite: Opt[A] = Opt(a)
   }
 
-
   case class PlusInf[A]() extends Extended[A] {
     def isMinusInf = false
     def isPlusInf = true

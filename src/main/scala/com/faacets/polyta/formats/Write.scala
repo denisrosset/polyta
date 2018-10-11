@@ -14,7 +14,7 @@ import spire.util._
 
 import scalin.Vec
 
-object Format {
+object StandardWriters {
   /** Writes an affine expression represented as a map of variable names to
     * the corresponding coefficients.
     * 

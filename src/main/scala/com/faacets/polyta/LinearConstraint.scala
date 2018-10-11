@@ -1,12 +1,15 @@
 package com.faacets
 package polyta
 
+import spire.algebra.CRing
 import scalin.immutable.Vec
+import scalin.immutable.dense._
+import spire.syntax.ring._
 
-import ComparisonOp.{LE, EQ, GE}
+import ComparisonOp.{EQ, GE, LE}
 
-/** A linear inequality or equality constraint, described by a vector of type `V` composed
-  * of scalars of type `A`.
+/** A linear inequality or equality constraint, described by a vector of type V composed
+  * of scalars of type A.
   */
 sealed trait LinearConstraint[A] {
   override def toString = lhs.toString + " " + op.toString + " " + rhs.toString
@@ -33,7 +36,7 @@ case class LinearEquality[A](lhs: Vec[A], rhs: A) extends LinearConstraint[A] {
 
 case class LinearInequality[A](lhs: Vec[A], op: InequalityOp, rhs: A) extends LinearConstraint[A] {
 
-  def toLE(implicit la: LinAlg[A]): LinearInequality[A] = if (op == LE) this else LinearInequality(la.IVec.negate(lhs), LE, la.fieldA.negate(rhs))
-  def toGE(implicit la: LinAlg[A]): LinearInequality[A] = if (op == GE) this else LinearInequality(la.IVec.negate(lhs), GE, la.fieldA.negate(rhs))
+  def toLE(implicit A: CRing[A]): LinearInequality[A] = if (op == LE) this else LinearInequality(-lhs, LE, -rhs)
+  def toGE(implicit A: CRing[A]): LinearInequality[A] = if (op == GE) this else LinearInequality(-lhs, GE, -rhs)
 
 }

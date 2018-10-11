@@ -6,12 +6,14 @@ import java.math.BigInteger
 
 import spire.math.{Rational, SafeLong}
 
-import fastparse.{ParserApi, WhitespaceApi}
 import fastparse.noApi._
+import White._
 
-trait RationalParsers {
+object StandardParsers {
 
-  implicit def parserApi[T, V](p0: T)(implicit c: T => fastparse.all.P[V]): WhitespaceApi[V]
+  val lineEnding: P[Unit] = P("\r".? ~ "\n")
+
+  val lineEndings: P[Unit] = lineEnding.rep(min=1)
 
   val nonNegativeInt: P[Int] = P( CharIn('0'to'9').repX(1).!.map(_.toInt) )
 
