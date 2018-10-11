@@ -1,4 +1,4 @@
-// inspired by Spire build.sbt file
+import ReleaseTransformations._
 
 val alascVersion = "0.16.0.0"
 val attributesVersion = "0.30"
@@ -13,11 +13,21 @@ val scalinVersion = "0.16.0.0"
 val shapelessVersion = "2.3.3"
 val spireVersion = "0.16.0"
 
-name := "Polyta"
+name := "polyta"
 
 organization := "com.faacets"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.7"
+
+scmInfo := Some(ScmInfo(url("https://github.com/denisrosset/polyta"), "scm:git:git@github.com:denisrosset/polyta.git"))
+
+homepage := Some(url("http://github.com/denisrosset/polyta"))
+
+licenses += ("GPL-V3", url("https://opensource.org/licenses/GPL-3.0"))
+
+publishArtifact in Test := false
+
+bintrayRepository := "maven"
 
 resolvers ++= Seq(
   "bintray/non" at "http://dl.bintray.com/non/maven",
