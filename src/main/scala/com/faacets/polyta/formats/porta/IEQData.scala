@@ -2,7 +2,7 @@ package com.faacets.polyta
 package formats
 package porta
 
-import java.io.{StringWriter, Writer}
+import java.io.Writer
 
 import com.faacets.polyta.ComparisonOp.{EQ, GE, LE}
 import fastparse.noApi._

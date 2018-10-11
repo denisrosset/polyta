@@ -9,7 +9,6 @@ import scala.reflect.ClassTag
 
 import spire.algebra._
 import spire.syntax.all._
-import spire.std.any._
 
 sealed trait SimplexResult
 case object SimplexUnbounded extends SimplexResult
@@ -25,7 +24,7 @@ case object SimplexError extends SimplexResult
   * RHS in column M+N, the objective function in row M, and
   * slack variables in columns M through M+N-1.
   */
-class Simplex[@sp(Double) T:Field:Order:ClassTag](val A: Array[Array[T]], val b: Array[T], val c: Array[T], epsilon: T) {
+class Simplex[@sp(Double) T:Field:Signed:ClassTag](val A: Array[Array[T]], val b: Array[T], val c: Array[T], epsilon: T) {
   @inline def zero = Field[T].zero
   @inline def one = Field[T].one
   @inline def M: Int = b.length
