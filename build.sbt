@@ -2,7 +2,7 @@ import ReleaseTransformations._
 
 val alascVersion = "0.16.0.0"
 val attributesVersion = "0.30"
-val catsVersion = "1.1.0"
+val catsVersion = "1.4.0"
 val catsEffectVersion = "1.0.0"
 val disciplineVersion = "0.8"
 val fastParseVersion = "1.0.0"
